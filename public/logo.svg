@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="bracketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#logoGrad)" opacity="0.1"/>
+  <circle cx="256" cy="256" r="200" fill="url(#logoGrad)" opacity="0.05"/>
+  <!-- Main hexagonal shape -->
+  <path d="M256 36 L456 148 L456 364 L256 476 L56 364 L56 148 Z" fill="url(#logoGrad)" opacity="0.9" rx="20"/>
+  <!-- Code brackets </> -->
+  <g filter="url(#glow)">
+    <!-- < bracket -->
+    <path d="M200 196 L140 256 L200 316" stroke="url(#bracketGrad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- > bracket -->
+    <path d="M312 196 L372 256 L312 316" stroke="url(#bracketGrad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- / slash -->
+    <path d="M280 176 L232 336" stroke="url(#bracketGrad)" stroke-width="22" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- Small decorative dots (stars) -->
+  <circle cx="120" cy="120" r="4" fill="#c4b5fd" opacity="0.8"/>
+  <circle cx="400" cy="100" r="3" fill="#c4b5fd" opacity="0.6"/>
+  <circle cx="380" cy="400" r="5" fill="#c4b5fd" opacity="0.7"/>
+  <circle cx="100" cy="380" r="3" fill="#c4b5fd" opacity="0.5"/>
+  <circle cx="256" cy="60" r="3" fill="#e9d5ff" opacity="0.9"/>
+</svg>
