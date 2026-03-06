@@ -1,10 +1,10 @@
-# Update Plan — CodeSpace
+# Update Plan — codespace
 
-After completing any implementation task, update the project plan in `docs/plan-codeSpace.prompt.md` to reflect the current state of the project.
+After completing any implementation task, update the project plan in `docs/plan-codespace.prompt.md` to reflect the current state of the project.
 
 ## Instructions
 
-1. **Read the current plan** at `docs/plan-codeSpace.prompt.md` in full.
+1. **Read the current plan** at `docs/plan-codespace.prompt.md` in full.
 2. **Read the conversation context** to identify what was just implemented — which features, components, files, or fixes were completed.
 3. **Apply the following updates** to the plan file:
 

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================
-   CodeSpace Design System — CSS Custom Properties
+   codespace Design System — CSS Custom Properties
    ============================================ */
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -85,7 +85,7 @@
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.546 0.245 262.881);
 
-  /* CodeSpace Extended Tokens */
+  /* codespace Extended Tokens */
   --cs-success: oklch(0.627 0.194 149.214);
   --cs-warning: oklch(0.769 0.188 70.08);
   --cs-info: oklch(0.623 0.214 259.815);

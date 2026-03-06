@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  name: "CodeSpace",
+  name: "codespace",
   tagline: "Learn. Code. Crack Interviews.",
   description:
     "Master programming concepts, DSA with animated visualizations, solve coding problems with a built-in compiler, and prepare for tech interviews at top companies.",

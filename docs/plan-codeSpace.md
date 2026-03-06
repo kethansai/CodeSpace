@@ -1,8 +1,8 @@
-# CodeSpace — Educational Platform for Developers
+# codespace — Educational Platform for Developers
 
 ## Plan Overview
 
-Build "CodeSpace" as a **Vue 3 + Vite SPA** using **Tailwind CSS v4 + shadcn-vue** for UI, **Piston API** for code execution, **GSAP + D3.js** for algorithm animations, **Monaco Editor** for the coding playground, and **Pinia** for state management. Content (DSA topics, problems, interview questions, learning paths) is stored as structured TypeScript data files with Markdown strings rendered at runtime via `marked` + `shiki`. Deployed to **Cloudflare Pages** with optional Cloudflare Functions as an API proxy. No auth required — progress tracking uses `localStorage` via Pinia persisted stores.
+Build "codespace" as a **Vue 3 + Vite SPA** using **Tailwind CSS v4 + shadcn-vue** for UI, **Piston API** for code execution, **GSAP + D3.js** for algorithm animations, **Monaco Editor** for the coding playground, and **Pinia** for state management. Content (DSA topics, problems, interview questions, learning paths) is stored as structured TypeScript data files with Markdown strings rendered at runtime via `marked` + `shiki`. Deployed to **Cloudflare Pages** with optional Cloudflare Functions as an API proxy. No auth required — progress tracking uses `localStorage` via Pinia persisted stores.
 
 ---
 
@@ -21,7 +21,7 @@ Build "CodeSpace" as a **Vue 3 + Vite SPA** using **Tailwind CSS v4 + shadcn-vue
 - Run `npx shadcn-vue@latest init` — select Vite framework, configure path aliases, choose default theme
 - This installs: `radix-vue`, `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-vue-next`
 - Add base shadcn-vue components: Button, Card, Badge, Tabs, Sheet, Dialog, Command, Accordion, ScrollArea, Tooltip, DropdownMenu, Separator, Input, Select
-- Configure CSS variables for CodeSpace brand colors (in `src/assets/css/main.css`)
+- Configure CSS variables for codespace brand colors (in `src/assets/css/main.css`)
 
 ### 3. Setup dark/light theme system
 
@@ -35,7 +35,7 @@ Build "CodeSpace" as a **Vue 3 + Vite SPA** using **Tailwind CSS v4 + shadcn-vue
 - `.env.example` → documented template
 - `src/config/app.ts` → app-level constants (site name, description, socials, etc.)
 
-### 5. Create the CodeSpace logo
+### 5. Create the codespace logo
 
 - SVG logo: Stylized `</>` code brackets integrated with a rocket/space motif
 - Design a monogram icon (CS) for favicon and small displays
@@ -326,26 +326,26 @@ Build "CodeSpace" as a **Vue 3 + Vite SPA** using **Tailwind CSS v4 + shadcn-vue
 
 ## Key Package List
 
-| Package | Purpose |
-|---|---|
-| `vue` `^3.5`, `vue-router` `^4.4`, `pinia` `^2.2` | Core framework |
-| `typescript` `^5.5` | Type safety |
-| `vite` `^6` | Build tool |
-| `tailwindcss` `^4`, `@tailwindcss/vite` | Styling |
-| `radix-vue`, `class-variance-authority`, `clsx`, `tailwind-merge` | shadcn-vue deps |
-| `lucide-vue-next` | Icons |
-| `monaco-editor`, `@monaco-editor/loader` | Code editor |
-| `shiki` | Syntax highlighting |
-| `marked` | Markdown → HTML |
-| `gsap` | Algorithm animations |
-| `d3-hierarchy`, `d3-force`, `d3-selection`, `d3-scale` | Tree/graph visualization |
-| `mermaid` | Flowchart diagrams |
-| `@vueuse/core` | Vue utility composables |
-| `@vueuse/motion` | UI animations |
-| `@unhead/vue` | SEO meta tags |
-| `minisearch` | Client-side full-text search |
-| `pinia-plugin-persistedstate` | localStorage persistence |
-| `unplugin-auto-import`, `unplugin-vue-components` | DX auto-imports |
+| Package                                                           | Purpose                      |
+| ----------------------------------------------------------------- | ---------------------------- |
+| `vue` `^3.5`, `vue-router` `^4.4`, `pinia` `^2.2`                 | Core framework               |
+| `typescript` `^5.5`                                               | Type safety                  |
+| `vite` `^6`                                                       | Build tool                   |
+| `tailwindcss` `^4`, `@tailwindcss/vite`                           | Styling                      |
+| `radix-vue`, `class-variance-authority`, `clsx`, `tailwind-merge` | shadcn-vue deps              |
+| `lucide-vue-next`                                                 | Icons                        |
+| `monaco-editor`, `@monaco-editor/loader`                          | Code editor                  |
+| `shiki`                                                           | Syntax highlighting          |
+| `marked`                                                          | Markdown → HTML              |
+| `gsap`                                                            | Algorithm animations         |
+| `d3-hierarchy`, `d3-force`, `d3-selection`, `d3-scale`            | Tree/graph visualization     |
+| `mermaid`                                                         | Flowchart diagrams           |
+| `@vueuse/core`                                                    | Vue utility composables      |
+| `@vueuse/motion`                                                  | UI animations                |
+| `@unhead/vue`                                                     | SEO meta tags                |
+| `minisearch`                                                      | Client-side full-text search |
+| `pinia-plugin-persistedstate`                                     | localStorage persistence     |
+| `unplugin-auto-import`, `unplugin-vue-components`                 | DX auto-imports              |
 
 ---
 

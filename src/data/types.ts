@@ -1,5 +1,5 @@
 // ============================================
-// CodeSpace — Core Data Type Definitions
+// codespace — Core Data Type Definitions
 // ============================================
 
 // ---------- Learning Paths ----------

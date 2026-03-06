@@ -1,21 +1,27 @@
-import type { Language } from '@/data/types'
+import type { Language } from "@/data/types";
 
 export const languages: Language[] = [
   {
-    id: 'javascript',
-    slug: 'javascript',
-    name: 'JavaScript',
-    icon: '🟨',
-    color: 'bg-yellow-500',
-    description: 'The language of the web. Essential for frontend development and increasingly used in backend with Node.js.',
+    id: "javascript",
+    slug: "javascript",
+    name: "JavaScript",
+    icon: "🟨",
+    color: "bg-yellow-500",
+    description:
+      "The language of the web. Essential for frontend development and increasingly used in backend with Node.js.",
     topics: [
       {
-        id: 'js-variables',
-        slug: 'variables',
-        title: 'Variables & Data Types',
-        description: 'Understanding var, let, const, and JavaScript data types.',
+        id: "js-variables",
+        slug: "variables",
+        title: "Variables & Data Types",
+        description:
+          "Understanding var, let, const, and JavaScript data types.",
         order: 1,
-        keyTakeaways: ['Use const by default, let when reassignment is needed', 'JavaScript has 7 primitive types + Object', 'typeof operator for type checking'],
+        keyTakeaways: [
+          "Use const by default, let when reassignment is needed",
+          "JavaScript has 7 primitive types + Object",
+          "typeof operator for type checking",
+        ],
         content: `## Variables in JavaScript
 
 JavaScript provides three ways to declare variables: \`var\`, \`let\`, and \`const\`.
@@ -52,10 +58,10 @@ JavaScript has **7 primitive types** and **1 structural type**:
 > **Key Insight:** JavaScript is *dynamically typed* — variables can hold any type and change types at runtime.`,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// Variable declarations
-const name = "CodeSpace";    // String (immutable binding)
+const name = "codespace";    // String (immutable binding)
 let count = 0;               // Number (can reassign)
 var legacy = true;           // Boolean (function-scoped, avoid)
 
@@ -85,10 +91,10 @@ console.log(typeof nul);     // "object" (historical bug)
 console.log(functionScoped);   // "visible everywhere"`,
           },
           {
-            language: 'python',
-            label: 'Python Equivalent',
+            language: "python",
+            label: "Python Equivalent",
             code: `# Python variables (dynamically typed, no declaration keyword)
-name = "CodeSpace"    # str
+name = "codespace"    # str
 count = 0             # int
 is_active = True      # bool
 
@@ -109,12 +115,17 @@ print(type(none_val)) # <class 'NoneType'>`,
         ],
       },
       {
-        id: 'js-functions',
-        slug: 'functions',
-        title: 'Functions & Scope',
-        description: 'Function declarations, expressions, arrow functions, and scope chain.',
+        id: "js-functions",
+        slug: "functions",
+        title: "Functions & Scope",
+        description:
+          "Function declarations, expressions, arrow functions, and scope chain.",
         order: 2,
-        keyTakeaways: ['Arrow functions do not have their own this', 'Functions are first-class objects', 'Scope chain determines variable access'],
+        keyTakeaways: [
+          "Arrow functions do not have their own this",
+          "Functions are first-class objects",
+          "Scope chain determines variable access",
+        ],
         content: `## Functions in JavaScript
 
 Functions are first-class citizens in JavaScript — they can be assigned to variables, passed as arguments, and returned from other functions.
@@ -144,8 +155,8 @@ Global Scope
 \`\`\``,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// 1. Function Declaration (hoisted)
 function greet(name) {
   return \`Hello, \${name}!\`;
@@ -188,17 +199,17 @@ outer();
 
 // 6. Arrow function vs regular (this binding)
 const obj = {
-  name: "CodeSpace",
+  name: "codespace",
   regular: function() { return this.name; },
   arrow: () => { return this.name; }, // 'this' is NOT obj
 };
 
-console.log(obj.regular()); // "CodeSpace"
+console.log(obj.regular()); // "codespace"
 console.log(obj.arrow());   // undefined (or global)`,
           },
           {
-            language: 'python',
-            label: 'Python Equivalent',
+            language: "python",
+            label: "Python Equivalent",
             code: `# Regular function
 def greet(name):
     return f"Hello, {name}!"
@@ -233,12 +244,17 @@ outer()`,
         ],
       },
       {
-        id: 'js-closures',
-        slug: 'closures',
-        title: 'Closures',
-        description: 'Understanding closures — functions that remember their lexical environment.',
+        id: "js-closures",
+        slug: "closures",
+        title: "Closures",
+        description:
+          "Understanding closures — functions that remember their lexical environment.",
         order: 3,
-        keyTakeaways: ['A closure is a function + its lexical environment', 'Used for data privacy and state preservation', 'Common in callbacks, event handlers, and module patterns'],
+        keyTakeaways: [
+          "A closure is a function + its lexical environment",
+          "Used for data privacy and state preservation",
+          "Common in callbacks, event handlers, and module patterns",
+        ],
         content: `## Closures
 
 A **closure** is created when a function retains access to its lexical scope even after the outer function has returned.
@@ -259,8 +275,8 @@ A **closure** is created when a function retains access to its lexical scope eve
 Closures keep the referenced outer variables alive in memory. Be mindful of unintentional closures in loops.`,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// Basic closure
 function createCounter() {
   let count = 0; // Private variable - enclosed!
@@ -300,8 +316,8 @@ for (let i = 0; i < 3; i++) {
 }`,
           },
           {
-            language: 'python',
-            label: 'Python Equivalent',
+            language: "python",
+            label: "Python Equivalent",
             code: `# Closure in Python
 def create_counter():
     count = 0  # Enclosed variable
@@ -336,12 +352,17 @@ print(triple(5))  # 15`,
         ],
       },
       {
-        id: 'js-promises',
-        slug: 'promises',
-        title: 'Promises & Async Patterns',
-        description: 'Handling asynchronous operations with Promises, async/await, and error handling.',
+        id: "js-promises",
+        slug: "promises",
+        title: "Promises & Async Patterns",
+        description:
+          "Handling asynchronous operations with Promises, async/await, and error handling.",
         order: 4,
-        keyTakeaways: ['Promises represent eventual completion/failure of async operations', 'async/await is syntactic sugar over Promises', 'Always handle errors with try/catch or .catch()'],
+        keyTakeaways: [
+          "Promises represent eventual completion/failure of async operations",
+          "async/await is syntactic sugar over Promises",
+          "Always handle errors with try/catch or .catch()",
+        ],
         content: `## Promises & Async/Await
 
 JavaScript is **single-threaded** but handles asynchronous operations through an event-driven model. Promises provide a cleaner way to handle async operations compared to callbacks.
@@ -362,8 +383,8 @@ Syntactic sugar over Promises that makes async code look synchronous, improving 
 - \`try/catch\` for async/await`,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// Creating a Promise
 function fetchData(url) {
   return new Promise((resolve, reject) => {
@@ -414,8 +435,8 @@ const fastest = await Promise.race([
 ]);`,
           },
           {
-            language: 'python',
-            label: 'Python (asyncio)',
+            language: "python",
+            label: "Python (asyncio)",
             code: `import asyncio
 
 # Async function
@@ -446,12 +467,17 @@ asyncio.run(get_data())`,
         ],
       },
       {
-        id: 'js-event-loop',
-        slug: 'event-loop',
-        title: 'Event Loop & Concurrency',
-        description: 'How JavaScript handles concurrency with the event loop, call stack, and task queues.',
+        id: "js-event-loop",
+        slug: "event-loop",
+        title: "Event Loop & Concurrency",
+        description:
+          "How JavaScript handles concurrency with the event loop, call stack, and task queues.",
         order: 5,
-        keyTakeaways: ['JavaScript is single-threaded with an event loop', 'Microtasks (Promises) run before macrotasks (setTimeout)', 'Understanding the event loop is crucial for debugging async code'],
+        keyTakeaways: [
+          "JavaScript is single-threaded with an event loop",
+          "Microtasks (Promises) run before macrotasks (setTimeout)",
+          "Understanding the event loop is crucial for debugging async code",
+        ],
         content: `## The Event Loop
 
 JavaScript runs on a **single thread** but achieves concurrency through the **event loop** mechanism.
@@ -471,8 +497,8 @@ JavaScript runs on a **single thread** but achieves concurrency through the **ev
 > **Key Rule:** Microtasks always run before the next macrotask.`,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// Event loop demonstration
 console.log("1. Synchronous - first");
 
@@ -507,12 +533,17 @@ setTimeout(() => console.log("Macro 2"), 0);
         ],
       },
       {
-        id: 'js-prototypes',
-        slug: 'prototypes',
-        title: 'Prototypes & Inheritance',
-        description: 'JavaScript\'s prototype chain, classes, and inheritance patterns.',
+        id: "js-prototypes",
+        slug: "prototypes",
+        title: "Prototypes & Inheritance",
+        description:
+          "JavaScript's prototype chain, classes, and inheritance patterns.",
         order: 6,
-        keyTakeaways: ['Everything in JS inherits from Object.prototype', 'ES6 classes are syntactic sugar over prototypes', 'Prototype chain is used for property lookup'],
+        keyTakeaways: [
+          "Everything in JS inherits from Object.prototype",
+          "ES6 classes are syntactic sugar over prototypes",
+          "Prototype chain is used for property lookup",
+        ],
         content: `## Prototypes & Inheritance
 
 JavaScript uses **prototypal inheritance** rather than classical inheritance. Every object has a hidden \`[[Prototype]]\` link.
@@ -528,8 +559,8 @@ When you access a property on an object, JavaScript:
 Classes in JavaScript are syntactic sugar over the prototype system. They provide a cleaner syntax but work the same way under the hood.`,
         codeExamples: [
           {
-            language: 'javascript',
-            label: 'JavaScript',
+            language: "javascript",
+            label: "JavaScript",
             code: `// ES6 Class syntax
 class Animal {
   constructor(name, sound) {
@@ -569,20 +600,26 @@ console.log(dog instanceof Object); // true
     ],
   },
   {
-    id: 'python',
-    slug: 'python',
-    name: 'Python',
-    icon: '🐍',
-    color: 'bg-blue-500',
-    description: 'A versatile, readable language perfect for backend development, data science, and automation.',
+    id: "python",
+    slug: "python",
+    name: "Python",
+    icon: "🐍",
+    color: "bg-blue-500",
+    description:
+      "A versatile, readable language perfect for backend development, data science, and automation.",
     topics: [
       {
-        id: 'py-basics',
-        slug: 'basics',
-        title: 'Python Basics',
-        description: 'Variables, data types, operators, and control flow in Python.',
+        id: "py-basics",
+        slug: "basics",
+        title: "Python Basics",
+        description:
+          "Variables, data types, operators, and control flow in Python.",
         order: 1,
-        keyTakeaways: ['Python uses indentation for blocks', 'Dynamically typed but strongly typed', 'Everything is an object in Python'],
+        keyTakeaways: [
+          "Python uses indentation for blocks",
+          "Dynamically typed but strongly typed",
+          "Everything is an object in Python",
+        ],
         content: `## Python Basics
 
 Python is known for its clean syntax and readability. It uses **indentation** to define code blocks instead of braces.
@@ -606,10 +643,10 @@ Python is known for its clean syntax and readability. It uses **indentation** to
 | set | \`{1, 2, 3}\` | Yes |`,
         codeExamples: [
           {
-            language: 'python',
-            label: 'Python',
+            language: "python",
+            label: "Python",
             code: `# Variables (no declaration keyword needed)
-name = "CodeSpace"       # str
+name = "codespace"       # str
 count = 42               # int
 price = 9.99             # float
 is_active = True         # bool
@@ -649,10 +686,10 @@ print(greet("World"))          # "Hello, World!"
 print(greet("World", "Hi"))    # "Hi, World!"`,
           },
           {
-            language: 'javascript',
-            label: 'JavaScript Equivalent',
+            language: "javascript",
+            label: "JavaScript Equivalent",
             code: `// Variables
-const name = "CodeSpace";
+const name = "codespace";
 let count = 42;
 const price = 9.99;
 const isActive = true;
@@ -686,12 +723,16 @@ function greet(name, greeting = "Hello") {
         ],
       },
       {
-        id: 'py-data-structures',
-        slug: 'data-structures',
-        title: 'Python Data Structures',
-        description: 'Lists, tuples, dictionaries, sets, and their operations.',
+        id: "py-data-structures",
+        slug: "data-structures",
+        title: "Python Data Structures",
+        description: "Lists, tuples, dictionaries, sets, and their operations.",
         order: 2,
-        keyTakeaways: ['Lists are versatile and most commonly used', 'Dicts have O(1) average lookup time', 'Sets are great for uniqueness and set operations'],
+        keyTakeaways: [
+          "Lists are versatile and most commonly used",
+          "Dicts have O(1) average lookup time",
+          "Sets are great for uniqueness and set operations",
+        ],
         content: `## Python Built-in Data Structures
 
 Python provides powerful built-in data structures that cover most use cases without external libraries.
@@ -716,8 +757,8 @@ Python provides powerful built-in data structures that cover most use cases with
 - Used for fixed collections, as dict keys, and function returns`,
         codeExamples: [
           {
-            language: 'python',
-            label: 'Python',
+            language: "python",
+            label: "Python",
             code: `# Lists — ordered, mutable
 fruits = ["apple", "banana", "cherry"]
 fruits.append("date")         # Add to end
@@ -762,12 +803,17 @@ print(a - b)    # Difference: {1, 2}`,
         ],
       },
       {
-        id: 'py-oop',
-        slug: 'oop',
-        title: 'Object-Oriented Programming',
-        description: 'Classes, inheritance, encapsulation, and polymorphism in Python.',
+        id: "py-oop",
+        slug: "oop",
+        title: "Object-Oriented Programming",
+        description:
+          "Classes, inheritance, encapsulation, and polymorphism in Python.",
         order: 3,
-        keyTakeaways: ['Python supports multiple inheritance', 'Use @property for getters/setters', 'Dunder methods customize object behavior'],
+        keyTakeaways: [
+          "Python supports multiple inheritance",
+          "Use @property for getters/setters",
+          "Dunder methods customize object behavior",
+        ],
         content: `## OOP in Python
 
 Python is a multi-paradigm language with full support for Object-Oriented Programming.
@@ -780,8 +826,8 @@ Python is a multi-paradigm language with full support for Object-Oriented Progra
 - **Polymorphism**: Same interface, different implementations`,
         codeExamples: [
           {
-            language: 'python',
-            label: 'Python',
+            language: "python",
+            label: "Python",
             code: `class Animal:
     def __init__(self, name: str, sound: str):
         self.name = name
@@ -837,12 +883,17 @@ print(isinstance(dog, Dog))     # True`,
         ],
       },
       {
-        id: 'py-decorators',
-        slug: 'decorators',
-        title: 'Decorators',
-        description: 'Understanding decorators — functions that modify other functions.',
+        id: "py-decorators",
+        slug: "decorators",
+        title: "Decorators",
+        description:
+          "Understanding decorators — functions that modify other functions.",
         order: 4,
-        keyTakeaways: ['Decorators are functions that wrap other functions', '@decorator syntax is syntactic sugar', 'Used for logging, caching, authentication, etc.'],
+        keyTakeaways: [
+          "Decorators are functions that wrap other functions",
+          "@decorator syntax is syntactic sugar",
+          "Used for logging, caching, authentication, etc.",
+        ],
         content: `## Python Decorators
 
 A **decorator** is a function that takes another function as input and returns a modified version of it. They leverage closures and first-class functions.
@@ -857,8 +908,8 @@ A **decorator** is a function that takes another function as input and returns a
 - \`@functools.lru_cache\` — memoization`,
         codeExamples: [
           {
-            language: 'python',
-            label: 'Python',
+            language: "python",
+            label: "Python",
             code: `import functools
 import time
 
@@ -909,12 +960,17 @@ print(fibonacci(50))  # Instant! Cached results`,
         ],
       },
       {
-        id: 'py-generators',
-        slug: 'generators',
-        title: 'Generators & Iterators',
-        description: 'Lazy evaluation with generators and the iterator protocol.',
+        id: "py-generators",
+        slug: "generators",
+        title: "Generators & Iterators",
+        description:
+          "Lazy evaluation with generators and the iterator protocol.",
         order: 5,
-        keyTakeaways: ['Generators produce values lazily (on-demand)', 'Use yield instead of return', 'Memory efficient for large datasets'],
+        keyTakeaways: [
+          "Generators produce values lazily (on-demand)",
+          "Use yield instead of return",
+          "Memory efficient for large datasets",
+        ],
         content: `## Generators
 
 Generators are functions that produce a sequence of values **lazily** — one at a time, only when requested. They use the \`yield\` keyword.
@@ -925,8 +981,8 @@ Generators are functions that produce a sequence of values **lazily** — one at
 - **Pipeline composition**: Chain generators together`,
         codeExamples: [
           {
-            language: 'python',
-            label: 'Python',
+            language: "python",
+            label: "Python",
             code: `# Generator function
 def fibonacci_gen(limit):
     a, b = 0, 1
@@ -968,20 +1024,26 @@ print(list(pipeline))  # ['HELLO', 'WORLD', 'PYTHON']`,
     ],
   },
   {
-    id: 'typescript',
-    slug: 'typescript',
-    name: 'TypeScript',
-    icon: '🔷',
-    color: 'bg-blue-600',
-    description: 'JavaScript with static typing. The industry standard for large-scale JavaScript applications.',
+    id: "typescript",
+    slug: "typescript",
+    name: "TypeScript",
+    icon: "🔷",
+    color: "bg-blue-600",
+    description:
+      "JavaScript with static typing. The industry standard for large-scale JavaScript applications.",
     topics: [
       {
-        id: 'ts-basics',
-        slug: 'basics',
-        title: 'TypeScript Fundamentals',
-        description: 'Type annotations, interfaces, generics, and TypeScript\'s type system.',
+        id: "ts-basics",
+        slug: "basics",
+        title: "TypeScript Fundamentals",
+        description:
+          "Type annotations, interfaces, generics, and TypeScript's type system.",
         order: 1,
-        keyTakeaways: ['TypeScript adds static types to JavaScript', 'Interfaces define object shapes', 'Generics provide reusable type-safe components'],
+        keyTakeaways: [
+          "TypeScript adds static types to JavaScript",
+          "Interfaces define object shapes",
+          "Generics provide reusable type-safe components",
+        ],
         content: `## TypeScript Fundamentals
 
 TypeScript is a **typed superset of JavaScript** that compiles to plain JavaScript. It adds optional static typing, interfaces, generics, and other features.
@@ -993,10 +1055,10 @@ TypeScript is a **typed superset of JavaScript** that compiles to plain JavaScri
 - Required for large codebases and teams`,
         codeExamples: [
           {
-            language: 'typescript',
-            label: 'TypeScript',
+            language: "typescript",
+            label: "TypeScript",
             code: `// Type annotations
-let name: string = "CodeSpace";
+let name: string = "codespace";
 let count: number = 42;
 let isActive: boolean = true;
 let items: string[] = ["a", "b", "c"];
@@ -1044,20 +1106,25 @@ type UserKeys = keyof User; // "id" | "name" | "email" | "role" | "bio"`,
     ],
   },
   {
-    id: 'java',
-    slug: 'java',
-    name: 'Java',
-    icon: '☕',
-    color: 'bg-red-500',
-    description: 'A strongly-typed, object-oriented language widely used in enterprise applications and Android development.',
+    id: "java",
+    slug: "java",
+    name: "Java",
+    icon: "☕",
+    color: "bg-red-500",
+    description:
+      "A strongly-typed, object-oriented language widely used in enterprise applications and Android development.",
     topics: [
       {
-        id: 'java-basics',
-        slug: 'basics',
-        title: 'Java Fundamentals',
-        description: 'Classes, data types, OOP, and the JVM.',
+        id: "java-basics",
+        slug: "basics",
+        title: "Java Fundamentals",
+        description: "Classes, data types, OOP, and the JVM.",
         order: 1,
-        keyTakeaways: ['Everything in Java is inside a class', 'Strongly typed with static type checking', 'Runs on JVM — write once, run anywhere'],
+        keyTakeaways: [
+          "Everything in Java is inside a class",
+          "Strongly typed with static type checking",
+          "Runs on JVM — write once, run anywhere",
+        ],
         content: `## Java Fundamentals
 
 Java is a **statically-typed, object-oriented** language that runs on the Java Virtual Machine (JVM).
@@ -1069,8 +1136,8 @@ Java is a **statically-typed, object-oriented** language that runs on the Java V
 - **Garbage collected**: Automatic memory management`,
         codeExamples: [
           {
-            language: 'java',
-            label: 'Java',
+            language: "java",
+            label: "Java",
             code: `// Java fundamentals
 public class Main {
     public static void main(String[] args) {
@@ -1081,7 +1148,7 @@ public class Main {
         char grade = 'A';
 
         // Reference types
-        String name = "CodeSpace";
+        String name = "codespace";
         int[] numbers = {1, 2, 3, 4, 5};
 
         // String formatting
@@ -1117,20 +1184,25 @@ public class Main {
     ],
   },
   {
-    id: 'csharp',
-    slug: 'csharp',
-    name: 'C#',
-    icon: '#️⃣',
-    color: 'bg-violet-500',
-    description: 'A modern, object-oriented language by Microsoft. The backbone of .NET development.',
+    id: "csharp",
+    slug: "csharp",
+    name: "C#",
+    icon: "#️⃣",
+    color: "bg-violet-500",
+    description:
+      "A modern, object-oriented language by Microsoft. The backbone of .NET development.",
     topics: [
       {
-        id: 'cs-basics',
-        slug: 'basics',
-        title: 'C# Basics',
-        description: 'Types, classes, LINQ, and the .NET ecosystem.',
+        id: "cs-basics",
+        slug: "basics",
+        title: "C# Basics",
+        description: "Types, classes, LINQ, and the .NET ecosystem.",
         order: 1,
-        keyTakeaways: ['C# runs on .NET (cross-platform)', 'Strongly typed with type inference (var)', 'LINQ provides powerful data querying'],
+        keyTakeaways: [
+          "C# runs on .NET (cross-platform)",
+          "Strongly typed with type inference (var)",
+          "LINQ provides powerful data querying",
+        ],
         content: `## C# Basics
 
 C# is a modern, strongly-typed language developed by Microsoft. It runs on the **.NET** platform.
@@ -1143,14 +1215,14 @@ C# is a modern, strongly-typed language developed by Microsoft. It runs on the *
 - **Cross-platform** — runs on Windows, macOS, Linux via .NET`,
         codeExamples: [
           {
-            language: 'csharp',
-            label: 'C#',
+            language: "csharp",
+            label: "C#",
             code: `using System;
 using System.Collections.Generic;
 using System.Linq;
 
 // Top-level statements (C# 10+)
-var name = "CodeSpace";
+var name = "codespace";
 var count = 42;
 var isActive = true;
 
@@ -1198,27 +1270,32 @@ var result = value switch
     ],
   },
   {
-    id: 'cpp',
-    slug: 'cpp',
-    name: 'C++',
-    icon: '⚡',
-    color: 'bg-sky-500',
-    description: 'A high-performance systems language. Essential for competitive programming and systems development.',
+    id: "cpp",
+    slug: "cpp",
+    name: "C++",
+    icon: "⚡",
+    color: "bg-sky-500",
+    description:
+      "A high-performance systems language. Essential for competitive programming and systems development.",
     topics: [
       {
-        id: 'cpp-basics',
-        slug: 'basics',
-        title: 'C++ Fundamentals',
-        description: 'Syntax, STL containers, pointers, and memory management.',
+        id: "cpp-basics",
+        slug: "basics",
+        title: "C++ Fundamentals",
+        description: "Syntax, STL containers, pointers, and memory management.",
         order: 1,
-        keyTakeaways: ['C++ gives direct memory control', 'STL provides powerful containers and algorithms', 'Smart pointers prevent memory leaks'],
+        keyTakeaways: [
+          "C++ gives direct memory control",
+          "STL provides powerful containers and algorithms",
+          "Smart pointers prevent memory leaks",
+        ],
         content: `## C++ Fundamentals
 
 C++ is a **statically-typed**, compiled language known for its performance and low-level control. It's widely used in systems programming, game development, and competitive programming.`,
         codeExamples: [
           {
-            language: 'cpp',
-            label: 'C++',
+            language: "cpp",
+            label: "C++",
             code: `#include <iostream>
 #include <vector>
 #include <map>
@@ -1228,7 +1305,7 @@ using namespace std;
 
 int main() {
     // Variables
-    string name = "CodeSpace";
+    string name = "codespace";
     int count = 42;
     double price = 9.99;
     bool isActive = true;
@@ -1268,20 +1345,26 @@ int main() {
     ],
   },
   {
-    id: 'go',
-    slug: 'go',
-    name: 'Go',
-    icon: '🔵',
-    color: 'bg-cyan-500',
-    description: 'A simple, efficient language by Google. Great for building scalable backend services and infrastructure tools.',
+    id: "go",
+    slug: "go",
+    name: "Go",
+    icon: "🔵",
+    color: "bg-cyan-500",
+    description:
+      "A simple, efficient language by Google. Great for building scalable backend services and infrastructure tools.",
     topics: [
       {
-        id: 'go-basics',
-        slug: 'basics',
-        title: 'Go Fundamentals',
-        description: 'Go syntax, goroutines, channels, and the Go way of doing things.',
+        id: "go-basics",
+        slug: "basics",
+        title: "Go Fundamentals",
+        description:
+          "Go syntax, goroutines, channels, and the Go way of doing things.",
         order: 1,
-        keyTakeaways: ['Go is simple by design — few keywords', 'Goroutines make concurrency easy', 'No classes — uses structs and interfaces'],
+        keyTakeaways: [
+          "Go is simple by design — few keywords",
+          "Goroutines make concurrency easy",
+          "No classes — uses structs and interfaces",
+        ],
         content: `## Go Fundamentals
 
 Go (Golang) is designed for **simplicity and efficiency**. By Google, for building scalable and reliable systems.
@@ -1295,8 +1378,8 @@ Go (Golang) is designed for **simplicity and efficiency**. By Google, for buildi
 - **Built-in tooling**: \`go fmt\`, \`go test\`, \`go mod\``,
         codeExamples: [
           {
-            language: 'go',
-            label: 'Go',
+            language: "go",
+            label: "Go",
             code: `package main
 
 import (
@@ -1327,7 +1410,7 @@ func printGreeting(g Greeter) {
 
 func main() {
     // Variables
-    name := "CodeSpace"
+    name := "codespace"
     count := 42
     fmt.Printf("Welcome to %s! Count: %d\\n", name, count)
 
@@ -1359,14 +1442,14 @@ func main() {
       },
     ],
   },
-]
+];
 
 export function getLanguageBySlug(slug: string): Language | undefined {
-  return languages.find((l) => l.slug === slug)
+  return languages.find((l) => l.slug === slug);
 }
 
 export function getLanguageTopic(langSlug: string, topicSlug: string) {
-  const lang = getLanguageBySlug(langSlug)
-  if (!lang) return undefined
-  return lang.topics.find((t) => t.slug === topicSlug)
+  const lang = getLanguageBySlug(langSlug);
+  if (!lang) return undefined;
+  return lang.topics.find((t) => t.slug === topicSlug);
 }
