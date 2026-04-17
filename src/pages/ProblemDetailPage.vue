@@ -8,11 +8,13 @@ import MarkdownRenderer from '@/components/content/MarkdownRenderer.vue'
 import DifficultyBadge from '@/components/content/DifficultyBadge.vue'
 import CodeEditor from '@/components/editor/CodeEditor.vue'
 import CodeRunner from '@/components/editor/CodeRunner.vue'
+import ProblemAnimator from '@/components/visualizer/ProblemAnimator.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Button from '@/components/ui/Button.vue'
 import { ArrowLeft, Eye, EyeOff, Lightbulb, RotateCcw } from 'lucide-vue-next'
+import { getProblemAnimation } from '@/utils/problems/animations'
 
 const route = useRoute()
 const preferences = usePreferencesStore()
@@ -53,6 +55,11 @@ function loadSolution() {
     }
   }
 }
+
+// ── Animated walkthrough ──
+const animation = computed(() =>
+  problem.value ? getProblemAnimation(problem.value.slug) : null,
+)
 </script>
 
 <template>
@@ -81,6 +88,16 @@ function loadSolution() {
           <div class="prose-content">
             <MarkdownRenderer :content="problem.description" />
           </div>
+
+          <!-- Animated Walkthrough -->
+          <ProblemAnimator
+            v-if="animation && animation.steps.length"
+            :title="animation.title"
+            :description="animation.description"
+            :mode="animation.mode"
+            :variant="animation.variant"
+            :steps="animation.steps"
+          />
 
           <!-- Test Cases -->
           <Card>

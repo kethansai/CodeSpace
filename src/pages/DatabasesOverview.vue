@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { systemDesigns } from "@/data/system-design";
+import { databases } from "@/data/databases";
 import Card from "@/components/ui/Card.vue";
 import CardContent from "@/components/ui/CardContent.vue";
 import Badge from "@/components/ui/Badge.vue";
 import { DIFFICULTY_COLORS } from "@/config/app";
-import { ArrowRight, Server, Sparkles } from "lucide-vue-next";
+import { ArrowRight, Database, Sparkles } from "lucide-vue-next";
 
 const categories = computed(() => {
-  const map = new Map<string, typeof systemDesigns>();
-  for (const sd of systemDesigns) {
-    const list = map.get(sd.category) || [];
-    list.push(sd);
-    map.set(sd.category, list);
+  const map = new Map<string, typeof databases>();
+  for (const db of databases) {
+    const list = map.get(db.category) || [];
+    list.push(db);
+    map.set(db.category, list);
   }
   return Array.from(map.entries());
 });
@@ -22,12 +22,12 @@ const categories = computed(() => {
   <div class="container mx-auto max-w-6xl px-4 py-8 md:py-12">
     <div class="mb-10">
       <div class="flex items-center gap-3 mb-2">
-        <Server class="w-8 h-8 text-primary" />
-        <h1 class="text-3xl font-bold">System Design</h1>
+        <Database class="w-8 h-8 text-primary" />
+        <h1 class="text-3xl font-bold">Databases</h1>
       </div>
       <p class="text-muted-foreground text-lg max-w-2xl">
-        Learn how to design large-scale distributed systems. Each topic includes
-        architecture diagrams, capacity estimation, and key design decisions.
+        From relational giants to key-value caches — learn how modern databases
+        work with animated architecture walkthroughs and deep dives.
       </p>
     </div>
 
@@ -36,9 +36,9 @@ const categories = computed(() => {
       <Card>
         <CardContent class="p-4 text-center">
           <div class="text-2xl font-bold text-primary">
-            {{ systemDesigns.length }}
+            {{ databases.length }}
           </div>
-          <div class="text-sm text-muted-foreground">Design Topics</div>
+          <div class="text-sm text-muted-foreground">Databases</div>
         </CardContent>
       </Card>
       <Card>
@@ -47,7 +47,7 @@ const categories = computed(() => {
             class="text-2xl font-bold text-primary flex items-center justify-center gap-1"
           >
             <Sparkles class="w-4 h-4" />
-            {{ systemDesigns.filter((d) => d.animations?.length).length }}
+            {{ databases.filter((d) => d.animations?.length).length }}
           </div>
           <div class="text-sm text-muted-foreground">Animated</div>
         </CardContent>
@@ -55,7 +55,7 @@ const categories = computed(() => {
       <Card>
         <CardContent class="p-4 text-center">
           <div class="text-2xl font-bold text-red-500">
-            {{ systemDesigns.filter((d) => d.difficulty === "hard").length }}
+            {{ databases.filter((d) => d.difficulty === "hard").length }}
           </div>
           <div class="text-sm text-muted-foreground">Hard</div>
         </CardContent>
@@ -70,9 +70,9 @@ const categories = computed(() => {
       </Card>
     </div>
 
-    <!-- Designs by Category -->
+    <!-- By Category -->
     <div
-      v-for="[category, designs] in categories"
+      v-for="[category, list] in categories"
       :key="category"
       class="mb-10"
     >
@@ -81,9 +81,9 @@ const categories = computed(() => {
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <RouterLink
-          v-for="design in designs"
-          :key="design.id"
-          :to="`/system-design/${design.slug}`"
+          v-for="db in list"
+          :key="db.id"
+          :to="`/databases/${db.slug}`"
           class="group"
         >
           <Card
@@ -91,30 +91,30 @@ const categories = computed(() => {
           >
             <CardContent class="p-6">
               <div class="flex items-center gap-3 mb-3">
-                <span class="text-3xl">{{ design.icon }}</span>
+                <span class="text-3xl">{{ db.icon }}</span>
                 <h3
                   class="text-lg font-semibold group-hover:text-primary transition-colors leading-tight"
                 >
-                  {{ design.title }}
+                  {{ db.title }}
                 </h3>
               </div>
               <p class="text-sm text-muted-foreground line-clamp-2 mb-4">
-                {{ design.description }}
+                {{ db.description }}
               </p>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <Badge
                     :class="[
-                      DIFFICULTY_COLORS[design.difficulty].bg,
-                      DIFFICULTY_COLORS[design.difficulty].text,
-                      DIFFICULTY_COLORS[design.difficulty].border,
+                      DIFFICULTY_COLORS[db.difficulty].bg,
+                      DIFFICULTY_COLORS[db.difficulty].text,
+                      DIFFICULTY_COLORS[db.difficulty].border,
                       'border',
                     ]"
                   >
-                    {{ design.difficulty }}
+                    {{ db.difficulty }}
                   </Badge>
                   <Badge
-                    v-if="design.animations?.length"
+                    v-if="db.animations?.length"
                     class="bg-primary/10 text-primary border-primary/20 border gap-1"
                   >
                     <Sparkles class="w-3 h-3" />

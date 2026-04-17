@@ -598,6 +598,312 @@ export const dsaCategories: DSACategory[] = [
         ],
         visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5, 6, 7, 8] },
       },
+      {
+        id: "reverse-linked-list",
+        slug: "reverse-linked-list-topic",
+        title: "Reverse a Linked List",
+        difficulty: "easy",
+        description:
+          "Iteratively flip each node's next pointer using prev/curr/next.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Reverse a Linked List\n\nKeep three pointers — \`prev\`, \`curr\`, \`next\` — and flip \`curr.next\` to \`prev\` at each step.\n\n### Steps\n1. Save \`next = curr.next\`\n2. Reassign \`curr.next = prev\`\n3. Advance \`prev = curr\`, then \`curr = next\`\n\n### Pitfalls\n- Forgetting to cache \`next\` before overwriting \`curr.next\`\n- Returning \`curr\` (null at the end) instead of \`prev\``,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function reverseList(head) {\n  let prev = null, curr = head;\n  while (curr) {\n    const next = curr.next;\n    curr.next = prev;\n    prev = curr;\n    curr = next;\n  }\n  return prev;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def reverse_list(head):\n    prev, curr = None, head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nxt\n    return prev`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* reverseList(ListNode* head) {\n  ListNode *prev=nullptr, *curr=head;\n  while (curr) {\n    auto* nxt = curr->next;\n    curr->next = prev;\n    prev = curr;\n    curr = nxt;\n  }\n  return prev;\n}`,
+          },
+        ],
+        relatedProblems: ["reverse-linked-list"],
+        tags: ["Two Pointers", "In-Place"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+      },
+      {
+        id: "merge-two-sorted-lists",
+        slug: "merge-two-sorted-lists-topic",
+        title: "Merge Two Sorted Lists",
+        difficulty: "easy",
+        description:
+          "Splice two sorted linked lists into one using a dummy head.",
+        timeComplexity: "O(n + m)",
+        spaceComplexity: "O(1)",
+        content: `## Merge Two Sorted Lists\n\nUse a **dummy head** so you don't special-case the first append. Walk both lists with two pointers, picking the smaller node each step.\n\n### Why a dummy head?\nIt eliminates the need to check whether the result list is empty before appending.\n\n### Generalization\n- For *k* lists: use a min-heap of \`(val, listIdx)\` for O(N log k).`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function mergeTwoLists(l1, l2) {\n  const dummy = { val: 0, next: null };\n  let tail = dummy;\n  while (l1 && l2) {\n    if (l1.val <= l2.val) { tail.next = l1; l1 = l1.next; }\n    else { tail.next = l2; l2 = l2.next; }\n    tail = tail.next;\n  }\n  tail.next = l1 ?? l2;\n  return dummy.next;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def merge_two_lists(l1, l2):\n    dummy = tail = ListNode()\n    while l1 and l2:\n        if l1.val <= l2.val:\n            tail.next, l1 = l1, l1.next\n        else:\n            tail.next, l2 = l2, l2.next\n        tail = tail.next\n    tail.next = l1 or l2\n    return dummy.next`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* mergeTwoLists(ListNode* a, ListNode* b) {\n  ListNode dummy(0), *tail=&dummy;\n  while (a && b) {\n    if (a->val <= b->val) { tail->next = a; a = a->next; }\n    else { tail->next = b; b = b->next; }\n    tail = tail->next;\n  }\n  tail->next = a ? a : b;\n  return dummy.next;\n}`,
+          },
+        ],
+        relatedProblems: ["merge-two-sorted-lists"],
+        tags: ["Two Pointers", "Dummy Head"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 4] },
+      },
+      {
+        id: "remove-nth-from-end",
+        slug: "remove-nth-from-end-topic",
+        title: "Remove Nth Node From End",
+        difficulty: "medium",
+        description:
+          "Two pointers with a fixed gap of n+1 to delete in one pass.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Remove Nth Node From End\n\nAdvance \`fast\` by **n + 1** from a dummy head, then walk both pointers in tandem until \`fast\` falls off the end. \`slow\` will land **just before** the node to remove.\n\n### Why dummy?\nMakes removing the head node a uniform case.\n\n### One-pass intuition\nGap of n+1 ensures slow's *next* is the target.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function removeNthFromEnd(head, n) {\n  const dummy = { val: 0, next: head };\n  let fast = dummy, slow = dummy;\n  for (let i = 0; i <= n; i++) fast = fast.next;\n  while (fast) { fast = fast.next; slow = slow.next; }\n  slow.next = slow.next.next;\n  return dummy.next;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def remove_nth_from_end(head, n):\n    dummy = ListNode(0, head)\n    fast = slow = dummy\n    for _ in range(n + 1):\n        fast = fast.next\n    while fast:\n        fast, slow = fast.next, slow.next\n    slow.next = slow.next.next\n    return dummy.next`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* removeNthFromEnd(ListNode* head, int n) {\n  ListNode dummy(0); dummy.next = head;\n  auto *fast=&dummy, *slow=&dummy;\n  for (int i=0; i<=n; ++i) fast = fast->next;\n  while (fast) { fast = fast->next; slow = slow->next; }\n  auto* tmp = slow->next;\n  slow->next = slow->next->next;\n  delete tmp;\n  return dummy.next;\n}`,
+          },
+        ],
+        relatedProblems: ["remove-nth-from-end"],
+        tags: ["Two Pointers", "Dummy Head"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+      },
+      {
+        id: "linked-list-cycle-detection",
+        slug: "linked-list-cycle-detection",
+        title: "Linked List Cycle Detection",
+        difficulty: "medium",
+        description:
+          "Detect a cycle and find its entry point with Floyd's algorithm.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Linked List Cycle Detection\n\n### Has Cycle?\nFloyd's tortoise & hare. If \`fast\` ever equals \`slow\`, there is a cycle.\n\n### Cycle Entry Point\nAfter they meet, reset one pointer to head and move both at speed 1. They meet at the cycle's entrance.\n\n### Math intuition\nLet \`L\` = distance from head to cycle entry, \`C\` = cycle length, \`k\` = distance from entry to meeting point. Then \`L ≡ -k (mod C)\` — walking \`L\` steps from the meeting point lands at the entry.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function detectCycle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n    if (slow === fast) {\n      let p = head;\n      while (p !== slow) { p = p.next; slow = slow.next; }\n      return p;\n    }\n  }\n  return null;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def detect_cycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow, fast = slow.next, fast.next.next\n        if slow is fast:\n            p = head\n            while p is not slow:\n                p, slow = p.next, slow.next\n            return p\n    return None`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* detectCycle(ListNode* head) {\n  auto *s=head, *f=head;\n  while (f && f->next) {\n    s = s->next; f = f->next->next;\n    if (s == f) {\n      auto* p = head;\n      while (p != s) { p = p->next; s = s->next; }\n      return p;\n    }\n  }\n  return nullptr;\n}`,
+          },
+        ],
+        relatedProblems: ["linked-list-cycle"],
+        tags: ["Floyd's Algorithm", "Two Pointers"],
+        visualizationConfig: { type: "array", defaultInput: [3, 2, 0, -4] },
+      },
+      {
+        id: "palindrome-linked-list",
+        slug: "palindrome-linked-list-topic",
+        title: "Palindrome Linked List",
+        difficulty: "easy",
+        description:
+          "Check palindrome in O(1) space by reversing the second half.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Palindrome Linked List\n\n### Approach\n1. Find the middle with fast/slow pointers.\n2. Reverse the second half in place.\n3. Walk both halves and compare values.\n\n### Trade-offs\n- O(1) space but mutates the list (restore it after if needed).\n- A simpler O(n) space approach: copy values into an array and two-pointer compare.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function isPalindrome(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) { slow = slow.next; fast = fast.next.next; }\n  let prev = null, curr = slow;\n  while (curr) { const n = curr.next; curr.next = prev; prev = curr; curr = n; }\n  let a = head, b = prev;\n  while (b) { if (a.val !== b.val) return false; a = a.next; b = b.next; }\n  return true;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def is_palindrome(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow, fast = slow.next, fast.next.next\n    prev, curr = None, slow\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev, curr = curr, nxt\n    a, b = head, prev\n    while b:\n        if a.val != b.val: return False\n        a, b = a.next, b.next\n    return True`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `bool isPalindrome(ListNode* head) {\n  auto *s=head, *f=head;\n  while (f && f->next) { s=s->next; f=f->next->next; }\n  ListNode *prev=nullptr, *curr=s;\n  while (curr) { auto* n=curr->next; curr->next=prev; prev=curr; curr=n; }\n  auto *a=head, *b=prev;\n  while (b) { if (a->val != b->val) return false; a=a->next; b=b->next; }\n  return true;\n}`,
+          },
+        ],
+        relatedProblems: ["palindrome-linked-list"],
+        tags: ["Two Pointers", "Reverse"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 2, 1] },
+      },
+      {
+        id: "intersection-of-two-linked-lists",
+        slug: "intersection-of-two-linked-lists",
+        title: "Intersection of Two Linked Lists",
+        difficulty: "easy",
+        description:
+          "Find the node where two lists join using length-equalizing pointers.",
+        timeComplexity: "O(n + m)",
+        spaceComplexity: "O(1)",
+        content: `## Intersection of Two Linked Lists\n\n### Trick\nWalk pointer A through list A then list B, and pointer B through list B then list A. Both traverse exactly \`n + m\` nodes, so they align at the intersection (or both reach \`null\` together).\n\n### Why it works\nIf the lists share a tail of length \`t\` and have unique prefixes \`a\` and \`b\`, after \`a + b\` steps both pointers stand exactly \`t\` nodes from the end.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function getIntersectionNode(headA, headB) {\n  let a = headA, b = headB;\n  while (a !== b) {\n    a = a ? a.next : headB;\n    b = b ? b.next : headA;\n  }\n  return a;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def get_intersection_node(a, b):\n    pa, pb = a, b\n    while pa is not pb:\n        pa = pa.next if pa else b\n        pb = pb.next if pb else a\n    return pa`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* getIntersectionNode(ListNode* a, ListNode* b) {\n  auto *pa=a, *pb=b;\n  while (pa != pb) {\n    pa = pa ? pa->next : b;\n    pb = pb ? pb->next : a;\n  }\n  return pa;\n}`,
+          },
+        ],
+        tags: ["Two Pointers"],
+        visualizationConfig: { type: "array", defaultInput: [4, 1, 8, 4, 5] },
+      },
+      {
+        id: "add-two-numbers-linked-list",
+        slug: "add-two-numbers-linked-list",
+        title: "Add Two Numbers (Linked List)",
+        difficulty: "medium",
+        description:
+          "Sum two numbers stored as reversed digit lists, propagating carry.",
+        timeComplexity: "O(max(n, m))",
+        spaceComplexity: "O(max(n, m))",
+        content: `## Add Two Numbers\n\nDigits are stored in **reverse order** (units first), so you can add column-by-column while propagating a \`carry\`.\n\n### Edge Cases\n- Different list lengths — treat missing digits as 0.\n- A final carry leaves an extra trailing node (e.g. 999 + 1 = 1000 → \`[0,0,0,1]\`).`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function addTwoNumbers(l1, l2) {\n  const dummy = { val: 0, next: null };\n  let tail = dummy, carry = 0;\n  while (l1 || l2 || carry) {\n    const sum = (l1?.val ?? 0) + (l2?.val ?? 0) + carry;\n    carry = Math.floor(sum / 10);\n    tail.next = { val: sum % 10, next: null };\n    tail = tail.next;\n    l1 = l1?.next ?? null;\n    l2 = l2?.next ?? null;\n  }\n  return dummy.next;\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def add_two_numbers(l1, l2):\n    dummy = tail = ListNode()\n    carry = 0\n    while l1 or l2 or carry:\n        s = (l1.val if l1 else 0) + (l2.val if l2 else 0) + carry\n        carry, d = divmod(s, 10)\n        tail.next = ListNode(d)\n        tail = tail.next\n        l1 = l1.next if l1 else None\n        l2 = l2.next if l2 else None\n    return dummy.next`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `ListNode* addTwoNumbers(ListNode* a, ListNode* b) {\n  ListNode dummy(0), *tail=&dummy;\n  int carry = 0;\n  while (a || b || carry) {\n    int s = (a?a->val:0) + (b?b->val:0) + carry;\n    carry = s / 10;\n    tail->next = new ListNode(s % 10);\n    tail = tail->next;\n    if (a) a = a->next;\n    if (b) b = b->next;\n  }\n  return dummy.next;\n}`,
+          },
+        ],
+        tags: ["Math", "Carry"],
+        visualizationConfig: { type: "array", defaultInput: [2, 4, 3] },
+      },
+      {
+        id: "reorder-list",
+        slug: "reorder-list",
+        title: "Reorder List",
+        difficulty: "medium",
+        description:
+          "Rearrange L0→L1→…→Ln to L0→Ln→L1→Ln-1→… using middle + reverse + merge.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Reorder List\n\n### Three classic sub-problems chained\n1. **Find middle** with fast/slow pointers.\n2. **Reverse** the second half in place.\n3. **Merge** the two halves alternately.\n\nEach is O(n) and O(1) space, so the whole pipeline is linear time, constant space.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function reorderList(head) {\n  if (!head || !head.next) return;\n  let slow = head, fast = head;\n  while (fast.next && fast.next.next) { slow = slow.next; fast = fast.next.next; }\n  let prev = null, curr = slow.next;\n  slow.next = null;\n  while (curr) { const n = curr.next; curr.next = prev; prev = curr; curr = n; }\n  let a = head, b = prev;\n  while (b) {\n    const an = a.next, bn = b.next;\n    a.next = b; b.next = an;\n    a = an; b = bn;\n  }\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def reorder_list(head):\n    if not head or not head.next: return\n    slow = fast = head\n    while fast.next and fast.next.next:\n        slow, fast = slow.next, fast.next.next\n    prev, curr = None, slow.next\n    slow.next = None\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev, curr = curr, nxt\n    a, b = head, prev\n    while b:\n        an, bn = a.next, b.next\n        a.next = b; b.next = an\n        a, b = an, bn`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `void reorderList(ListNode* head) {\n  if (!head || !head->next) return;\n  auto *s=head, *f=head;\n  while (f->next && f->next->next) { s=s->next; f=f->next->next; }\n  ListNode *prev=nullptr, *curr=s->next;\n  s->next = nullptr;\n  while (curr) { auto* n=curr->next; curr->next=prev; prev=curr; curr=n; }\n  auto *a=head, *b=prev;\n  while (b) {\n    auto *an=a->next, *bn=b->next;\n    a->next=b; b->next=an;\n    a=an; b=bn;\n  }\n}`,
+          },
+        ],
+        tags: ["Two Pointers", "Reverse", "Merge"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+      },
+      {
+        id: "copy-list-with-random-pointer",
+        slug: "copy-list-with-random-pointer",
+        title: "Copy List With Random Pointer",
+        difficulty: "medium",
+        description:
+          "Deep-copy a list whose nodes have an extra random pointer.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1) interleaved / O(n) hash map",
+        content: `## Copy List With Random Pointer\n\n### Hash-map approach (O(n) space)\nFirst pass: clone each node and store \`old → new\` in a map. Second pass: wire \`new.next\` and \`new.random\` via the map.\n\n### Interleaving approach (O(1) extra space)\n1. Insert each clone right after its original (\`A → A' → B → B' → …\`).\n2. Set \`A'.random = A.random.next\` for each clone.\n3. Detach the clone list from the original.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function copyRandomList(head) {\n  if (!head) return null;\n  const map = new Map();\n  let curr = head;\n  while (curr) { map.set(curr, { val: curr.val, next: null, random: null }); curr = curr.next; }\n  curr = head;\n  while (curr) {\n    const c = map.get(curr);\n    c.next = curr.next ? map.get(curr.next) : null;\n    c.random = curr.random ? map.get(curr.random) : null;\n    curr = curr.next;\n  }\n  return map.get(head);\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def copy_random_list(head):\n    if not head: return None\n    mp = {}\n    curr = head\n    while curr:\n        mp[curr] = Node(curr.val)\n        curr = curr.next\n    curr = head\n    while curr:\n        mp[curr].next = mp.get(curr.next)\n        mp[curr].random = mp.get(curr.random)\n        curr = curr.next\n    return mp[head]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `Node* copyRandomList(Node* head) {\n  if (!head) return nullptr;\n  unordered_map<Node*, Node*> mp;\n  for (auto* c = head; c; c = c->next) mp[c] = new Node(c->val);\n  for (auto* c = head; c; c = c->next) {\n    mp[c]->next = mp[c->next];\n    mp[c]->random = mp[c->random];\n  }\n  return mp[head];\n}`,
+          },
+        ],
+        tags: ["Hash Map", "Two Pass"],
+        visualizationConfig: { type: "array", defaultInput: [7, 13, 11, 10, 1] },
+      },
+      {
+        id: "lru-cache-doubly-linked-list",
+        slug: "lru-cache-doubly-linked-list",
+        title: "LRU Cache (DLL + Hash Map)",
+        difficulty: "hard",
+        description:
+          "O(1) get/put using a doubly linked list ordered by recency.",
+        timeComplexity: "O(1) get / O(1) put",
+        spaceComplexity: "O(capacity)",
+        content: `## LRU Cache\n\nCombine a **hash map** (key → node) with a **doubly linked list** (most recent at head, least recent at tail).\n\n### Operations\n- **get(key)**: lookup node, move to head, return value.\n- **put(key, val)**: if exists, update + move to head; else create + insert at head; if over capacity, evict tail.\n\n### Why doubly linked?\nO(1) removal of an arbitrary node requires a \`prev\` pointer.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class LRUCache {\n  constructor(capacity) {\n    this.cap = capacity;\n    this.map = new Map();\n    this.head = { k: 0, v: 0 };\n    this.tail = { k: 0, v: 0 };\n    this.head.next = this.tail; this.tail.prev = this.head;\n  }\n  _add(node) { node.next = this.head.next; node.prev = this.head; this.head.next.prev = node; this.head.next = node; }\n  _remove(node) { node.prev.next = node.next; node.next.prev = node.prev; }\n  get(k) { if (!this.map.has(k)) return -1; const n = this.map.get(k); this._remove(n); this._add(n); return n.v; }\n  put(k, v) {\n    if (this.map.has(k)) this._remove(this.map.get(k));\n    const n = { k, v };\n    this._add(n); this.map.set(k, n);\n    if (this.map.size > this.cap) { const old = this.tail.prev; this._remove(old); this.map.delete(old.k); }\n  }\n}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import OrderedDict\nclass LRUCache:\n    def __init__(self, capacity):\n        self.cap = capacity\n        self.cache = OrderedDict()\n    def get(self, key):\n        if key not in self.cache: return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n    def put(self, key, val):\n        if key in self.cache: self.cache.move_to_end(key)\n        self.cache[key] = val\n        if len(self.cache) > self.cap:\n            self.cache.popitem(last=False)`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class LRUCache {\n  int cap;\n  list<pair<int,int>> dll;\n  unordered_map<int, list<pair<int,int>>::iterator> mp;\npublic:\n  LRUCache(int c) : cap(c) {}\n  int get(int k) {\n    if (!mp.count(k)) return -1;\n    dll.splice(dll.begin(), dll, mp[k]);\n    return mp[k]->second;\n  }\n  void put(int k, int v) {\n    if (mp.count(k)) { mp[k]->second = v; dll.splice(dll.begin(), dll, mp[k]); return; }\n    if ((int)dll.size() == cap) { mp.erase(dll.back().first); dll.pop_back(); }\n    dll.emplace_front(k, v);\n    mp[k] = dll.begin();\n  }\n};`,
+          },
+        ],
+        relatedProblems: ["lru-cache"],
+        tags: ["Hash Map", "Doubly Linked List", "Design"],
+        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4] },
+      },
     ],
   },
 

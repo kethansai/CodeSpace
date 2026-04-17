@@ -128,6 +128,12 @@ export interface AnimationStep {
   values?: number[];
   highlightLine?: number; // line of code to highlight
   auxiliaryData?: Record<string, any>; // extra data for complex visualizations
+  /** Named pointers pointing at array indices (e.g. { l: 0, r: 5, mid: 2 }) */
+  pointers?: Record<string, number>;
+  /** Watch-panel variables displayed alongside the animation */
+  variables?: Record<string, string | number | boolean>;
+  /** Short title for step dots / mini-nav */
+  title?: string;
 }
 
 // ---------- Coding Problems ----------
@@ -196,6 +202,68 @@ export interface Methodology {
 
 // ---------- System Design ----------
 
+export interface SysDesignNode {
+  id: string;
+  label: string;
+  icon?: string; // emoji or lucide key (rendered as emoji if string)
+  /** Normalized grid position 0-100 */
+  x: number;
+  y: number;
+  /** Tailwind color key or custom css color */
+  color?: string;
+  group?: string;
+  kind?: "client" | "service" | "db" | "cache" | "queue" | "cdn" | "storage" | "worker" | "lb" | "external";
+}
+
+export interface SysDesignEdge {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+  dashed?: boolean;
+  bidirectional?: boolean;
+}
+
+export interface SysDesignPacket {
+  edgeId: string;
+  label?: string;
+  color?: string; // tailwind class like 'bg-emerald-500'
+  reverse?: boolean; // travel from `to` → `from`
+}
+
+export interface SysDesignStep {
+  title: string;
+  description: string;
+  activeNodes?: string[];
+  activeEdges?: string[];
+  packets?: SysDesignPacket[];
+  highlightColor?: string; // override accent
+  notes?: string[];
+}
+
+export interface SystemDesignAnimation {
+  id: string;
+  title: string;
+  description?: string;
+  nodes: SysDesignNode[];
+  edges: SysDesignEdge[];
+  steps: SysDesignStep[];
+  /** Auto-advance interval in ms when playing */
+  intervalMs?: number;
+}
+
+export interface SystemDesignScaleMetric {
+  label: string;
+  value: string;
+  hint?: string;
+}
+
+export interface SystemDesignTradeoff {
+  option: string;
+  pros: string[];
+  cons: string[];
+}
+
 export interface SystemDesign {
   id: string;
   slug: string;
@@ -207,6 +275,14 @@ export interface SystemDesign {
   diagram?: string; // mermaid DSL
   content: string; // markdown
   keyTakeaways: string[];
+  /** Optional animated walkthroughs for visual learners */
+  animations?: SystemDesignAnimation[];
+  /** Optional quick-scan scale metrics shown as stat cards */
+  scaleMetrics?: SystemDesignScaleMetric[];
+  /** Optional tradeoff comparison shown as side-by-side cards */
+  tradeoffs?: SystemDesignTradeoff[];
+  /** Companies that use this architecture */
+  realWorld?: string[];
 }
 
 // ---------- Search ----------

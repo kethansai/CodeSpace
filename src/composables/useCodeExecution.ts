@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { SUPPORTED_LANGUAGES } from "@/config/app";
+import { SUPPORTED_LANGUAGES, PISTON_URL, PISTON_ENABLED } from "@/config/app";
 
 interface ExecutionResult {
   output: string;
@@ -9,52 +9,29 @@ interface ExecutionResult {
   executionTime?: number;
 }
 
-/**
- * Execute JavaScript code safely in the browser using an iframe sandbox.
- * Captures console.log/warn/error output, handles errors, and enforces a timeout.
- */
-function executeBrowserJS(
-  code: string,
-  timeout = 10000,
-): Promise<ExecutionResult> {
+// Browser JS sandbox
+function executeBrowserJS(code: string, timeout = 10000): Promise<ExecutionResult> {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
     iframe.sandbox.add("allow-scripts");
     document.body.appendChild(iframe);
-
     let settled = false;
     const timer = setTimeout(() => {
       if (!settled) {
         settled = true;
         iframe.remove();
-        resolve({
-          output: "",
-          stderr: "Execution timed out (10s limit)",
-          exitCode: 1,
-          signal: "SIGTERM",
-        });
+        resolve({ output: "", stderr: "Execution timed out (10s limit)", exitCode: 1, signal: "SIGTERM" });
       }
     }, timeout);
-
-    function finish(data: {
-      output: string;
-      stderr: string;
-      exitCode: number;
-    }) {
+    function finish(data: { output: string; stderr: string; exitCode: number }) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      try {
-        iframe.remove();
-      } catch {
-        /* already removed */
-      }
+      try { iframe.remove(); } catch { /* noop */ }
       resolve({ ...data, signal: null });
     }
-
     const handler = (event: MessageEvent) => {
-      // Only accept messages from our iframe
       if (event.source !== iframe.contentWindow) return;
       if (event.data?.__codespace) {
         globalThis.removeEventListener("message", handler);
@@ -62,17 +39,11 @@ function executeBrowserJS(
       }
     };
     globalThis.addEventListener("message", handler);
-
-    // Build a self-contained script that captures all console output
-    const wrappedCode =
-      `
+    const wrappedCode = `
       <script>
         (function() {
           const __output = [];
           const __errors = [];
-          const origLog = console.log;
-          const origWarn = console.warn;
-          const origError = console.error;
           const fmt = (...a) => a.map(v => {
             if (v === null) return 'null';
             if (v === undefined) return 'undefined';
@@ -92,85 +63,207 @@ function executeBrowserJS(
             parent.postMessage({ __codespace: true, output: __output.join('\\n'), stderr: (e.stack || e.message || String(e)), exitCode: 1 }, '*');
           }
         })();
-      </` +
-      `script>
+      </` + `script>
     `;
     iframe.srcdoc = wrappedCode;
   });
 }
 
-/**
- * Execute TypeScript code in the browser by stripping type annotations.
- * This is a best-effort approach for simple TS code.
- */
 function stripTypeAnnotations(code: string): string {
-  // Simple best-effort TS -> JS: remove common type annotations
-  let result = code;
-  // Remove type imports
-  result = result.replaceAll(/import\s+type\s+[^\n]*\n?/g, "");
-  // Remove interface/type blocks (line-by-line approach)
-  result = result.replaceAll(
-    /^\s*(?:export\s+)?(?:interface|type)\s+\w+[^\n]*\{[^}]*\}/gm,
-    "",
-  );
-  // Remove simple type annotations after colons: x: string -> x
-  result = result.replaceAll(
-    /:\s*(?:string|number|boolean|any|void)(?:\[\])?/g,
-    "",
-  );
-  // Remove 'as Type' assertions
-  result = result.replaceAll(/\s+as\s+\w+/g, "");
-  return result;
+  let r = code;
+  r = r.replaceAll(/import\s+type\s+[^\n]*\n?/g, "");
+  r = r.replaceAll(/^\s*(?:export\s+)?(?:interface|type)\s+\w+[^\n]*\{[^}]*\}/gm, "");
+  r = r.replaceAll(/:\s*(?:string|number|boolean|any|void)(?:\[\])?/g, "");
+  r = r.replaceAll(/\s+as\s+\w+/g, "");
+  return r;
+}
+
+// Pyodide (Python in WASM, no API key)
+const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+interface PyodideInterface {
+  setStdout: (o: { batched: (s: string) => void }) => void;
+  setStderr: (o: { batched: (s: string) => void }) => void;
+  setStdin: (o: { stdin: () => string | null }) => void;
+  runPythonAsync: (code: string) => Promise<unknown>;
+}
+let pyodideLoader: Promise<PyodideInterface> | null = null;
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+function getPyodide(): Promise<PyodideInterface> {
+  if (pyodideLoader) return pyodideLoader;
+  pyodideLoader = (async () => {
+    await loadScript(`${PYODIDE_URL}pyodide.js`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lp = (globalThis as any).loadPyodide as (o: { indexURL: string }) => Promise<PyodideInterface>;
+    return await lp({ indexURL: PYODIDE_URL });
+  })();
+  return pyodideLoader;
+}
+async function executePython(code: string, stdin: string): Promise<ExecutionResult> {
+  const start = performance.now();
+  try {
+    const py = await getPyodide();
+    const out: string[] = [];
+    const err: string[] = [];
+    py.setStdout({ batched: (s: string) => out.push(s) });
+    py.setStderr({ batched: (s: string) => err.push(s) });
+    const lines = stdin ? stdin.split("\n") : [];
+    let i = 0;
+    py.setStdin({ stdin: () => (i >= lines.length ? null : lines[i++] ?? null) });
+    await py.runPythonAsync(code);
+    return { output: out.join("\n"), stderr: err.join("\n"), exitCode: 0, signal: null, executionTime: performance.now() - start };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { output: "", stderr: msg, exitCode: 1, signal: null, executionTime: performance.now() - start };
+  }
+}
+
+// Piston (self-hosted remote runner). See src/config/app.ts for the env wiring.
+const PISTON_DISABLED_HINT =
+  "Remote code execution is disabled in this deployment.\n" +
+  "This language needs a Piston instance. The public emkc.org endpoint became " +
+  "whitelist-only on 2026-02-15, and Cloudflare Pages cannot reach localhost.\n" +
+  "Deploy Piston somewhere publicly reachable (Fly.io, Railway, a small VPS):\n" +
+  "  docker run -d -p 2000:2000 ghcr.io/engineer-man/piston\n" +
+  "Then set VITE_PISTON_URL to its public HTTPS URL and redeploy.";
+type PistonRuntime = { language: string; version: string; aliases: string[] };
+let runtimesCache: PistonRuntime[] | null = null;
+async function loadPistonRuntimes(): Promise<PistonRuntime[]> {
+  if (runtimesCache) return runtimesCache;
+  const res = await fetch(`${PISTON_URL}/runtimes`);
+  if (!res.ok) throw new Error(`Piston runtimes fetch failed: ${res.status}`);
+  runtimesCache = (await res.json()) as PistonRuntime[];
+  return runtimesCache;
+}
+function resolvePistonVersion(rt: PistonRuntime[], lang: string): string | null {
+  const m = rt.filter((r) => r.language === lang || r.aliases?.includes(lang));
+  return m[0]?.version ?? null;
+}
+function filenameForPistonLang(lang: string, code: string): string {
+  switch (lang) {
+    case "java": {
+      const m = code.match(/public\s+class\s+([A-Za-z_$][\w$]*)/);
+      return `${m?.[1] ?? "Main"}.java`;
+    }
+    case "c++": return "main.cpp";
+    case "c": return "main.c";
+    case "csharp": return "Program.cs";
+    case "go": return "main.go";
+    case "rust": return "main.rs";
+    case "kotlin": return "main.kt";
+    case "swift": return "main.swift";
+    case "php": return "main.php";
+    case "ruby": return "main.rb";
+    case "bash": return "main.sh";
+    default: return "main.txt";
+  }
+}
+async function executePiston(code: string, pistonLang: string, stdin: string): Promise<ExecutionResult> {
+  const start = performance.now();
+  try {
+    const rt = await loadPistonRuntimes();
+    const version = resolvePistonVersion(rt, pistonLang);
+    if (!version) {
+      return { output: "", stderr: `No Piston runtime for "${pistonLang}"`, exitCode: 1, signal: null };
+    }
+    const res = await fetch(`${PISTON_URL}/execute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        language: pistonLang,
+        version,
+        files: [{ name: filenameForPistonLang(pistonLang, code), content: code }],
+        stdin,
+        compile_timeout: 10000,
+        run_timeout: 10000,
+      }),
+    });
+    if (!res.ok) {
+      return { output: "", stderr: `Piston error (${res.status}): ${await res.text()}`, exitCode: 1, signal: null };
+    }
+    const data = (await res.json()) as {
+      run?: { stdout: string; stderr: string; code: number; signal: string | null };
+      compile?: { stdout: string; stderr: string; code: number };
+      message?: string;
+    };
+    if (data.message) return { output: "", stderr: data.message, exitCode: 1, signal: null };
+    const ce = data.compile?.stderr ?? "";
+    const ro = data.run?.stdout ?? "";
+    const re = data.run?.stderr ?? "";
+    return {
+      output: ro,
+      stderr: [ce, re].filter(Boolean).join("\n"),
+      exitCode: data.run?.code ?? (ce ? 1 : 0),
+      signal: data.run?.signal ?? null,
+      executionTime: performance.now() - start,
+    };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { output: "", stderr: `Piston request failed: ${msg}`, exitCode: 1, signal: null, executionTime: performance.now() - start };
+  }
 }
 
 export function useCodeExecution() {
   const isExecuting = ref(false);
   const result = ref<ExecutionResult | null>(null);
   const error = ref<string | null>(null);
+  const status = ref<string>("");
 
-  async function execute(
-    code: string,
-    languageId: string,
-    stdin = "",
-  ): Promise<ExecutionResult> {
+  async function execute(code: string, languageId: string, stdin = ""): Promise<ExecutionResult> {
     isExecuting.value = true;
     result.value = null;
     error.value = null;
-
-    const langConfig = SUPPORTED_LANGUAGES.find((l) => l.id === languageId);
-    if (!langConfig) {
+    status.value = "";
+    const cfg = SUPPORTED_LANGUAGES.find((l) => l.id === languageId);
+    if (!cfg) {
       error.value = `Unsupported language: ${languageId}`;
       isExecuting.value = false;
       return { output: "", stderr: error.value, exitCode: 1, signal: null };
     }
-
     try {
-      let execResult: ExecutionResult;
-
-      // Execute in browser — JS directly, TS after stripping type annotations
-      if (languageId === "typescript") {
-        const jsCode = stripTypeAnnotations(code);
-        execResult = await executeBrowserJS(jsCode);
+      let r: ExecutionResult;
+      const runtime = (cfg as { runtime?: string }).runtime ?? "browser";
+      if (runtime === "browser") {
+        const src = languageId === "typescript" ? stripTypeAnnotations(code) : code;
+        status.value = "Running in browser sandbox...";
+        r = await executeBrowserJS(src);
+      } else if (runtime === "pyodide") {
+        status.value = "Loading Python runtime (first run ~5s)...";
+        r = await executePython(code, stdin);
+      } else if (runtime === "piston") {
+        if (!PISTON_ENABLED) {
+          r = { output: "", stderr: PISTON_DISABLED_HINT, exitCode: 1, signal: null };
+        } else {
+          const pl = (cfg as { pistonLang?: string }).pistonLang;
+          if (!pl) {
+            r = { output: "", stderr: "Language not configured for remote execution", exitCode: 1, signal: null };
+          } else {
+            status.value = `Executing on Piston (${PISTON_URL})...`;
+            r = await executePiston(code, pl, stdin);
+          }
+        }
       } else {
-        execResult = await executeBrowserJS(code);
+        r = { output: "", stderr: `Unknown runtime: ${runtime}`, exitCode: 1, signal: null };
       }
-
-      result.value = execResult;
-      return execResult;
+      result.value = r;
+      return r;
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error occurred";
-      error.value = message;
-      const execResult: ExecutionResult = {
-        output: "",
-        stderr: message,
-        exitCode: 1,
-        signal: null,
-      };
-      result.value = execResult;
-      return execResult;
+      const msg = err instanceof Error ? err.message : "Unknown error occurred";
+      error.value = msg;
+      const r: ExecutionResult = { output: "", stderr: msg, exitCode: 1, signal: null };
+      result.value = r;
+      return r;
     } finally {
       isExecuting.value = false;
+      status.value = "";
     }
   }
 
@@ -179,5 +272,5 @@ export function useCodeExecution() {
     error.value = null;
   }
 
-  return { isExecuting, result, error, execute, reset };
+  return { isExecuting, result, error, status, execute, reset };
 }

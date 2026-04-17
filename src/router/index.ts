@@ -114,6 +114,18 @@ const router = createRouter({
           meta: { title: "System Design" },
         },
         {
+          path: "databases",
+          name: "Databases",
+          component: () => import("@/pages/DatabasesOverview.vue"),
+          meta: { title: "Databases" },
+        },
+        {
+          path: "databases/:slug",
+          name: "DatabaseDetail",
+          component: () => import("@/pages/DatabaseDetailPage.vue"),
+          meta: { title: "Database" },
+        },
+        {
           path: "playground",
           name: "Playground",
           component: () => import("@/pages/PlaygroundPage.vue"),

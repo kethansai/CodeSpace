@@ -1,26 +1,39 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useCodeExecution } from '@/composables/useCodeExecution'
 import Button from '@/components/ui/Button.vue'
 import { Play, Loader2, RotateCcw, Terminal } from 'lucide-vue-next'
 
-const props = defineProps<{
-  code: string
-  language: string
-  stdin?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    code: string
+    language: string
+    stdin?: string
+    /** Hide toolbar + outer frame — parent supplies its own chrome. */
+    embedded?: boolean
+  }>(),
+  { embedded: false },
+)
 
-const { isExecuting, result, error, execute, reset } = useCodeExecution()
+const { isExecuting, result, error, status, execute, reset } = useCodeExecution()
 
-async function runCode() {
+async function run() {
   await execute(props.code, props.language, props.stdin)
 }
+
+defineExpose({ run, reset, isExecuting, result, error, status })
 </script>
 
 <template>
-  <div class="rounded-lg border overflow-hidden">
-    <!-- Toolbar -->
-    <div class="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
+  <div
+    :class="embedded
+      ? 'flex flex-col h-full min-h-0'
+      : 'rounded-lg border overflow-hidden flex flex-col'"
+  >
+    <!-- Toolbar (hidden when embedded) -->
+    <div
+      v-if="!embedded"
+      class="flex items-center justify-between px-4 py-2 border-b bg-muted/50 shrink-0"
+    >
       <div class="flex items-center gap-2 text-sm text-muted-foreground">
         <Terminal class="w-4 h-4" />
         <span>Output</span>
@@ -30,7 +43,7 @@ async function runCode() {
           <RotateCcw class="w-3.5 h-3.5 mr-1" />
           Clear
         </Button>
-        <Button size="sm" @click="runCode" :disabled="isExecuting" class="gap-1.5">
+        <Button size="sm" @click="run" :disabled="isExecuting" class="gap-1.5">
           <Loader2 v-if="isExecuting" class="w-3.5 h-3.5 animate-spin" />
           <Play v-else class="w-3.5 h-3.5" />
           {{ isExecuting ? 'Running...' : 'Run Code' }}
@@ -39,11 +52,15 @@ async function runCode() {
     </div>
 
     <!-- Output -->
-    <div class="p-4 min-h-[120px] max-h-[300px] overflow-auto bg-background font-mono text-sm">
+    <div
+      :class="embedded
+        ? 'flex-1 min-h-0 overflow-auto p-4 bg-background font-mono text-sm'
+        : 'p-4 min-h-[120px] max-h-[300px] overflow-auto bg-background font-mono text-sm'"
+    >
       <template v-if="isExecuting">
         <div class="flex items-center gap-2 text-muted-foreground">
           <div class="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          Executing...
+          {{ status || 'Executing...' }}
         </div>
       </template>
       <template v-else-if="result">
@@ -51,9 +68,6 @@ async function runCode() {
         <pre v-if="result.stderr" class="text-red-500 whitespace-pre-wrap mt-2">{{ result.stderr }}</pre>
         <div v-if="!result.output && !result.stderr" class="text-muted-foreground italic">
           No output
-        </div>
-        <div v-if="result.exitCode !== 0" class="mt-2 text-xs text-muted-foreground">
-          Exit code: {{ result.exitCode }}
         </div>
       </template>
       <template v-else-if="error">

@@ -8,6 +8,9 @@ import DifficultyBadge from '@/components/content/DifficultyBadge.vue'
 import Input from '@/components/ui/Input.vue'
 import Button from '@/components/ui/Button.vue'
 import { ArrowRight, Search, Sparkles, Filter } from 'lucide-vue-next'
+import { getAnimatedSlugs } from '@/utils/problems/animations'
+
+const animatedSlugs = new Set(getAnimatedSlugs())
 
 const searchQuery = ref('')
 const filterDifficulty = ref<string>('all')
@@ -93,6 +96,13 @@ const counts = {
                   {{ problem.title }}
                 </h3>
                 <DifficultyBadge :difficulty="problem.difficulty" />
+                <Badge
+                  v-if="animatedSlugs.has(problem.slug)"
+                  variant="outline"
+                  class="text-[10px] gap-1 border-primary/40 text-primary"
+                >
+                  <Sparkles class="w-3 h-3" /> Animated
+                </Badge>
               </div>
               <div class="flex gap-1.5 mt-1.5 flex-wrap">
                 <Badge v-for="tag in problem.tags" :key="tag" variant="secondary" class="text-xs">

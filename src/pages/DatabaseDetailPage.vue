@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { systemDesigns, getSystemDesignBySlug } from "@/data/system-design";
+import { databases, getDatabaseBySlug } from "@/data/databases";
 import MarkdownRenderer from "@/components/content/MarkdownRenderer.vue";
 import MermaidDiagram from "@/components/diagram/MermaidDiagram.vue";
 import SystemDesignAnimator from "@/components/diagram/SystemDesignAnimator.vue";
@@ -11,7 +11,7 @@ import CardContent from "@/components/ui/CardContent.vue";
 import { DIFFICULTY_COLORS } from "@/config/app";
 import {
   ArrowLeft,
-  Server,
+  Database,
   Lightbulb,
   Sparkles,
   Gauge,
@@ -22,16 +22,14 @@ import {
 } from "lucide-vue-next";
 
 const route = useRoute();
-const design = computed(() =>
-  getSystemDesignBySlug(route.params.slug as string),
-);
+const db = computed(() => getDatabaseBySlug(route.params.slug as string));
 
-const adjacentDesigns = computed(() => {
-  if (!design.value) return { prev: null, next: null };
-  const idx = systemDesigns.findIndex((d) => d.slug === design.value!.slug);
+const adjacent = computed(() => {
+  if (!db.value) return { prev: null, next: null };
+  const idx = databases.findIndex((d) => d.slug === db.value!.slug);
   return {
-    prev: idx > 0 ? systemDesigns[idx - 1] : null,
-    next: idx < systemDesigns.length - 1 ? systemDesigns[idx + 1] : null,
+    prev: idx > 0 ? databases[idx - 1] : null,
+    next: idx < databases.length - 1 ? databases[idx + 1] : null,
   };
 });
 </script>
@@ -39,30 +37,30 @@ const adjacentDesigns = computed(() => {
 <template>
   <div class="container mx-auto max-w-4xl px-4 py-8 md:py-12">
     <RouterLink
-      to="/system-design"
+      to="/databases"
       class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
     >
       <ArrowLeft class="w-4 h-4" />
-      All System Designs
+      All Databases
     </RouterLink>
 
-    <template v-if="design">
+    <template v-if="db">
       <!-- Header -->
       <div class="mb-8">
         <div class="flex items-center gap-2 mb-3 flex-wrap">
           <Badge
             :class="[
-              DIFFICULTY_COLORS[design.difficulty].bg,
-              DIFFICULTY_COLORS[design.difficulty].text,
-              DIFFICULTY_COLORS[design.difficulty].border,
+              DIFFICULTY_COLORS[db.difficulty].bg,
+              DIFFICULTY_COLORS[db.difficulty].text,
+              DIFFICULTY_COLORS[db.difficulty].border,
               'border',
             ]"
           >
-            {{ design.difficulty }}
+            {{ db.difficulty }}
           </Badge>
-          <Badge variant="secondary">{{ design.category }}</Badge>
+          <Badge variant="secondary">{{ db.category }}</Badge>
           <Badge
-            v-if="design.animations?.length"
+            v-if="db.animations?.length"
             class="bg-primary/10 text-primary border-primary/20 border gap-1"
           >
             <Sparkles class="w-3 h-3" />
@@ -70,20 +68,19 @@ const adjacentDesigns = computed(() => {
           </Badge>
         </div>
         <div class="flex items-center gap-3 mb-3">
-          <span class="text-4xl">{{ design.icon }}</span>
-          <h1 class="text-3xl md:text-4xl font-bold">{{ design.title }}</h1>
+          <span class="text-4xl">{{ db.icon }}</span>
+          <h1 class="text-3xl md:text-4xl font-bold">{{ db.title }}</h1>
         </div>
-        <p class="text-muted-foreground text-lg">{{ design.description }}</p>
+        <p class="text-muted-foreground text-lg">{{ db.description }}</p>
 
-        <!-- Real-world tags -->
         <div
-          v-if="design.realWorld?.length"
+          v-if="db.realWorld?.length"
           class="flex items-center gap-2 mt-4 flex-wrap text-xs"
         >
           <Building2 class="w-3.5 h-3.5 text-muted-foreground" />
           <span class="text-muted-foreground">Used by:</span>
           <Badge
-            v-for="co in design.realWorld"
+            v-for="co in db.realWorld"
             :key="co"
             variant="outline"
             class="text-xs"
@@ -93,18 +90,20 @@ const adjacentDesigns = computed(() => {
         </div>
       </div>
 
-      <!-- Scale metrics -->
+      <!-- Metrics -->
       <div
-        v-if="design.scaleMetrics?.length"
+        v-if="db.scaleMetrics?.length"
         class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8"
       >
         <Card
-          v-for="m in design.scaleMetrics"
+          v-for="m in db.scaleMetrics"
           :key="m.label"
           class="bg-gradient-to-br from-primary/5 to-background"
         >
           <CardContent class="p-4">
-            <div class="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+            <div
+              class="flex items-center gap-1.5 text-xs text-muted-foreground mb-1"
+            >
               <Gauge class="w-3.5 h-3.5" />
               {{ m.label }}
             </div>
@@ -116,32 +115,32 @@ const adjacentDesigns = computed(() => {
         </Card>
       </div>
 
-      <!-- Animated walkthroughs -->
-      <div v-if="design.animations?.length" class="mb-8 space-y-6">
+      <!-- Animated Walkthroughs -->
+      <div v-if="db.animations?.length" class="mb-8 space-y-6">
         <h2 class="text-lg font-semibold flex items-center gap-2">
           <Sparkles class="w-5 h-5 text-primary" />
           Animated Walkthrough
         </h2>
         <SystemDesignAnimator
-          v-for="anim in design.animations"
+          v-for="anim in db.animations"
           :key="anim.id"
           :animation="anim"
         />
       </div>
 
       <!-- Architecture Diagram -->
-      <Card v-if="design.diagram" class="mb-8">
+      <Card v-if="db.diagram" class="mb-8">
         <CardContent class="p-6">
           <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Server class="w-5 h-5 text-primary" />
+            <Database class="w-5 h-5 text-primary" />
             Architecture Diagram
           </h2>
-          <MermaidDiagram :diagram="design.diagram" />
+          <MermaidDiagram :diagram="db.diagram" />
         </CardContent>
       </Card>
 
       <!-- Tradeoffs -->
-      <Card v-if="design.tradeoffs?.length" class="mb-8">
+      <Card v-if="db.tradeoffs?.length" class="mb-8">
         <CardContent class="p-6">
           <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
             <GitCompare class="w-5 h-5 text-primary" />
@@ -149,7 +148,7 @@ const adjacentDesigns = computed(() => {
           </h2>
           <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div
-              v-for="t in design.tradeoffs"
+              v-for="t in db.tradeoffs"
               :key="t.option"
               class="rounded-lg border p-4 bg-muted/20"
             >
@@ -180,7 +179,7 @@ const adjacentDesigns = computed(() => {
       </Card>
 
       <!-- Key Takeaways -->
-      <Card v-if="design.keyTakeaways.length" class="mb-8">
+      <Card v-if="db.keyTakeaways.length" class="mb-8">
         <CardContent class="p-6">
           <h2 class="text-lg font-semibold mb-3 flex items-center gap-2">
             <Lightbulb class="w-5 h-5 text-amber-500" />
@@ -188,54 +187,51 @@ const adjacentDesigns = computed(() => {
           </h2>
           <ul class="space-y-2">
             <li
-              v-for="(takeaway, i) in design.keyTakeaways"
+              v-for="(t, i) in db.keyTakeaways"
               :key="i"
               class="flex items-start gap-2 text-sm"
             >
               <span class="text-primary font-bold mt-0.5">{{ i + 1 }}.</span>
-              <span>{{ takeaway }}</span>
+              <span>{{ t }}</span>
             </li>
           </ul>
         </CardContent>
       </Card>
 
-      <!-- Main Content -->
+      <!-- Content -->
       <div class="prose-content mb-10">
-        <MarkdownRenderer :content="design.content" />
+        <MarkdownRenderer :content="db.content" />
       </div>
 
-      <!-- Prev / Next Navigation -->
-      <div
-        class="flex justify-between items-center pt-6 border-t border-border"
-      >
+      <!-- Prev / Next -->
+      <div class="flex justify-between items-center pt-6 border-t border-border">
         <RouterLink
-          v-if="adjacentDesigns.prev"
-          :to="`/system-design/${adjacentDesigns.prev.slug}`"
+          v-if="adjacent.prev"
+          :to="`/databases/${adjacent.prev.slug}`"
           class="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          &larr; {{ adjacentDesigns.prev.title }}
+          &larr; {{ adjacent.prev.title }}
         </RouterLink>
         <span v-else />
         <RouterLink
-          v-if="adjacentDesigns.next"
-          :to="`/system-design/${adjacentDesigns.next.slug}`"
+          v-if="adjacent.next"
+          :to="`/databases/${adjacent.next.slug}`"
           class="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          {{ adjacentDesigns.next.title }} &rarr;
+          {{ adjacent.next.title }} &rarr;
         </RouterLink>
         <span v-else />
       </div>
     </template>
 
-    <!-- Not Found -->
     <template v-else>
       <div class="text-center py-20">
-        <h2 class="text-2xl font-semibold mb-2">Design Not Found</h2>
+        <h2 class="text-2xl font-semibold mb-2">Database Not Found</h2>
         <p class="text-muted-foreground mb-4">
-          The system design topic you're looking for doesn't exist.
+          The database topic you're looking for doesn't exist.
         </p>
-        <RouterLink to="/system-design" class="text-primary hover:underline">
-          Browse all system designs
+        <RouterLink to="/databases" class="text-primary hover:underline">
+          Browse all databases
         </RouterLink>
       </div>
     </template>

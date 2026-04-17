@@ -1,5 +1,6 @@
 import type { Problem } from "@/data/types";
 import { additionalProblems } from "./additional";
+import { moreProblems } from "./more";
 
 export const problems: Problem[] = [
   {
@@ -491,6 +492,7 @@ A subsequence is a sequence derived by deleting some or no elements without chan
     hints: ["Use bottom-up DP.", "dp[i] = minimum coins to make amount i."],
   },
   ...additionalProblems,
+  ...moreProblems,
 ];
 
 export function getProblemBySlug(slug: string): Problem | undefined {

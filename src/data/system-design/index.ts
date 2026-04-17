@@ -1,6 +1,8 @@
 import type { SystemDesign } from "@/data/types";
+import { additionalSystemDesigns } from "./additional";
+import { moreSystemDesigns } from "./more";
 
-export const systemDesigns: SystemDesign[] = [
+const coreSystemDesigns: SystemDesign[] = [
   {
     id: "url-shortener",
     slug: "url-shortener",
@@ -97,6 +99,103 @@ Client → CDN/Cache → API Server → Redis → DB (fallback) → 301 Redirect
       "301 vs 302 redirect depends on analytics needs",
       "Pre-generated key service eliminates collision handling",
     ],
+    realWorld: ["bit.ly", "TinyURL", "goo.gl", "t.co", "ow.ly"],
+    scaleMetrics: [
+      { label: "New URLs/month", value: "100M", hint: "~40 writes/sec" },
+      { label: "Redirects/month", value: "10B", hint: "100:1 read:write" },
+      { label: "Storage (5yr)", value: "~15 TB" },
+      { label: "Redirect latency", value: "< 50ms", hint: "p99 target" },
+    ],
+    animations: [
+      {
+        id: "shorten-and-redirect",
+        title: "Shorten, Then Redirect",
+        description:
+          "Create a short URL, then watch billions of users redirect through it.",
+        intervalMs: 2400,
+        nodes: [
+          { id: "u", label: "User", icon: "👤", x: 8, y: 50, kind: "client" },
+          { id: "api", label: "API", icon: "🟢", x: 26, y: 50, kind: "service" },
+          { id: "gen", label: "ID Generator", icon: "🎲", x: 46, y: 20, kind: "service" },
+          { id: "cache", label: "Redis Cache", icon: "⚡", x: 46, y: 80, kind: "cache" },
+          { id: "db", label: "URL DB", icon: "🗄️", x: 70, y: 50, kind: "db" },
+          { id: "cdn", label: "CDN Edge", icon: "🌐", x: 90, y: 50, kind: "cdn" },
+        ],
+        edges: [
+          { id: "u-api1", from: "u", to: "api", label: "POST /shorten" },
+          { id: "api-gen", from: "api", to: "gen", label: "base62 id" },
+          { id: "api-db1", from: "api", to: "db", label: "save mapping" },
+          { id: "api-u1", from: "api", to: "u", label: "/abc123" },
+          { id: "u-cdn", from: "u", to: "cdn", label: "GET /abc123" },
+          { id: "cdn-api", from: "cdn", to: "api" },
+          { id: "api-cache", from: "api", to: "cache", label: "hit?" },
+          { id: "cache-db", from: "cache", to: "db", label: "miss → fetch" },
+          { id: "api-u2", from: "api", to: "u", label: "301 redirect" },
+        ],
+        steps: [
+          {
+            title: "User submits a long URL",
+            description: "POST /shorten with https://very-long-url.example.com/...",
+            activeNodes: ["u", "api"],
+            activeEdges: ["u-api1"],
+            packets: [{ edgeId: "u-api1", color: "#22d3ee" }],
+          },
+          {
+            title: "Generate a short code",
+            description:
+              "ID generator returns a unique base62 key (6-7 chars). Pre-generated pool avoids collisions.",
+            activeNodes: ["api", "gen"],
+            activeEdges: ["api-gen"],
+            packets: [{ edgeId: "api-gen", label: "abc123", color: "#8b5cf6" }],
+          },
+          {
+            title: "Persist mapping",
+            description: "Save short_code → original_url in the DB (UNIQUE index on short_code).",
+            activeNodes: ["api", "db"],
+            activeEdges: ["api-db1"],
+            packets: [{ edgeId: "api-db1", color: "#059669" }],
+          },
+          {
+            title: "Return short URL",
+            description: "User gets https://s.co/abc123 to share.",
+            activeNodes: ["api", "u"],
+            activeEdges: ["api-u1"],
+            packets: [{ edgeId: "api-u1", color: "#10b981" }],
+          },
+          {
+            title: "Someone clicks the link",
+            description: "Request hits a CDN edge close to them first.",
+            activeNodes: ["u", "cdn"],
+            activeEdges: ["u-cdn"],
+            packets: [{ edgeId: "u-cdn", color: "#22d3ee" }],
+          },
+          {
+            title: "CDN → API → cache",
+            description: "Top URLs cached in Redis. 80% of traffic hits only 20% of URLs.",
+            activeNodes: ["cdn", "api", "cache"],
+            activeEdges: ["cdn-api", "api-cache"],
+            packets: [
+              { edgeId: "cdn-api", color: "#0ea5e9" },
+              { edgeId: "api-cache", color: "#dc2626" },
+            ],
+          },
+          {
+            title: "Cache miss fallback",
+            description: "On miss, pull from DB and populate cache for next request.",
+            activeNodes: ["cache", "db"],
+            activeEdges: ["cache-db"],
+            packets: [{ edgeId: "cache-db", color: "#f59e0b" }],
+          },
+          {
+            title: "301 redirect",
+            description: "Browser follows to the original URL. Browser caches the redirect itself.",
+            activeNodes: ["api", "u"],
+            activeEdges: ["api-u2"],
+            packets: [{ edgeId: "api-u2", label: "301", color: "#10b981" }],
+          },
+        ],
+      },
+    ],
   },
   {
     id: "chat-system",
@@ -188,6 +287,88 @@ Large groups (> 50): Fan-out on read — members pull on open
       "Kafka for reliable message delivery and ordering",
       "Cassandra for write-heavy message storage",
       "Fan-out strategy depends on group size",
+    ],
+    realWorld: ["WhatsApp", "Slack", "Discord", "Telegram", "Signal"],
+    animations: [
+      {
+        id: "send-message",
+        title: "Sending a Message (Online Recipient)",
+        description: "From tap to delivery across two chat servers in < 200ms.",
+        intervalMs: 2400,
+        nodes: [
+          { id: "a", label: "Alice", icon: "👩", x: 6, y: 30, kind: "client" },
+          { id: "ws1", label: "Chat Server 1", icon: "🔌", x: 26, y: 30, kind: "service" },
+          { id: "k", label: "Kafka", icon: "📨", x: 48, y: 50, kind: "queue" },
+          { id: "ws2", label: "Chat Server 2", icon: "🔌", x: 72, y: 70, kind: "service" },
+          { id: "b", label: "Bob", icon: "👨", x: 92, y: 70, kind: "client" },
+          { id: "db", label: "Message DB", icon: "🗄️", x: 48, y: 15, kind: "db" },
+          { id: "push", label: "Push Service", icon: "🔔", x: 48, y: 85, kind: "service" },
+          { id: "redis", label: "Presence", icon: "⚡", x: 26, y: 75, kind: "cache" },
+        ],
+        edges: [
+          { id: "a-ws1", from: "a", to: "ws1", label: "WebSocket" },
+          { id: "ws1-r", from: "ws1", to: "redis", label: "Bob online?" },
+          { id: "ws1-k", from: "ws1", to: "k", label: "publish" },
+          { id: "k-db", from: "k", to: "db", label: "persist" },
+          { id: "k-ws2", from: "k", to: "ws2", label: "consume" },
+          { id: "ws2-b", from: "ws2", to: "b", label: "deliver" },
+          { id: "k-push", from: "k", to: "push", label: "if offline" },
+        ],
+        steps: [
+          {
+            title: "Alice sends message",
+            description: "Alice types 'hi' → sent over persistent WebSocket.",
+            activeNodes: ["a", "ws1"],
+            activeEdges: ["a-ws1"],
+            packets: [{ edgeId: "a-ws1", label: "hi", color: "#22d3ee" }],
+          },
+          {
+            title: "Check recipient presence",
+            description:
+              "Redis Pub/Sub presence tells us which chat server holds Bob's WebSocket.",
+            activeNodes: ["ws1", "redis"],
+            activeEdges: ["ws1-r"],
+            packets: [{ edgeId: "ws1-r", color: "#dc2626" }],
+          },
+          {
+            title: "Publish to Kafka",
+            description:
+              "Kafka gives us durable ordering and decouples servers from each other.",
+            activeNodes: ["ws1", "k"],
+            activeEdges: ["ws1-k"],
+            packets: [{ edgeId: "ws1-k", color: "#f59e0b" }],
+          },
+          {
+            title: "Persist to Cassandra",
+            description: "Partition key = chat_id. Messages co-located + time-ordered.",
+            activeNodes: ["k", "db"],
+            activeEdges: ["k-db"],
+            packets: [{ edgeId: "k-db", color: "#059669" }],
+          },
+          {
+            title: "Fan out to Bob's chat server",
+            description: "ws2 consumes the topic partition that owns this chat_id.",
+            activeNodes: ["k", "ws2"],
+            activeEdges: ["k-ws2"],
+            packets: [{ edgeId: "k-ws2", color: "#0ea5e9" }],
+          },
+          {
+            title: "Deliver to Bob's device",
+            description: "Pushed over his WebSocket — read receipt triggered on ACK.",
+            activeNodes: ["ws2", "b"],
+            activeEdges: ["ws2-b"],
+            packets: [{ edgeId: "ws2-b", label: "hi", color: "#10b981" }],
+          },
+          {
+            title: "Offline path (alternative)",
+            description:
+              "If Bob is offline, push notification service triggers APNs/FCM instead.",
+            activeNodes: ["k", "push"],
+            activeEdges: ["k-push"],
+            packets: [{ edgeId: "k-push", color: "#8b5cf6" }],
+          },
+        ],
+      },
     ],
   },
   {
@@ -1061,6 +1242,12 @@ Cursor-based pagination is preferred over offset — it's stable when data chang
       "Version APIs in URL path for simplicity",
     ],
   },
+];
+
+export const systemDesigns: SystemDesign[] = [
+  ...coreSystemDesigns,
+  ...additionalSystemDesigns,
+  ...moreSystemDesigns,
 ];
 
 export function getSystemDesignBySlug(slug: string): SystemDesign | undefined {

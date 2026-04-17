@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, shallowRef } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, shallowRef } from "vue";
 import loader from "@monaco-editor/loader";
 
 const props = defineProps<{
@@ -18,10 +18,22 @@ const emit = defineEmits<{
 
 const containerRef = ref<HTMLDivElement>();
 const editorInstance = shallowRef<any>(null);
+const monacoRef = shallowRef<any>(null);
 const isLoading = ref(true);
+const isDark = ref<boolean>(
+  typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark"),
+);
+let themeObserver: MutationObserver | null = null;
+
+function resolveTheme(): string {
+  if (props.theme) return props.theme;
+  return isDark.value ? "codespace-dark" : "codespace-light";
+}
 
 onMounted(async () => {
   const monaco = await loader.init();
+  monacoRef.value = monaco;
 
   if (!containerRef.value) return;
 
@@ -55,7 +67,7 @@ onMounted(async () => {
   const editor = monaco.editor.create(containerRef.value, {
     value: props.modelValue,
     language: props.language,
-    theme: props.theme || "codespace-dark",
+    theme: resolveTheme(),
     readOnly: props.readOnly || false,
     minimap: { enabled: props.minimap ?? false },
     fontSize: props.fontSize || 14,
@@ -88,18 +100,34 @@ onMounted(async () => {
 
   editorInstance.value = editor;
   isLoading.value = false;
+
+  // React to theme toggle (useColorMode adds/removes `dark` on <html>).
+  themeObserver = new MutationObserver(() => {
+    const nowDark = document.documentElement.classList.contains("dark");
+    if (nowDark !== isDark.value) isDark.value = nowDark;
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+});
+
+onBeforeUnmount(() => {
+  themeObserver?.disconnect();
+  editorInstance.value?.dispose();
+});
+
+watch([isDark, () => props.theme], () => {
+  monacoRef.value?.editor.setTheme(resolveTheme());
 });
 
 watch(
   () => props.language,
   (newLang) => {
-    if (editorInstance.value) {
-      const monaco = (window as any).monaco;
-      if (monaco) {
-        const model = editorInstance.value.getModel();
-        if (model) {
-          monaco.editor.setModelLanguage(model, newLang);
-        }
+    if (editorInstance.value && monacoRef.value) {
+      const model = editorInstance.value.getModel();
+      if (model) {
+        monacoRef.value.editor.setModelLanguage(model, newLang);
       }
     }
   },
@@ -119,12 +147,12 @@ watch(
 </script>
 
 <template>
-  <div class="relative rounded-lg overflow-hidden border">
+  <div class="relative overflow-hidden h-full w-full">
     <!-- Loading state -->
     <div
       v-if="isLoading"
-      class="flex items-center justify-center bg-muted"
-      :style="{ height: height || '400px' }"
+      class="absolute inset-0 flex items-center justify-center bg-muted"
+      :style="height ? { height } : undefined"
     >
       <div class="flex items-center gap-2 text-muted-foreground">
         <div
@@ -133,6 +161,10 @@ watch(
         <span class="text-sm">Loading editor...</span>
       </div>
     </div>
-    <div ref="containerRef" :style="{ height: height || '400px' }" />
+    <div
+      ref="containerRef"
+      class="h-full w-full"
+      :style="height ? { height } : undefined"
+    />
   </div>
 </template>
