@@ -1564,4 +1564,492 @@ A valid BST means: for every node, all values in the left subtree are strictly l
       "Whenever the next balloon starts beyond the last arrow, shoot a new one.",
     ],
   },
+
+  // ─── Backtracking practice problems ───
+  {
+    id: "permutations",
+    slug: "permutations",
+    title: "Permutations",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "Array", "Recursion"],
+    description: `Given an array \`nums\` of distinct integers, return **all possible permutations** in any order.
+
+### Examples
+**Input:** nums = [1,2,3]
+**Output:** [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]`,
+    starterCode: {
+      javascript: `function permute(nums) {\n  // Your code here\n}`,
+      python: `def permute(nums):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function permute(nums) {\n  const out = [], used = new Array(nums.length).fill(false), path = [];\n  const dfs = () => {\n    if (path.length === nums.length) { out.push([...path]); return; }\n    for (let i = 0; i < nums.length; i++) {\n      if (used[i]) continue;\n      used[i] = true; path.push(nums[i]);\n      dfs();\n      path.pop(); used[i] = false;\n    }\n  };\n  dfs();\n  return out;\n}\n\nconsole.log(permute([1,2,3]));`,
+      python: `def permute(nums):\n    out, used, path = [], [False]*len(nums), []\n    def dfs():\n        if len(path) == len(nums):\n            out.append(path[:]); return\n        for i, x in enumerate(nums):\n            if used[i]: continue\n            used[i] = True; path.append(x)\n            dfs()\n            path.pop(); used[i] = False\n    dfs()\n    return out\n\nprint(permute([1,2,3]))`,
+    },
+    testCases: [
+      {
+        input: "nums = [1,2,3]",
+        expectedOutput: "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]",
+      },
+      { input: "nums = [0,1]", expectedOutput: "[[0,1],[1,0]]" },
+    ],
+    hints: [
+      "Maintain a `used` boolean array.",
+      "Push a value, recurse, then pop and unmark (classic backtrack).",
+    ],
+  },
+  {
+    id: "subsets-ii",
+    slug: "subsets-ii",
+    title: "Subsets II",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "Array", "Sorting"],
+    description: `Given an integer array \`nums\` that **may contain duplicates**, return all possible subsets (the power set). The answer must not contain duplicate subsets.
+
+### Examples
+**Input:** nums = [1,2,2]
+**Output:** [[],[1],[1,2],[1,2,2],[2],[2,2]]`,
+    starterCode: {
+      javascript: `function subsetsWithDup(nums) {\n  // Your code here\n}`,
+      python: `def subsets_with_dup(nums):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function subsetsWithDup(nums) {\n  nums = [...nums].sort((a, b) => a - b);\n  const out = [], path = [];\n  const dfs = (start) => {\n    out.push([...path]);\n    for (let i = start; i < nums.length; i++) {\n      if (i > start && nums[i] === nums[i-1]) continue;\n      path.push(nums[i]);\n      dfs(i + 1);\n      path.pop();\n    }\n  };\n  dfs(0);\n  return out;\n}\n\nconsole.log(subsetsWithDup([1,2,2]));`,
+      python: `def subsets_with_dup(nums):\n    nums = sorted(nums)\n    out, path = [], []\n    def dfs(start):\n        out.append(path[:])\n        for i in range(start, len(nums)):\n            if i > start and nums[i] == nums[i-1]: continue\n            path.append(nums[i])\n            dfs(i + 1)\n            path.pop()\n    dfs(0)\n    return out\n\nprint(subsets_with_dup([1,2,2]))`,
+    },
+    testCases: [
+      {
+        input: "nums = [1,2,2]",
+        expectedOutput: "[[],[1],[1,2],[1,2,2],[2],[2,2]]",
+      },
+      { input: "nums = [0]", expectedOutput: "[[],[0]]" },
+    ],
+    hints: [
+      "Sort first so duplicates sit together.",
+      "At each depth, skip `nums[i] == nums[i-1]` when `i > start`.",
+    ],
+  },
+  {
+    id: "combination-sum",
+    slug: "combination-sum",
+    title: "Combination Sum",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "Array"],
+    description: `Given an array of **distinct** positive integers \`candidates\` and a target \`target\`, return all unique combinations of \`candidates\` where chosen numbers sum to \`target\`. You may reuse a number unlimited times.
+
+### Examples
+**Input:** candidates = [2,3,6,7], target = 7
+**Output:** [[2,2,3],[7]]`,
+    starterCode: {
+      javascript: `function combinationSum(candidates, target) {\n  // Your code here\n}`,
+      python: `def combination_sum(candidates, target):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function combinationSum(candidates, target) {\n  candidates = [...candidates].sort((a, b) => a - b);\n  const out = [], path = [];\n  const dfs = (start, remaining) => {\n    if (remaining === 0) { out.push([...path]); return; }\n    for (let i = start; i < candidates.length; i++) {\n      if (candidates[i] > remaining) break;\n      path.push(candidates[i]);\n      dfs(i, remaining - candidates[i]);\n      path.pop();\n    }\n  };\n  dfs(0, target);\n  return out;\n}\n\nconsole.log(combinationSum([2,3,6,7], 7));`,
+      python: `def combination_sum(candidates, target):\n    candidates = sorted(candidates)\n    out, path = [], []\n    def dfs(start, remaining):\n        if remaining == 0:\n            out.append(path[:]); return\n        for i in range(start, len(candidates)):\n            if candidates[i] > remaining: break\n            path.append(candidates[i])\n            dfs(i, remaining - candidates[i])\n            path.pop()\n    dfs(0, target)\n    return out\n\nprint(combination_sum([2,3,6,7], 7))`,
+    },
+    testCases: [
+      { input: "candidates=[2,3,6,7], target=7", expectedOutput: "[[2,2,3],[7]]" },
+      { input: "candidates=[2,3,5], target=8", expectedOutput: "[[2,2,2,2],[2,3,3],[3,5]]" },
+    ],
+    hints: [
+      "Pass `i` (not `i+1`) to allow reuse.",
+      "Sort first so you can break once a candidate exceeds the remaining target.",
+    ],
+  },
+  {
+    id: "generate-parentheses",
+    slug: "generate-parentheses",
+    title: "Generate Parentheses",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "String", "Recursion"],
+    description: `Given \`n\` pairs of parentheses, generate all combinations of well-formed parentheses.
+
+### Examples
+**Input:** n = 3
+**Output:** ["((()))","(()())","(())()","()(())","()()()"]`,
+    starterCode: {
+      javascript: `function generateParenthesis(n) {\n  // Your code here\n}`,
+      python: `def generate_parenthesis(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function generateParenthesis(n) {\n  const out = [];\n  const dfs = (open, close, path) => {\n    if (path.length === 2 * n) { out.push(path); return; }\n    if (open < n) dfs(open + 1, close, path + "(");\n    if (close < open) dfs(open, close + 1, path + ")");\n  };\n  dfs(0, 0, "");\n  return out;\n}\n\nconsole.log(generateParenthesis(3));`,
+      python: `def generate_parenthesis(n):\n    out = []\n    def dfs(open_, close, path):\n        if len(path) == 2 * n:\n            out.append(path); return\n        if open_ < n: dfs(open_ + 1, close, path + "(")\n        if close < open_: dfs(open_, close + 1, path + ")")\n    dfs(0, 0, "")\n    return out\n\nprint(generate_parenthesis(3))`,
+    },
+    testCases: [
+      {
+        input: "n = 3",
+        expectedOutput: '["((()))","(()())","(())()","()(())","()()()"]',
+      },
+      { input: "n = 1", expectedOutput: '["()"]' },
+    ],
+    hints: [
+      "Invariant: you can only close when `close < open`.",
+      "Stop opening when `open == n`.",
+    ],
+  },
+  {
+    id: "letter-combinations-phone",
+    slug: "letter-combinations-phone",
+    title: "Letter Combinations of a Phone Number",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "String", "Hash Map"],
+    description: `Given a string of digits 2–9, return all possible letter combinations the number could represent (standard phone keypad).
+
+### Examples
+**Input:** digits = "23"
+**Output:** ["ad","ae","af","bd","be","bf","cd","ce","cf"]`,
+    starterCode: {
+      javascript: `function letterCombinations(digits) {\n  // Your code here\n}`,
+      python: `def letter_combinations(digits):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function letterCombinations(digits) {\n  if (!digits) return [];\n  const map = { "2":"abc","3":"def","4":"ghi","5":"jkl","6":"mno","7":"pqrs","8":"tuv","9":"wxyz" };\n  const out = [];\n  const dfs = (i, path) => {\n    if (i === digits.length) { out.push(path); return; }\n    for (const ch of map[digits[i]]) dfs(i + 1, path + ch);\n  };\n  dfs(0, "");\n  return out;\n}\n\nconsole.log(letterCombinations("23"));`,
+      python: `def letter_combinations(digits):\n    if not digits: return []\n    m = {"2":"abc","3":"def","4":"ghi","5":"jkl","6":"mno","7":"pqrs","8":"tuv","9":"wxyz"}\n    out = []\n    def dfs(i, path):\n        if i == len(digits):\n            out.append(path); return\n        for ch in m[digits[i]]:\n            dfs(i + 1, path + ch)\n    dfs(0, "")\n    return out\n\nprint(letter_combinations("23"))`,
+    },
+    testCases: [
+      { input: 'digits = "23"', expectedOutput: '["ad","ae","af","bd","be","bf","cd","ce","cf"]' },
+      { input: 'digits = ""', expectedOutput: "[]" },
+    ],
+    hints: [
+      "Map each digit to its letter string.",
+      "Classic depth-first build on a prefix.",
+    ],
+  },
+  {
+    id: "restore-ip-addresses",
+    slug: "restore-ip-addresses",
+    title: "Restore IP Addresses",
+    difficulty: "medium",
+    category: "backtracking",
+    tags: ["Backtracking", "String"],
+    description: `Given a string \`s\` of digits, return all valid IPv4 addresses that can be formed by inserting three dots. An octet is 0–255 with no leading zeros (but \`"0"\` is fine).
+
+### Examples
+**Input:** s = "25525511135"
+**Output:** ["255.255.11.135","255.255.111.35"]`,
+    starterCode: {
+      javascript: `function restoreIpAddresses(s) {\n  // Your code here\n}`,
+      python: `def restore_ip_addresses(s):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function restoreIpAddresses(s) {\n  const out = [];\n  const dfs = (i, parts) => {\n    if (parts.length === 4) {\n      if (i === s.length) out.push(parts.join("."));\n      return;\n    }\n    for (let len = 1; len <= 3 && i + len <= s.length; len++) {\n      const seg = s.slice(i, i + len);\n      if ((seg.length > 1 && seg[0] === "0") || Number(seg) > 255) continue;\n      parts.push(seg);\n      dfs(i + len, parts);\n      parts.pop();\n    }\n  };\n  dfs(0, []);\n  return out;\n}\n\nconsole.log(restoreIpAddresses("25525511135"));`,
+      python: `def restore_ip_addresses(s):\n    out = []\n    def dfs(i, parts):\n        if len(parts) == 4:\n            if i == len(s): out.append(".".join(parts))\n            return\n        for length in range(1, 4):\n            if i + length > len(s): break\n            seg = s[i:i+length]\n            if (len(seg) > 1 and seg[0] == "0") or int(seg) > 255: continue\n            parts.append(seg)\n            dfs(i + length, parts)\n            parts.pop()\n    dfs(0, [])\n    return out\n\nprint(restore_ip_addresses("25525511135"))`,
+    },
+    testCases: [
+      {
+        input: 's = "25525511135"',
+        expectedOutput: '["255.255.11.135","255.255.111.35"]',
+      },
+      { input: 's = "0000"', expectedOutput: '["0.0.0.0"]' },
+    ],
+    hints: [
+      "Try segment lengths 1, 2, 3.",
+      "Reject leading zeros (unless the segment is exactly \"0\").",
+      "Reject values > 255.",
+    ],
+  },
+  {
+    id: "n-queens-count",
+    slug: "n-queens-count",
+    title: "N-Queens II",
+    difficulty: "hard",
+    category: "backtracking",
+    tags: ["Backtracking", "Bit Manipulation"],
+    description: `Return the number of distinct solutions to the n-queens puzzle.
+
+### Examples
+**Input:** n = 4  **Output:** 2
+**Input:** n = 1  **Output:** 1`,
+    starterCode: {
+      javascript: `function totalNQueens(n) {\n  // Your code here\n}`,
+      python: `def total_n_queens(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function totalNQueens(n) {\n  let count = 0;\n  const dfs = (r, cols, d1, d2) => {\n    if (r === n) { count++; return; }\n    let avail = ((1 << n) - 1) & ~(cols | d1 | d2);\n    while (avail) {\n      const p = avail & -avail;\n      avail ^= p;\n      dfs(r + 1, cols | p, (d1 | p) << 1, (d2 | p) >> 1);\n    }\n  };\n  dfs(0, 0, 0, 0);\n  return count;\n}\n\nconsole.log(totalNQueens(4)); // 2\nconsole.log(totalNQueens(8)); // 92`,
+      python: `def total_n_queens(n):\n    count = 0\n    def dfs(r, cols, d1, d2):\n        nonlocal count\n        if r == n:\n            count += 1; return\n        avail = ((1 << n) - 1) & ~(cols | d1 | d2)\n        while avail:\n            p = avail & -avail\n            avail ^= p\n            dfs(r + 1, cols | p, (d1 | p) << 1, (d2 | p) >> 1)\n    dfs(0, 0, 0, 0)\n    return count\n\nprint(total_n_queens(4))  # 2\nprint(total_n_queens(8))  # 92`,
+    },
+    testCases: [
+      { input: "n = 4", expectedOutput: "2" },
+      { input: "n = 1", expectedOutput: "1" },
+      { input: "n = 8", expectedOutput: "92" },
+    ],
+    hints: [
+      "Use three bitmasks: cols, diag1 (↘), diag2 (↙).",
+      "`avail = fullMask & ~(cols | d1 | d2)` gives placeable columns for this row.",
+      "Isolate lowest set bit via `p = avail & -avail`.",
+    ],
+  },
+
+  // ─── Bit Manipulation practice problems ───
+  {
+    id: "single-number",
+    slug: "single-number",
+    title: "Single Number",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "XOR", "Array"],
+    description: `Every element in \`nums\` appears twice except one. Return the element that appears only once. Linear time, constant space.
+
+### Examples
+**Input:** nums = [2,2,1]       **Output:** 1
+**Input:** nums = [4,1,2,1,2]   **Output:** 4`,
+    starterCode: {
+      javascript: `function singleNumber(nums) {\n  // Your code here\n}`,
+      python: `def single_number(nums):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function singleNumber(nums) {\n  let acc = 0;\n  for (const x of nums) acc ^= x;\n  return acc;\n}\n\nconsole.log(singleNumber([2,2,1]));      // 1\nconsole.log(singleNumber([4,1,2,1,2]));  // 4`,
+      python: `def single_number(nums):\n    acc = 0\n    for x in nums: acc ^= x\n    return acc\n\nprint(single_number([2,2,1]))      # 1\nprint(single_number([4,1,2,1,2]))  # 4`,
+    },
+    testCases: [
+      { input: "nums = [2,2,1]", expectedOutput: "1" },
+      { input: "nums = [4,1,2,1,2]", expectedOutput: "4" },
+    ],
+    hints: [
+      "XOR is commutative and x ^ x = 0.",
+      "Folding XOR over the whole array leaves the unique element.",
+    ],
+  },
+  {
+    id: "single-number-iii",
+    slug: "single-number-iii",
+    title: "Single Number III",
+    difficulty: "medium",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "XOR"],
+    description: `Exactly two elements in \`nums\` appear only once; every other element appears twice. Return the two unique elements in any order. Linear time, constant space.
+
+### Examples
+**Input:** nums = [1,2,1,3,2,5]
+**Output:** [3,5] (or [5,3])`,
+    starterCode: {
+      javascript: `function singleNumberIII(nums) {\n  // Your code here\n}`,
+      python: `def single_number_iii(nums):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function singleNumberIII(nums) {\n  let xor = 0;\n  for (const x of nums) xor ^= x;\n  const diff = xor & -xor;          // a differing bit\n  let a = 0, b = 0;\n  for (const x of nums) {\n    if (x & diff) a ^= x;\n    else          b ^= x;\n  }\n  return [a, b];\n}\n\nconsole.log(singleNumberIII([1,2,1,3,2,5])); // [3, 5] (order may vary)`,
+      python: `def single_number_iii(nums):\n    xor = 0\n    for x in nums: xor ^= x\n    diff = xor & -xor\n    a = b = 0\n    for x in nums:\n        if x & diff: a ^= x\n        else:        b ^= x\n    return [a, b]\n\nprint(single_number_iii([1,2,1,3,2,5]))  # [3, 5] (order may vary)`,
+    },
+    testCases: [
+      { input: "nums = [1,2,1,3,2,5]", expectedOutput: "[3,5] or [5,3]" },
+      { input: "nums = [-1,0]", expectedOutput: "[-1,0] or [0,-1]" },
+    ],
+    hints: [
+      "XOR everything to get a ^ b where a and b are the unique values.",
+      "`xor & -xor` isolates a bit where a and b differ.",
+      "Partition nums by that bit and XOR each group separately.",
+    ],
+  },
+  {
+    id: "number-of-1-bits",
+    slug: "number-of-1-bits",
+    title: "Number of 1 Bits",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "Brian Kernighan"],
+    description: `Return the number of \`1\` bits (a.k.a. Hamming weight) in the binary representation of an unsigned integer.
+
+### Examples
+**Input:** n = 11   **Output:** 3   (1011)
+**Input:** n = 128  **Output:** 1   (10000000)`,
+    starterCode: {
+      javascript: `function hammingWeight(n) {\n  // Your code here\n}`,
+      python: `def hamming_weight(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function hammingWeight(n) {\n  let count = 0;\n  while (n) { n &= n - 1; count++; }\n  return count;\n}\n\nconsole.log(hammingWeight(11));  // 3\nconsole.log(hammingWeight(128)); // 1`,
+      python: `def hamming_weight(n):\n    count = 0\n    while n:\n        n &= n - 1\n        count += 1\n    return count\n\nprint(hamming_weight(11))   # 3\nprint(hamming_weight(128))  # 1`,
+    },
+    testCases: [
+      { input: "n = 11", expectedOutput: "3" },
+      { input: "n = 128", expectedOutput: "1" },
+      { input: "n = 0", expectedOutput: "0" },
+    ],
+    hints: [
+      "`n & (n-1)` clears the lowest set bit.",
+      "Loop until n is zero, counting clears — O(popcount(n)).",
+    ],
+  },
+  {
+    id: "counting-bits",
+    slug: "counting-bits",
+    title: "Counting Bits",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "Dynamic Programming"],
+    description: `Given a non-negative integer \`n\`, return an array \`ans\` of length \`n + 1\` where \`ans[i]\` is the number of \`1\` bits in the binary representation of \`i\`.
+
+### Examples
+**Input:** n = 2  **Output:** [0,1,1]
+**Input:** n = 5  **Output:** [0,1,1,2,1,2]`,
+    starterCode: {
+      javascript: `function countBits(n) {\n  // Your code here\n}`,
+      python: `def count_bits(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function countBits(n) {\n  const dp = new Array(n + 1).fill(0);\n  for (let i = 1; i <= n; i++) dp[i] = dp[i >> 1] + (i & 1);\n  return dp;\n}\n\nconsole.log(countBits(2)); // [0,1,1]\nconsole.log(countBits(5)); // [0,1,1,2,1,2]`,
+      python: `def count_bits(n):\n    dp = [0] * (n + 1)\n    for i in range(1, n + 1):\n        dp[i] = dp[i >> 1] + (i & 1)\n    return dp\n\nprint(count_bits(2))  # [0,1,1]\nprint(count_bits(5))  # [0,1,1,2,1,2]`,
+    },
+    testCases: [
+      { input: "n = 2", expectedOutput: "[0,1,1]" },
+      { input: "n = 5", expectedOutput: "[0,1,1,2,1,2]" },
+    ],
+    hints: [
+      "`popcount(i) = popcount(i >> 1) + (i & 1)`.",
+      "Single pass, O(n).",
+    ],
+  },
+  {
+    id: "reverse-bits",
+    slug: "reverse-bits",
+    title: "Reverse Bits",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation"],
+    description: `Reverse the bits of a 32-bit unsigned integer.
+
+### Examples
+**Input:**  n = 43261596 (0000 0010 1001 0100 0001 1110 1001 1100)
+**Output:** 964176192   (0011 1001 0111 1000 0010 1001 0100 0000)`,
+    starterCode: {
+      javascript: `function reverseBits(n) {\n  // Your code here\n}`,
+      python: `def reverse_bits(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function reverseBits(n) {\n  let result = 0;\n  for (let i = 0; i < 32; i++) {\n    result = ((result << 1) | (n & 1)) >>> 0;\n    n >>>= 1;\n  }\n  return result >>> 0;\n}\n\nconsole.log(reverseBits(43261596)); // 964176192`,
+      python: `def reverse_bits(n):\n    result = 0\n    for _ in range(32):\n        result = (result << 1) | (n & 1)\n        n >>= 1\n    return result & 0xFFFFFFFF\n\nprint(reverse_bits(43261596))  # 964176192`,
+    },
+    testCases: [
+      { input: "n = 43261596", expectedOutput: "964176192" },
+      { input: "n = 4294967293", expectedOutput: "3221225471" },
+    ],
+    hints: [
+      "Shift result left, OR in the lowest bit of n, shift n right.",
+      "In JS, use `>>> 0` to keep the value unsigned.",
+    ],
+  },
+  {
+    id: "missing-number",
+    slug: "missing-number",
+    title: "Missing Number",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "XOR", "Math"],
+    description: `Given an array \`nums\` containing \`n\` distinct values drawn from \`[0, n]\`, return the single missing number.
+
+### Examples
+**Input:** nums = [3,0,1]         **Output:** 2
+**Input:** nums = [9,6,4,2,3,5,7,0,1] **Output:** 8`,
+    starterCode: {
+      javascript: `function missingNumber(nums) {\n  // Your code here\n}`,
+      python: `def missing_number(nums):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function missingNumber(nums) {\n  let xor = nums.length;\n  for (let i = 0; i < nums.length; i++) xor ^= i ^ nums[i];\n  return xor;\n}\n\nconsole.log(missingNumber([3,0,1]));               // 2\nconsole.log(missingNumber([9,6,4,2,3,5,7,0,1]));   // 8`,
+      python: `def missing_number(nums):\n    xor = len(nums)\n    for i, v in enumerate(nums):\n        xor ^= i ^ v\n    return xor\n\nprint(missing_number([3,0,1]))                 # 2\nprint(missing_number([9,6,4,2,3,5,7,0,1]))     # 8`,
+    },
+    testCases: [
+      { input: "nums = [3,0,1]", expectedOutput: "2" },
+      { input: "nums = [0,1]", expectedOutput: "2" },
+      { input: "nums = [9,6,4,2,3,5,7,0,1]", expectedOutput: "8" },
+    ],
+    hints: [
+      "XOR indices 0..n with values; the missing one survives.",
+      "Math alternative: n*(n+1)/2 − sum(nums).",
+    ],
+  },
+  {
+    id: "sum-of-two-integers",
+    slug: "sum-of-two-integers",
+    title: "Sum of Two Integers",
+    difficulty: "medium",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "Math"],
+    description: `Given two integers \`a\` and \`b\`, return their sum **without** using the \`+\` or \`-\` operators.
+
+### Examples
+**Input:** a = 1, b = 2   **Output:** 3
+**Input:** a = 2, b = 3   **Output:** 5`,
+    starterCode: {
+      javascript: `function getSum(a, b) {\n  // Your code here\n}`,
+      python: `def get_sum(a, b):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function getSum(a, b) {\n  while (b !== 0) {\n    const carry = (a & b) << 1;\n    a = a ^ b;\n    b = carry;\n  }\n  return a;\n}\n\nconsole.log(getSum(1, 2)); // 3\nconsole.log(getSum(2, 3)); // 5`,
+      python: `def get_sum(a, b):\n    MASK = 0xFFFFFFFF\n    while b & MASK:\n        carry = ((a & b) << 1) & MASK\n        a = (a ^ b) & MASK\n        b = carry\n    return a if a <= 0x7FFFFFFF else ~(a ^ MASK)\n\nprint(get_sum(1, 2))  # 3\nprint(get_sum(2, 3))  # 5`,
+    },
+    testCases: [
+      { input: "a = 1, b = 2", expectedOutput: "3" },
+      { input: "a = 2, b = 3", expectedOutput: "5" },
+    ],
+    hints: [
+      "XOR gives sum without carry.",
+      "AND then shift-left gives the carry. Loop until carry is 0.",
+      "In Python, mask to 32 bits and handle the sign manually.",
+    ],
+  },
+  {
+    id: "hamming-distance",
+    slug: "hamming-distance",
+    title: "Hamming Distance",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation"],
+    description: `The Hamming distance between two integers is the number of bit positions in which the corresponding bits differ. Given \`x\` and \`y\`, return their Hamming distance.
+
+### Examples
+**Input:** x = 1, y = 4  **Output:** 2   (0001 vs 0100)`,
+    starterCode: {
+      javascript: `function hammingDistance(x, y) {\n  // Your code here\n}`,
+      python: `def hamming_distance(x, y):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function hammingDistance(x, y) {\n  let z = x ^ y, count = 0;\n  while (z) { z &= z - 1; count++; }\n  return count;\n}\n\nconsole.log(hammingDistance(1, 4)); // 2\nconsole.log(hammingDistance(3, 1)); // 1`,
+      python: `def hamming_distance(x, y):\n    z = x ^ y\n    count = 0\n    while z:\n        z &= z - 1\n        count += 1\n    return count\n\nprint(hamming_distance(1, 4))  # 2\nprint(hamming_distance(3, 1))  # 1`,
+    },
+    testCases: [
+      { input: "x = 1, y = 4", expectedOutput: "2" },
+      { input: "x = 3, y = 1", expectedOutput: "1" },
+    ],
+    hints: [
+      "XOR produces 1 bits exactly where the inputs differ.",
+      "Count those with Brian Kernighan's trick.",
+    ],
+  },
+  {
+    id: "power-of-two",
+    slug: "power-of-two",
+    title: "Power of Two",
+    difficulty: "easy",
+    category: "bit-manipulation",
+    tags: ["Bit Manipulation", "Math"],
+    description: `Given an integer \`n\`, return \`true\` iff it is a power of two.
+
+### Examples
+**Input:** n = 1   **Output:** true
+**Input:** n = 16  **Output:** true
+**Input:** n = 218 **Output:** false`,
+    starterCode: {
+      javascript: `function isPowerOfTwo(n) {\n  // Your code here\n}`,
+      python: `def is_power_of_two(n):\n    # Your code here\n    pass`,
+    },
+    solution: {
+      javascript: `function isPowerOfTwo(n) {\n  return n > 0 && (n & (n - 1)) === 0;\n}\n\nconsole.log(isPowerOfTwo(1));   // true\nconsole.log(isPowerOfTwo(16));  // true\nconsole.log(isPowerOfTwo(218)); // false`,
+      python: `def is_power_of_two(n):\n    return n > 0 and (n & (n - 1)) == 0\n\nprint(is_power_of_two(1))    # True\nprint(is_power_of_two(16))   # True\nprint(is_power_of_two(218))  # False`,
+    },
+    testCases: [
+      { input: "n = 1", expectedOutput: "true" },
+      { input: "n = 16", expectedOutput: "true" },
+      { input: "n = 218", expectedOutput: "false" },
+    ],
+    hints: [
+      "Powers of two have exactly one set bit.",
+      "`n > 0 && (n & (n-1)) == 0`.",
+    ],
+  },
 ];

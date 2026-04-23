@@ -21,8 +21,6 @@ import {
   generateRadixSortSteps,
   generateShellSortSteps,
   generateQueueSteps,
-  generateSubsetSteps,
-  generateBitManipSteps,
 } from "@/utils/algorithms/advanced";
 import {
   generateSinglyLinkedListSteps,
@@ -83,6 +81,22 @@ import {
   generateTaskSchedulerSteps,
   generateHuffmanSteps,
 } from "@/utils/algorithms/greedy";
+import {
+  generatePermutationsSteps,
+  generateSubsetsBtSteps,
+  generateCombinationSumSteps,
+  generateParenthesesSteps,
+  generateNQueensSteps,
+  generateWordSearchSteps,
+} from "@/utils/algorithms/backtracking";
+import {
+  generateBitBasicsSteps,
+  generateSingleNumberSteps,
+  generateCountSetBitsSteps,
+  generatePowerOfTwoSteps,
+  generateReverseBitsSteps,
+  generateBitmaskSubsetsSteps,
+} from "@/utils/algorithms/bit-manipulation";
 import MarkdownRenderer from "@/components/content/MarkdownRenderer.vue";
 import LanguageTabs from "@/components/content/LanguageTabs.vue";
 import DifficultyBadge from "@/components/content/DifficultyBadge.vue";
@@ -286,11 +300,30 @@ const visualizationSteps = computed(() => {
     );
 
   // Backtracking
+  if (slug === "backtracking-introduction")
+    return generatePermutationsSteps([1, 2, 3]);
+  if (slug === "permutations") return generatePermutationsSteps([1, 2, 3]);
+  if (slug === "subsets") return generateSubsetsBtSteps([1, 2, 3]);
+  if (slug === "combination-sum")
+    return generateCombinationSumSteps([2, 3, 6, 7], 7);
+  if (slug === "generate-parentheses") return generateParenthesesSteps(3);
+  if (slug === "n-queens") return generateNQueensSteps(4);
+  if (slug === "sudoku-solver") return generateNQueensSteps(4);
+  if (slug === "word-search") return generateWordSearchSteps();
+  if (slug === "palindrome-partitioning")
+    return generateSubsetsBtSteps([1, 2, 3]);
+  // Legacy slug kept for back-compat
   if (slug === "permutations-combinations")
-    return generateSubsetSteps([1, 2, 3]);
+    return generatePermutationsSteps([1, 2, 3]);
 
   // Bit Manipulation
-  if (slug === "bit-basics") return generateBitManipSteps(29);
+  if (slug === "bit-basics") return generateBitBasicsSteps(29);
+  if (slug === "single-number")
+    return generateSingleNumberSteps([2, 3, 5, 4, 5, 3, 4]);
+  if (slug === "count-set-bits") return generateCountSetBitsSteps(29);
+  if (slug === "power-of-two") return generatePowerOfTwoSteps(16);
+  if (slug === "reverse-bits") return generateReverseBitsSteps(43261596);
+  if (slug === "bitmask-subsets") return generateBitmaskSubsetsSteps(3);
 
   // Fallback: try to pick a sensible default
   if (input.length > 0) return generateBubbleSortSteps(input);
@@ -392,6 +425,32 @@ const vizMode = computed(() => {
     ].includes(slug)
   )
     return "greedy";
+  if (
+    [
+      "backtracking-introduction",
+      "permutations",
+      "permutations-combinations",
+      "subsets",
+      "combination-sum",
+      "generate-parentheses",
+      "n-queens",
+      "sudoku-solver",
+      "word-search",
+      "palindrome-partitioning",
+    ].includes(slug)
+  )
+    return "backtracking";
+  if (
+    [
+      "bit-basics",
+      "single-number",
+      "count-set-bits",
+      "power-of-two",
+      "reverse-bits",
+      "bitmask-subsets",
+    ].includes(slug)
+  )
+    return "bit";
   return "sorting";
 });
 

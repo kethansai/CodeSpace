@@ -530,7 +530,7 @@ export function generatePalindromeLinkedListSteps(
       : `A pair differed — the list is **not** a palindrome.`,
     array: [...arr],
     actions: arr.map((_, i) => ({
-      type: (ok ? "complete" : "remove") as const,
+      type: (ok ? "complete" : "remove") as "complete" | "remove",
       indices: [i],
     })),
     auxiliaryData: { edges: edgesAfterReverse() },

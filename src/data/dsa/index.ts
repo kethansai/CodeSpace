@@ -5616,65 +5616,1157 @@ public class Huffman {
     name: "Backtracking",
     icon: "🔙",
     description:
-      "Explore all potential solutions by building candidates incrementally.",
+      "Explore the solution space by building candidates incrementally and undoing choices that can't lead to a valid answer.",
     color: "bg-pink-500",
     topics: [
       {
-        id: "permutations-combinations",
-        slug: "permutations-combinations",
-        title: "Permutations & Combinations",
-        difficulty: "medium",
-        description: "Generate all permutations and combinations of a set.",
-        timeComplexity: "O(n!) / O(2^n)",
-        spaceComplexity: "O(n)",
-        content: `## Permutations & Combinations\n\n### Template\n\`\`\`\nbacktrack(candidate):\n    if is_solution: add to results\n    for each choice:\n        make choice\n        backtrack(candidate + choice)\n        undo choice\n\`\`\``,
+        id: "backtracking-introduction",
+        slug: "backtracking-introduction",
+        title: "Introduction to Backtracking",
+        difficulty: "easy",
+        description:
+          "The choose / explore / un-choose recursion template and when to use it.",
+        timeComplexity: "Varies — typically O(branching^depth)",
+        spaceComplexity: "O(depth) for the recursion stack",
+        content: `## What is Backtracking?
+
+Backtracking is **DFS through a solution tree**. At every node we:
+
+1. **Choose** a candidate extension of the current partial solution.
+2. **Explore** recursively with that choice applied.
+3. **Un-choose** it on return, so the next sibling starts from a clean state.
+
+It's the right tool when:
+
+- We need **all** valid configurations (permutations, subsets, partitions).
+- We need **any one** valid configuration under non-trivial constraints (Sudoku, N-Queens).
+- Greedy/DP can't model the constraints cleanly.
+
+### The canonical template
+
+\`\`\`
+backtrack(state):
+    if is_goal(state):
+        record(state)
+        return
+    for choice in candidates(state):
+        if feasible(state, choice):
+            apply(state, choice)        # choose
+            backtrack(state)            # explore
+            undo(state, choice)         # un-choose
+\`\`\`
+
+### The most important optimization: **pruning**
+
+A pure backtracker explores the full tree. Real-world backtrackers win by **pruning** branches that provably cannot yield a solution:
+
+- **Constraint propagation** — once a column is occupied in N-Queens, skip it.
+- **Bounding** — if the current partial cost already exceeds the best known, stop.
+- **Ordering** — try the most constrained cell / most promising move first.
+
+### Complexity intuition
+
+| Problem              | Tree shape    | Work per node | Total                     |
+|----------------------|---------------|---------------|----------------------------|
+| Permutations of n    | n! leaves     | O(n) copy     | **O(n · n!)**              |
+| Subsets of n         | 2^n leaves    | O(n)          | **O(n · 2^n)**             |
+| N-Queens             | ≈ n branches  | O(1) w/ sets  | Much less than n^n in practice |
+| Sudoku               | ≤ 9 per cell  | O(1) w/ bitmasks | Practically instant for real puzzles |
+
+### Backtracking vs DFS vs DP
+
+- **DFS** is the traversal strategy backtracking rides on top of.
+- **Backtracking = DFS + undo**. The "undo" is the core signature.
+- **DP** reuses overlapping sub-solutions; backtracking is for when sub-problems don't overlap or when we need the *enumeration*, not just a count/cost.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function permute(nums) {\n  const result = [];\n  function bt(path, remaining) {\n    if (!remaining.length) { result.push([...path]); return; }\n    for (let i = 0; i < remaining.length; i++) {\n      path.push(remaining[i]);\n      bt(path, [...remaining.slice(0,i),...remaining.slice(i+1)]);\n      path.pop();\n    }\n  }\n  bt([], nums);\n  return result;\n}\n\nfunction combine(n, k) {\n  const res = [];\n  function bt(start, combo) {\n    if (combo.length===k) { res.push([...combo]); return; }\n    for (let i=start;i<=n;i++) {\n      combo.push(i); bt(i+1, combo); combo.pop();\n    }\n  }\n  bt(1, []);\n  return res;\n}`,
+            code: `// Generic backtracking skeleton
+function backtrack(state, result) {
+  if (isGoal(state)) {
+    result.push(snapshot(state));
+    return;
+  }
+  for (const choice of candidates(state)) {
+    if (!feasible(state, choice)) continue;   // pruning
+    apply(state, choice);                     // choose
+    backtrack(state, result);                 // explore
+    undo(state, choice);                      // un-choose
+  }
+}
+
+// Example: print every path root → leaf in a binary tree
+function allRootToLeafPaths(root) {
+  const out = [], path = [];
+  function dfs(node) {
+    if (!node) return;
+    path.push(node.val);
+    if (!node.left && !node.right) out.push([...path]);
+    dfs(node.left);
+    dfs(node.right);
+    path.pop();                               // ← backtrack
+  }
+  dfs(root);
+  return out;
+}`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def permute(nums):\n    result = []\n    def bt(path, remaining):\n        if not remaining:\n            result.append(path[:]); return\n        for i in range(len(remaining)):\n            path.append(remaining[i])\n            bt(path, remaining[:i]+remaining[i+1:])\n            path.pop()\n    bt([], nums)\n    return result`,
+            code: `# Generic backtracking skeleton
+def backtrack(state, result):
+    if is_goal(state):
+        result.append(snapshot(state))
+        return
+    for choice in candidates(state):
+        if not feasible(state, choice):       # pruning
+            continue
+        apply(state, choice)                  # choose
+        backtrack(state, result)              # explore
+        undo(state, choice)                   # un-choose
+
+
+# Example: all root-to-leaf paths in a binary tree
+def all_root_to_leaf_paths(root):
+    out, path = [], []
+    def dfs(node):
+        if not node: return
+        path.append(node.val)
+        if not node.left and not node.right:
+            out.append(path[:])
+        dfs(node.left)
+        dfs(node.right)
+        path.pop()                            # ← backtrack
+    dfs(root)
+    return out`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `// Generic backtracking skeleton
+void backtrack(State state, List<Snapshot> result) {
+    if (isGoal(state)) { result.add(snapshot(state)); return; }
+    for (Choice c : candidates(state)) {
+        if (!feasible(state, c)) continue;    // pruning
+        apply(state, c);                      // choose
+        backtrack(state, result);             // explore
+        undo(state, c);                       // un-choose
+    }
+}
+
+// Example: all root-to-leaf paths
+List<List<Integer>> allPaths(TreeNode root) {
+    List<List<Integer>> out = new ArrayList<>();
+    Deque<Integer> path = new ArrayDeque<>();
+    dfs(root, path, out);
+    return out;
+}
+void dfs(TreeNode n, Deque<Integer> path, List<List<Integer>> out) {
+    if (n == null) return;
+    path.addLast(n.val);
+    if (n.left == null && n.right == null) out.add(new ArrayList<>(path));
+    dfs(n.left, path, out);
+    dfs(n.right, path, out);
+    path.removeLast();                        // ← backtrack
+}`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `void bt(vector<int>& nums,vector<int>& path,\n  vector<bool>& used,vector<vector<int>>& res){\n  if(path.size()==nums.size()){res.push_back(path);return;}\n  for(int i=0;i<(int)nums.size();i++){\n    if(used[i]) continue;\n    used[i]=true; path.push_back(nums[i]);\n    bt(nums,path,used,res);\n    path.pop_back(); used[i]=false;\n  }\n}`,
+            code: `// Generic backtracking skeleton
+void backtrack(State& s, vector<Snapshot>& out) {
+    if (isGoal(s)) { out.push_back(snapshot(s)); return; }
+    for (auto& c : candidates(s)) {
+        if (!feasible(s, c)) continue;        // pruning
+        apply(s, c);                          // choose
+        backtrack(s, out);                    // explore
+        undo(s, c);                           // un-choose
+    }
+}
+
+// Example: all root-to-leaf paths
+void dfs(TreeNode* n, vector<int>& path, vector<vector<int>>& out) {
+    if (!n) return;
+    path.push_back(n->val);
+    if (!n->left && !n->right) out.push_back(path);
+    dfs(n->left, path, out);
+    dfs(n->right, path, out);
+    path.pop_back();                          // ← backtrack
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3] },
+        visualizationConfig: { type: "backtracking", defaultInput: [1, 2, 3] },
+      },
+      {
+        id: "permutations",
+        slug: "permutations",
+        title: "Permutations",
+        difficulty: "medium",
+        description: "Generate every ordering of n distinct elements.",
+        timeComplexity: "O(n · n!)",
+        spaceComplexity: "O(n) recursion + O(n · n!) output",
+        content: `## Permutations
+
+Given \`nums\` with distinct values, return **all** orderings.
+
+### Approach — swap-in-place
+
+- At recursion depth \`k\`, pick any element from \`nums[k..n-1]\` to place at index \`k\`.
+- Swap it into position, recurse on depth \`k+1\`, swap back.
+
+This avoids maintaining a separate "used" set and reuses the input array as working storage.
+
+### Approach — used-flag
+
+Keep a boolean array \`used[i]\`. Walk \`0..n-1\`; skip indices already used; append, recurse, pop, unset. Easier to read; strictly needed when duplicates are involved.
+
+### Duplicates (Permutations II)
+
+If input has duplicates and you want unique permutations:
+
+1. Sort.
+2. Skip \`nums[i]\` when \`i > 0 && nums[i] == nums[i-1] && !used[i-1]\` — the duplicate at a previous position must appear **before** this one for the permutation to be canonical.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function permute(nums) {
+  const res = [];
+  const bt = (i) => {
+    if (i === nums.length) { res.push([...nums]); return; }
+    for (let j = i; j < nums.length; j++) {
+      [nums[i], nums[j]] = [nums[j], nums[i]];
+      bt(i + 1);
+      [nums[i], nums[j]] = [nums[j], nums[i]];
+    }
+  };
+  bt(0);
+  return res;
+}
+
+// With duplicates → unique permutations
+function permuteUnique(nums) {
+  nums.sort((a, b) => a - b);
+  const res = [], path = [], used = Array(nums.length).fill(false);
+  const bt = () => {
+    if (path.length === nums.length) { res.push([...path]); return; }
+    for (let i = 0; i < nums.length; i++) {
+      if (used[i]) continue;
+      if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) continue;
+      used[i] = true; path.push(nums[i]);
+      bt();
+      path.pop(); used[i] = false;
+    }
+  };
+  bt();
+  return res;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def permute(nums):
+    res = []
+    def bt(i):
+        if i == len(nums):
+            res.append(nums[:]); return
+        for j in range(i, len(nums)):
+            nums[i], nums[j] = nums[j], nums[i]
+            bt(i + 1)
+            nums[i], nums[j] = nums[j], nums[i]
+    bt(0)
+    return res
+
+
+def permute_unique(nums):
+    nums.sort()
+    res, path, used = [], [], [False] * len(nums)
+    def bt():
+        if len(path) == len(nums):
+            res.append(path[:]); return
+        for i in range(len(nums)):
+            if used[i]: continue
+            if i > 0 and nums[i] == nums[i-1] and not used[i-1]: continue
+            used[i] = True; path.append(nums[i])
+            bt()
+            path.pop(); used[i] = False
+    bt()
+    return res`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        bt(nums, 0, res);
+        return res;
+    }
+    void bt(int[] a, int i, List<List<Integer>> res) {
+        if (i == a.length) {
+            List<Integer> p = new ArrayList<>();
+            for (int x : a) p.add(x);
+            res.add(p); return;
+        }
+        for (int j = i; j < a.length; j++) {
+            int t = a[i]; a[i] = a[j]; a[j] = t;
+            bt(a, i + 1, res);
+            t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        vector<vector<int>> res;
+        bt(nums, 0, res);
+        return res;
+    }
+private:
+    void bt(vector<int>& a, int i, vector<vector<int>>& res) {
+        if (i == (int)a.size()) { res.push_back(a); return; }
+        for (int j = i; j < (int)a.size(); j++) {
+            swap(a[i], a[j]);
+            bt(a, i + 1, res);
+            swap(a[i], a[j]);
+        }
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [1, 2, 3] },
+      },
+      {
+        id: "subsets",
+        slug: "subsets",
+        title: "Subsets (Power Set)",
+        difficulty: "medium",
+        description: "Enumerate every subset of n elements — 2ⁿ total.",
+        timeComplexity: "O(n · 2^n)",
+        spaceComplexity: "O(n) recursion + O(n · 2^n) output",
+        content: `## Subsets
+
+There are \`2^n\` subsets of an \`n\`-element set. Three equivalent formulations:
+
+### 1. Include / exclude (pure backtracking)
+
+At index \`i\`, either **include** \`nums[i]\` in the current subset and recurse, or **skip** it and recurse. Record the subset at every node, not only leaves.
+
+### 2. "For each start" backtracking
+
+Loop \`i = start..n-1\`, push, recurse with \`start = i+1\`, pop. This naturally generates subsets in combinatoric order and generalizes cleanly to combinations.
+
+### 3. Bitmask enumeration
+
+For \`mask\` from \`0\` to \`2^n - 1\`, the bits of \`mask\` indicate which elements are included. No recursion, branch-free.
+
+### Subsets II (with duplicates)
+
+Sort, then within a single recursion call **skip duplicates** at the same level — i.e., if \`i > start && nums[i] === nums[i-1]\` continue. This prevents generating identical subsets via different branches.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function subsets(nums) {
+  const res = [], path = [];
+  const bt = (start) => {
+    res.push([...path]);                    // record every node
+    for (let i = start; i < nums.length; i++) {
+      path.push(nums[i]);
+      bt(i + 1);
+      path.pop();
+    }
+  };
+  bt(0);
+  return res;
+}
+
+// Bitmask variant
+function subsetsBitmask(nums) {
+  const n = nums.length, res = [];
+  for (let mask = 0; mask < (1 << n); mask++) {
+    const s = [];
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) s.push(nums[i]);
+    res.push(s);
+  }
+  return res;
+}
+
+// Subsets II — handle duplicates
+function subsetsWithDup(nums) {
+  nums.sort((a, b) => a - b);
+  const res = [], path = [];
+  const bt = (start) => {
+    res.push([...path]);
+    for (let i = start; i < nums.length; i++) {
+      if (i > start && nums[i] === nums[i - 1]) continue;
+      path.push(nums[i]);
+      bt(i + 1);
+      path.pop();
+    }
+  };
+  bt(0);
+  return res;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def subsets(nums):
+    res, path = [], []
+    def bt(start):
+        res.append(path[:])
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            bt(i + 1)
+            path.pop()
+    bt(0)
+    return res
+
+
+def subsets_with_dup(nums):
+    nums.sort()
+    res, path = [], []
+    def bt(start):
+        res.append(path[:])
+        for i in range(start, len(nums)):
+            if i > start and nums[i] == nums[i-1]: continue
+            path.append(nums[i])
+            bt(i + 1)
+            path.pop()
+    bt(0)
+    return res`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        bt(nums, 0, new ArrayList<>(), res);
+        return res;
+    }
+    void bt(int[] a, int start, List<Integer> path, List<List<Integer>> res) {
+        res.add(new ArrayList<>(path));
+        for (int i = start; i < a.length; i++) {
+            path.add(a[i]);
+            bt(a, i + 1, path, res);
+            path.remove(path.size() - 1);
+        }
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    vector<vector<int>> subsets(vector<int>& nums) {
+        vector<vector<int>> res;
+        vector<int> path;
+        bt(nums, 0, path, res);
+        return res;
+    }
+private:
+    void bt(vector<int>& a, int start, vector<int>& path, vector<vector<int>>& res) {
+        res.push_back(path);
+        for (int i = start; i < (int)a.size(); i++) {
+            path.push_back(a[i]);
+            bt(a, i + 1, path, res);
+            path.pop_back();
+        }
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [1, 2, 3] },
+      },
+      {
+        id: "combination-sum",
+        slug: "combination-sum",
+        title: "Combination Sum",
+        difficulty: "medium",
+        description:
+          "Find every combination of candidates (unlimited reuse) that sums to target.",
+        timeComplexity: "O(2^t) in the worst case; pruning helps drastically",
+        spaceComplexity: "O(t/min(candidates))",
+        content: `## Combination Sum
+
+Classic unbounded-choice backtracking: each candidate can be picked **any number of times**. Return every combination that sums to \`target\`.
+
+### Template
+
+- Sort candidates so we can **prune** once the running sum exceeds \`target\`.
+- At each step, loop \`i = start..n-1\`. Recurse with \`start = i\` (not \`i+1\`) because the same element may be reused.
+- On return, pop the element.
+
+### Common variant — Combination Sum II (each element at most once)
+
+- Recurse with \`start = i + 1\`.
+- Skip duplicates at the same level: \`if (i > start && cand[i] === cand[i-1]) continue\`.
+
+### Why not DP?
+
+You *can* count the number of ways with DP in \`O(n · target)\`. But **enumerating** all combinations is output-sensitive; backtracking lets you stream each combination as it's completed, with tight pruning.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function combinationSum(candidates, target) {
+  candidates.sort((a, b) => a - b);
+  const res = [], path = [];
+  const bt = (start, remaining) => {
+    if (remaining === 0) { res.push([...path]); return; }
+    for (let i = start; i < candidates.length; i++) {
+      const c = candidates[i];
+      if (c > remaining) break;                // pruning (sorted input)
+      path.push(c);
+      bt(i, remaining - c);                    // reuse allowed → start = i
+      path.pop();
+    }
+  };
+  bt(0, target);
+  return res;
+}
+
+// Combination Sum II — each candidate used at most once, skip dup branches
+function combinationSum2(candidates, target) {
+  candidates.sort((a, b) => a - b);
+  const res = [], path = [];
+  const bt = (start, remaining) => {
+    if (remaining === 0) { res.push([...path]); return; }
+    for (let i = start; i < candidates.length; i++) {
+      if (i > start && candidates[i] === candidates[i - 1]) continue;
+      if (candidates[i] > remaining) break;
+      path.push(candidates[i]);
+      bt(i + 1, remaining - candidates[i]);
+      path.pop();
+    }
+  };
+  bt(0, target);
+  return res;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def combination_sum(candidates, target):
+    candidates.sort()
+    res, path = [], []
+    def bt(start, remaining):
+        if remaining == 0:
+            res.append(path[:]); return
+        for i in range(start, len(candidates)):
+            c = candidates[i]
+            if c > remaining: break            # pruning
+            path.append(c)
+            bt(i, remaining - c)               # reuse allowed
+            path.pop()
+    bt(0, target)
+    return res
+
+
+def combination_sum2(candidates, target):
+    candidates.sort()
+    res, path = [], []
+    def bt(start, remaining):
+        if remaining == 0:
+            res.append(path[:]); return
+        for i in range(start, len(candidates)):
+            if i > start and candidates[i] == candidates[i-1]: continue
+            if candidates[i] > remaining: break
+            path.append(candidates[i])
+            bt(i + 1, remaining - candidates[i])
+            path.pop()
+    bt(0, target)
+    return res`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public List<List<Integer>> combinationSum(int[] c, int target) {
+        Arrays.sort(c);
+        List<List<Integer>> res = new ArrayList<>();
+        bt(c, 0, target, new ArrayList<>(), res);
+        return res;
+    }
+    void bt(int[] c, int start, int rem, List<Integer> path, List<List<Integer>> res) {
+        if (rem == 0) { res.add(new ArrayList<>(path)); return; }
+        for (int i = start; i < c.length; i++) {
+            if (c[i] > rem) break;
+            path.add(c[i]);
+            bt(c, i, rem - c[i], path, res);
+            path.remove(path.size() - 1);
+        }
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    vector<vector<int>> combinationSum(vector<int>& c, int target) {
+        sort(c.begin(), c.end());
+        vector<vector<int>> res;
+        vector<int> path;
+        bt(c, 0, target, path, res);
+        return res;
+    }
+private:
+    void bt(vector<int>& c, int start, int rem,
+            vector<int>& path, vector<vector<int>>& res) {
+        if (rem == 0) { res.push_back(path); return; }
+        for (int i = start; i < (int)c.size(); i++) {
+            if (c[i] > rem) break;
+            path.push_back(c[i]);
+            bt(c, i, rem - c[i], path, res);
+            path.pop_back();
+        }
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [2, 3, 6, 7] },
+      },
+      {
+        id: "generate-parentheses",
+        slug: "generate-parentheses",
+        title: "Generate Parentheses",
+        difficulty: "medium",
+        description: "Produce every well-formed string with n pairs of parens.",
+        timeComplexity: "O(4^n / √n) — the n-th Catalan number",
+        spaceComplexity: "O(n) recursion + output",
+        content: `## Generate Parentheses
+
+Return all well-formed strings with exactly \`n\` pairs of \`()\`.
+
+### Key insight
+
+A brute force generates all \`2^(2n)\` strings and filters — exponential waste. Backtracking with **two counters** prunes every invalid prefix the moment it forms:
+
+- \`open\` — number of \`(\` placed so far.
+- \`close\` — number of \`)\` placed so far.
+
+Rules:
+
+1. We may place \`(\` if \`open < n\`.
+2. We may place \`)\` if \`close < open\` (otherwise the string goes negative).
+
+### Why 4^n / √n?
+
+The count of valid strings is the **n-th Catalan number**, \`C_n ~ 4^n / (n^(3/2) · √π)\`. Our backtracker visits only valid prefixes, so work is proportional to the output size.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function generateParenthesis(n) {
+  const res = [];
+  const bt = (cur, open, close) => {
+    if (cur.length === 2 * n) { res.push(cur); return; }
+    if (open < n)   bt(cur + '(', open + 1, close);
+    if (close < open) bt(cur + ')', open, close + 1);
+  };
+  bt('', 0, 0);
+  return res;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def generate_parenthesis(n):
+    res = []
+    def bt(cur, open_, close_):
+        if len(cur) == 2 * n:
+            res.append(cur); return
+        if open_ < n:      bt(cur + '(', open_ + 1, close_)
+        if close_ < open_: bt(cur + ')', open_, close_ + 1)
+    bt('', 0, 0)
+    return res`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public List<String> generateParenthesis(int n) {
+        List<String> res = new ArrayList<>();
+        bt(new StringBuilder(), 0, 0, n, res);
+        return res;
+    }
+    void bt(StringBuilder sb, int open, int close, int n, List<String> res) {
+        if (sb.length() == 2 * n) { res.add(sb.toString()); return; }
+        if (open < n) {
+            sb.append('('); bt(sb, open + 1, close, n, res); sb.deleteCharAt(sb.length() - 1);
+        }
+        if (close < open) {
+            sb.append(')'); bt(sb, open, close + 1, n, res); sb.deleteCharAt(sb.length() - 1);
+        }
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    vector<string> generateParenthesis(int n) {
+        vector<string> res;
+        string cur;
+        bt(cur, 0, 0, n, res);
+        return res;
+    }
+private:
+    void bt(string& cur, int open, int close, int n, vector<string>& res) {
+        if ((int)cur.size() == 2 * n) { res.push_back(cur); return; }
+        if (open < n)     { cur.push_back('('); bt(cur, open + 1, close, n, res); cur.pop_back(); }
+        if (close < open) { cur.push_back(')'); bt(cur, open, close + 1, n, res); cur.pop_back(); }
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [3] },
+      },
+      {
+        id: "word-search",
+        slug: "word-search",
+        title: "Word Search in a Grid",
+        difficulty: "medium",
+        description:
+          "Check whether a word can be spelled by moving 4-directionally in a character grid, reusing no cell.",
+        timeComplexity: "O(m · n · 3^L) — L = word length",
+        spaceComplexity: "O(L) recursion",
+        content: `## Word Search
+
+Given an \`m × n\` board of letters and a string \`word\`, return whether the word exists as a **path of adjacent cells** (up/down/left/right) with no cell reused.
+
+### Approach — DFS with in-place marking
+
+For every cell that matches \`word[0]\`, launch a DFS:
+
+1. If we matched all characters, return true.
+2. Temporarily mark the current cell (e.g. set it to \`'#'\`) so the path doesn't reuse it.
+3. Recurse on the 4 neighbors against \`word[k+1]\`.
+4. **Restore** the cell on the way back up — this is the backtracking step.
+
+### Why mark in-place?
+
+Allocating a separate \`visited\` matrix per call adds overhead and memory. Overwriting the board character and restoring it later is O(1) and cache-friendly.
+
+### Pruning tricks
+
+- Precompute the letter frequency of \`board\` and \`word\`; if the word needs a character not present enough times, return false immediately.
+- Start from the **rarer** end of the word (reverse \`word\` if its last character appears less often). Each starting cell seeds exponential work.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function exist(board, word) {
+  const m = board.length, n = board[0].length;
+  const dfs = (r, c, k) => {
+    if (k === word.length) return true;
+    if (r < 0 || r >= m || c < 0 || c >= n) return false;
+    if (board[r][c] !== word[k]) return false;
+    const tmp = board[r][c];
+    board[r][c] = '#';                        // mark visited
+    const found =
+      dfs(r + 1, c, k + 1) ||
+      dfs(r - 1, c, k + 1) ||
+      dfs(r, c + 1, k + 1) ||
+      dfs(r, c - 1, k + 1);
+    board[r][c] = tmp;                        // restore (backtrack)
+    return found;
+  };
+  for (let r = 0; r < m; r++)
+    for (let c = 0; c < n; c++)
+      if (dfs(r, c, 0)) return true;
+  return false;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def exist(board, word):
+    m, n = len(board), len(board[0])
+    def dfs(r, c, k):
+        if k == len(word): return True
+        if r < 0 or r >= m or c < 0 or c >= n: return False
+        if board[r][c] != word[k]: return False
+        tmp, board[r][c] = board[r][c], '#'
+        found = (dfs(r+1, c, k+1) or dfs(r-1, c, k+1)
+              or dfs(r, c+1, k+1) or dfs(r, c-1, k+1))
+        board[r][c] = tmp
+        return found
+    return any(dfs(r, c, 0) for r in range(m) for c in range(n))`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public boolean exist(char[][] b, String word) {
+        int m = b.length, n = b[0].length;
+        for (int r = 0; r < m; r++)
+            for (int c = 0; c < n; c++)
+                if (dfs(b, r, c, word, 0)) return true;
+        return false;
+    }
+    boolean dfs(char[][] b, int r, int c, String w, int k) {
+        if (k == w.length()) return true;
+        if (r < 0 || r >= b.length || c < 0 || c >= b[0].length) return false;
+        if (b[r][c] != w.charAt(k)) return false;
+        char tmp = b[r][c];
+        b[r][c] = '#';
+        boolean found = dfs(b, r+1, c, w, k+1) || dfs(b, r-1, c, w, k+1)
+                     || dfs(b, r, c+1, w, k+1) || dfs(b, r, c-1, w, k+1);
+        b[r][c] = tmp;
+        return found;
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    bool exist(vector<vector<char>>& b, string word) {
+        int m = b.size(), n = b[0].size();
+        for (int r = 0; r < m; r++)
+            for (int c = 0; c < n; c++)
+                if (dfs(b, r, c, word, 0)) return true;
+        return false;
+    }
+private:
+    bool dfs(vector<vector<char>>& b, int r, int c, const string& w, int k) {
+        if (k == (int)w.size()) return true;
+        if (r < 0 || r >= (int)b.size() || c < 0 || c >= (int)b[0].size()) return false;
+        if (b[r][c] != w[k]) return false;
+        char tmp = b[r][c]; b[r][c] = '#';
+        bool found = dfs(b, r+1, c, w, k+1) || dfs(b, r-1, c, w, k+1)
+                  || dfs(b, r, c+1, w, k+1) || dfs(b, r, c-1, w, k+1);
+        b[r][c] = tmp;
+        return found;
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [0] },
+      },
+      {
+        id: "palindrome-partitioning",
+        slug: "palindrome-partitioning",
+        title: "Palindrome Partitioning",
+        difficulty: "medium",
+        description:
+          "Partition a string into every possible list of palindromic substrings.",
+        timeComplexity: "O(n · 2^n) worst case",
+        spaceComplexity: "O(n) recursion",
+        content: `## Palindrome Partitioning
+
+Return **every** way to split \`s\` so each substring is a palindrome.
+
+### Approach
+
+Think of the string as a sequence of cut points. At each \`start\`, try every \`end >= start\`; if \`s[start..end]\` is a palindrome, include it and recurse from \`end+1\`.
+
+### Palindrome test — two tricks
+
+1. **Two-pointer check** inline — O(length) per test; O(n · 2^n) overall, often fast enough.
+2. **Precompute** \`isPal[l][r]\` with a DP in O(n²) so each membership test is O(1):
+
+\`\`\`
+isPal[l][r] = (s[l] == s[r]) and (r - l < 2 or isPal[l+1][r-1])
+\`\`\`
+
+### Related: Palindrome Partitioning II
+
+Minimum number of cuts. That's a DP problem, not a backtracking one — once you only care about the count, backtracking is overkill.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function partition(s) {
+  const n = s.length;
+  const isPal = Array.from({ length: n }, () => Array(n).fill(false));
+  for (let r = 0; r < n; r++)
+    for (let l = 0; l <= r; l++)
+      if (s[l] === s[r] && (r - l < 2 || isPal[l + 1][r - 1]))
+        isPal[l][r] = true;
+
+  const res = [], path = [];
+  const bt = (start) => {
+    if (start === n) { res.push([...path]); return; }
+    for (let end = start; end < n; end++) {
+      if (!isPal[start][end]) continue;
+      path.push(s.slice(start, end + 1));
+      bt(end + 1);
+      path.pop();
+    }
+  };
+  bt(0);
+  return res;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def partition(s):
+    n = len(s)
+    is_pal = [[False] * n for _ in range(n)]
+    for r in range(n):
+        for l in range(r + 1):
+            if s[l] == s[r] and (r - l < 2 or is_pal[l+1][r-1]):
+                is_pal[l][r] = True
+
+    res, path = [], []
+    def bt(start):
+        if start == n:
+            res.append(path[:]); return
+        for end in range(start, n):
+            if not is_pal[start][end]: continue
+            path.append(s[start:end+1])
+            bt(end + 1)
+            path.pop()
+    bt(0)
+    return res`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public List<List<String>> partition(String s) {
+        int n = s.length();
+        boolean[][] isPal = new boolean[n][n];
+        for (int r = 0; r < n; r++)
+            for (int l = 0; l <= r; l++)
+                if (s.charAt(l) == s.charAt(r) && (r - l < 2 || isPal[l+1][r-1]))
+                    isPal[l][r] = true;
+
+        List<List<String>> res = new ArrayList<>();
+        bt(s, 0, isPal, new ArrayList<>(), res);
+        return res;
+    }
+    void bt(String s, int start, boolean[][] isPal, List<String> path, List<List<String>> res) {
+        if (start == s.length()) { res.add(new ArrayList<>(path)); return; }
+        for (int end = start; end < s.length(); end++) {
+            if (!isPal[start][end]) continue;
+            path.add(s.substring(start, end + 1));
+            bt(s, end + 1, isPal, path, res);
+            path.remove(path.size() - 1);
+        }
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `class Solution {
+public:
+    vector<vector<string>> partition(string s) {
+        int n = s.size();
+        vector<vector<bool>> isPal(n, vector<bool>(n, false));
+        for (int r = 0; r < n; r++)
+            for (int l = 0; l <= r; l++)
+                if (s[l] == s[r] && (r - l < 2 || isPal[l+1][r-1]))
+                    isPal[l][r] = true;
+
+        vector<vector<string>> res;
+        vector<string> path;
+        bt(s, 0, isPal, path, res);
+        return res;
+    }
+private:
+    void bt(const string& s, int start, vector<vector<bool>>& isPal,
+            vector<string>& path, vector<vector<string>>& res) {
+        if (start == (int)s.size()) { res.push_back(path); return; }
+        for (int end = start; end < (int)s.size(); end++) {
+            if (!isPal[start][end]) continue;
+            path.push_back(s.substr(start, end - start + 1));
+            bt(s, end + 1, isPal, path, res);
+            path.pop_back();
+        }
+    }
+};`,
+          },
+        ],
+        visualizationConfig: { type: "backtracking", defaultInput: [0] },
       },
       {
         id: "n-queens",
         slug: "n-queens",
-        title: "N-Queens Problem",
+        title: "N-Queens",
         difficulty: "hard",
         description:
-          "Place N queens on an N×N board so none attack each other.",
-        timeComplexity: "O(n!)",
-        spaceComplexity: "O(n²)",
-        content: `## N-Queens\n\nPlace N queens on an N×N chessboard such that no two queens share a row, column, or diagonal.\n\n### Approach\n- Place queens row by row\n- Track occupied columns and diagonals\n- Backtrack on conflicts`,
+          "Place N queens on an N×N board so no two attack each other.",
+        timeComplexity: "Practical O(n!) with pruning",
+        spaceComplexity: "O(n)",
+        content: `## N-Queens
+
+Place \`n\` queens so none share a row, column, or diagonal.
+
+### Three constraints → three sets
+
+Place one queen per row. At row \`r\`, column \`c\` is a valid choice iff:
+
+- \`cols\` does not contain \`c\` — no shared column.
+- \`diag1\` does not contain \`r - c\` — no shared "↘" diagonal.
+- \`diag2\` does not contain \`r + c\` — no shared "↙" diagonal.
+
+### Why \`r - c\` and \`r + c\` identify diagonals
+
+Along a "↘" diagonal, both row and column increase by 1 per step → \`r - c\` is constant. Along a "↙" diagonal, row increases while column decreases → \`r + c\` is constant. Three integer sets are enough; no need for an \`n × n\` attack matrix.
+
+### Bitmask optimization
+
+For large \`n\`, represent each of \`cols\`, \`diag1\`, \`diag2\` as a single integer. "Not under attack" is \`avail = ~(cols | diag1 | diag2) & ((1 << n) - 1)\`. The lowest set bit of \`avail\` is \`avail & -avail\`. This turns the inner loop into a few bit ops — the standard high-performance implementation.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function solveNQueens(n) {\n  const res = [];\n  const board = Array.from({length:n},()=>'.'.repeat(n).split(''));\n  const cols=new Set(), d1=new Set(), d2=new Set();\n  function bt(row) {\n    if (row===n) { res.push(board.map(r=>r.join(''))); return; }\n    for (let c=0;c<n;c++) {\n      if (cols.has(c)||d1.has(row-c)||d2.has(row+c)) continue;\n      board[row][c]='Q';\n      cols.add(c); d1.add(row-c); d2.add(row+c);\n      bt(row+1);\n      board[row][c]='.';\n      cols.delete(c); d1.delete(row-c); d2.delete(row+c);\n    }\n  }\n  bt(0);\n  return res;\n}`,
+            code: `function solveNQueens(n) {
+  const res = [];
+  const queens = new Array(n).fill(-1);      // queens[r] = column
+  const cols = new Set(), d1 = new Set(), d2 = new Set();
+  const bt = (r) => {
+    if (r === n) {
+      res.push(queens.map(c => '.'.repeat(c) + 'Q' + '.'.repeat(n - c - 1)));
+      return;
+    }
+    for (let c = 0; c < n; c++) {
+      if (cols.has(c) || d1.has(r - c) || d2.has(r + c)) continue;
+      queens[r] = c;
+      cols.add(c); d1.add(r - c); d2.add(r + c);
+      bt(r + 1);
+      cols.delete(c); d1.delete(r - c); d2.delete(r + c);
+    }
+  };
+  bt(0);
+  return res;
+}
+
+// Count-only variant with bitmasks — counts solutions fast
+function totalNQueens(n) {
+  const full = (1 << n) - 1;
+  let count = 0;
+  const bt = (cols, d1, d2) => {
+    if (cols === full) { count++; return; }
+    let avail = ~(cols | d1 | d2) & full;
+    while (avail) {
+      const bit = avail & -avail;
+      avail ^= bit;
+      bt(cols | bit, (d1 | bit) << 1 & full, (d2 | bit) >> 1);
+    }
+  };
+  bt(0, 0, 0);
+  return count;
+}`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def solve_n_queens(n):\n    res = []\n    cols, d1, d2 = set(), set(), set()\n    board = [['.']*n for _ in range(n)]\n    def bt(row):\n        if row==n:\n            res.append([''.join(r) for r in board]); return\n        for c in range(n):\n            if c in cols or row-c in d1 or row+c in d2: continue\n            board[row][c]='Q'\n            cols.add(c); d1.add(row-c); d2.add(row+c)\n            bt(row+1)\n            board[row][c]='.'\n            cols.remove(c); d1.remove(row-c); d2.remove(row+c)\n    bt(0)\n    return res`,
+            code: `def solve_n_queens(n):
+    res = []
+    queens = [-1] * n
+    cols, d1, d2 = set(), set(), set()
+    def bt(r):
+        if r == n:
+            res.append(['.' * c + 'Q' + '.' * (n - c - 1) for c in queens]); return
+        for c in range(n):
+            if c in cols or (r - c) in d1 or (r + c) in d2: continue
+            queens[r] = c
+            cols.add(c); d1.add(r - c); d2.add(r + c)
+            bt(r + 1)
+            cols.remove(c); d1.remove(r - c); d2.remove(r + c)
+    bt(0)
+    return res
+
+
+def total_n_queens(n):
+    full = (1 << n) - 1
+    count = 0
+    def bt(cols, d1, d2):
+        nonlocal count
+        if cols == full: count += 1; return
+        avail = ~(cols | d1 | d2) & full
+        while avail:
+            bit = avail & -avail
+            avail ^= bit
+            bt(cols | bit, ((d1 | bit) << 1) & full, (d2 | bit) >> 1)
+    bt(0, 0, 0)
+    return count`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    List<List<String>> res = new ArrayList<>();
+    int[] queens;
+    Set<Integer> cols = new HashSet<>(), d1 = new HashSet<>(), d2 = new HashSet<>();
+
+    public List<List<String>> solveNQueens(int n) {
+        queens = new int[n];
+        bt(0, n);
+        return res;
+    }
+    void bt(int r, int n) {
+        if (r == n) {
+            List<String> board = new ArrayList<>();
+            for (int c : queens) {
+                char[] row = new char[n];
+                Arrays.fill(row, '.');
+                row[c] = 'Q';
+                board.add(new String(row));
+            }
+            res.add(board); return;
+        }
+        for (int c = 0; c < n; c++) {
+            if (cols.contains(c) || d1.contains(r - c) || d2.contains(r + c)) continue;
+            queens[r] = c;
+            cols.add(c); d1.add(r - c); d2.add(r + c);
+            bt(r + 1, n);
+            cols.remove(c); d1.remove(r - c); d2.remove(r + c);
+        }
+    }
+}`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `class NQueens {\n  vector<vector<string>> res;\n  void bt(int n,int row,vector<string>& b,\n    unordered_set<int>&c,unordered_set<int>&d1,unordered_set<int>&d2){\n    if(row==n){res.push_back(b);return;}\n    for(int col=0;col<n;col++){\n      if(c.count(col)||d1.count(row-col)||d2.count(row+col)) continue;\n      b[row][col]='Q';\n      c.insert(col);d1.insert(row-col);d2.insert(row+col);\n      bt(n,row+1,b,c,d1,d2);\n      b[row][col]='.';\n      c.erase(col);d1.erase(row-col);d2.erase(row+col);\n    }\n  }\npublic:\n  vector<vector<string>> solve(int n){\n    vector<string> b(n,string(n,'.'));\n    unordered_set<int>c,d1,d2;\n    bt(n,0,b,c,d1,d2);\n    return res;\n  }\n};`,
+            code: `class Solution {
+public:
+    vector<vector<string>> solveNQueens(int n) {
+        vector<vector<string>> res;
+        vector<int> queens(n, -1);
+        unordered_set<int> cols, d1, d2;
+        function<void(int)> bt = [&](int r) {
+            if (r == n) {
+                vector<string> board;
+                for (int c : queens) {
+                    string row(n, '.');
+                    row[c] = 'Q';
+                    board.push_back(row);
+                }
+                res.push_back(board); return;
+            }
+            for (int c = 0; c < n; c++) {
+                if (cols.count(c) || d1.count(r - c) || d2.count(r + c)) continue;
+                queens[r] = c;
+                cols.insert(c); d1.insert(r - c); d2.insert(r + c);
+                bt(r + 1);
+                cols.erase(c); d1.erase(r - c); d2.erase(r + c);
+            }
+        };
+        bt(0);
+        return res;
+    }
+};`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 3, 0, 2] },
+        visualizationConfig: { type: "backtracking", defaultInput: [4] },
       },
       {
         id: "sudoku-solver",
@@ -5682,28 +6774,161 @@ public class Huffman {
         title: "Sudoku Solver",
         difficulty: "hard",
         description:
-          "Fill a 9×9 grid satisfying row, column, and box constraints.",
-        timeComplexity: "O(9^m) where m = empty cells",
-        spaceComplexity: "O(m)",
-        content: `## Sudoku Solver\n\nFill each empty cell with digits 1-9 such that every row, column, and 3×3 box contains all digits 1-9.\n\n### Approach\n- Find first empty cell\n- Try digits 1-9\n- Check row, column, and box constraints\n- Backtrack on failure`,
+          "Fill a partially filled 9×9 grid respecting row, column, and 3×3 box constraints.",
+        timeComplexity: "O(9^m) worst case; practically fast with bitmasks",
+        spaceComplexity: "O(1)",
+        content: `## Sudoku Solver
+
+Solve a standard 9×9 Sudoku in-place.
+
+### Three constraint sets
+
+For every cell \`(r, c)\` holding digit \`d\`, three membership checks must all succeed:
+
+- Row \`r\` does not already contain \`d\`.
+- Column \`c\` does not already contain \`d\`.
+- Box index \`b = 3·(r/3) + (c/3)\` does not already contain \`d\`.
+
+Maintain \`rowUsed[9][10]\`, \`colUsed[9][10]\`, \`boxUsed[9][10]\` (or bitmasks) and update on choose / undo on backtrack.
+
+### The two practical speed-ups
+
+1. **Most Constrained Variable (MRV)**: at every recursion step, pick the empty cell with the **fewest** legal digits. Drastically reduces branching near the end of solve.
+2. **Bitmasks**: one 9-bit integer per row/col/box. Legal digits at \`(r, c)\` are \`~(row[r] | col[c] | box[b]) & 0x1FF\`. Iterate via \`bit = avail & -avail\` and update with XOR.
+
+With these two, even "hard" Sudokus solve in microseconds.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function solveSudoku(board) {\n  function isValid(r, c, num) {\n    for (let i = 0; i < 9; i++) {\n      if (board[r][i] === num) return false;\n      if (board[i][c] === num) return false;\n      const br = 3*Math.floor(r/3)+Math.floor(i/3);\n      const bc = 3*Math.floor(c/3)+(i%3);\n      if (board[br][bc] === num) return false;\n    }\n    return true;\n  }\n  function solve() {\n    for (let r = 0; r < 9; r++) {\n      for (let c = 0; c < 9; c++) {\n        if (board[r][c] === '.') {\n          for (let n = 1; n <= 9; n++) {\n            const ch = String(n);\n            if (isValid(r, c, ch)) {\n              board[r][c] = ch;\n              if (solve()) return true;\n              board[r][c] = '.';\n            }\n          }\n          return false;\n        }\n      }\n    }\n    return true;\n  }\n  solve();\n}`,
+            code: `function solveSudoku(board) {
+  const row = Array.from({ length: 9 }, () => new Array(10).fill(false));
+  const col = Array.from({ length: 9 }, () => new Array(10).fill(false));
+  const box = Array.from({ length: 9 }, () => new Array(10).fill(false));
+  const empties = [];
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++) {
+      if (board[r][c] === '.') { empties.push([r, c]); continue; }
+      const d = +board[r][c], b = 3 * ((r / 3) | 0) + ((c / 3) | 0);
+      row[r][d] = col[c][d] = box[b][d] = true;
+    }
+
+  const dfs = (k) => {
+    if (k === empties.length) return true;
+    const [r, c] = empties[k], b = 3 * ((r / 3) | 0) + ((c / 3) | 0);
+    for (let d = 1; d <= 9; d++) {
+      if (row[r][d] || col[c][d] || box[b][d]) continue;
+      board[r][c] = String(d);
+      row[r][d] = col[c][d] = box[b][d] = true;
+      if (dfs(k + 1)) return true;
+      row[r][d] = col[c][d] = box[b][d] = false;
+      board[r][c] = '.';
+    }
+    return false;
+  };
+  dfs(0);
+}`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def solve_sudoku(board):\n    def is_valid(r, c, num):\n        for i in range(9):\n            if board[r][i]==num: return False\n            if board[i][c]==num: return False\n            br, bc = 3*(r//3)+i//3, 3*(c//3)+i%3\n            if board[br][bc]==num: return False\n        return True\n    def solve():\n        for r in range(9):\n            for c in range(9):\n                if board[r][c]=='.':\n                    for n in '123456789':\n                        if is_valid(r,c,n):\n                            board[r][c]=n\n                            if solve(): return True\n                            board[r][c]='.'\n                    return False\n        return True\n    solve()`,
+            code: `def solve_sudoku(board):
+    row = [[False]*10 for _ in range(9)]
+    col = [[False]*10 for _ in range(9)]
+    box = [[False]*10 for _ in range(9)]
+    empties = []
+    for r in range(9):
+        for c in range(9):
+            if board[r][c] == '.':
+                empties.append((r, c))
+            else:
+                d = int(board[r][c])
+                b = 3*(r//3) + c//3
+                row[r][d] = col[c][d] = box[b][d] = True
+
+    def dfs(k):
+        if k == len(empties): return True
+        r, c = empties[k]
+        b = 3*(r//3) + c//3
+        for d in range(1, 10):
+            if row[r][d] or col[c][d] or box[b][d]: continue
+            board[r][c] = str(d)
+            row[r][d] = col[c][d] = box[b][d] = True
+            if dfs(k + 1): return True
+            row[r][d] = col[c][d] = box[b][d] = False
+            board[r][c] = '.'
+        return False
+    dfs(0)`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public void solveSudoku(char[][] board) {
+        boolean[][] row = new boolean[9][10], col = new boolean[9][10], box = new boolean[9][10];
+        List<int[]> empties = new ArrayList<>();
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++) {
+                if (board[r][c] == '.') { empties.add(new int[]{r, c}); continue; }
+                int d = board[r][c] - '0', b = 3*(r/3) + c/3;
+                row[r][d] = col[c][d] = box[b][d] = true;
+            }
+        dfs(0, board, row, col, box, empties);
+    }
+    boolean dfs(int k, char[][] board, boolean[][] row, boolean[][] col, boolean[][] box, List<int[]> empties) {
+        if (k == empties.size()) return true;
+        int r = empties.get(k)[0], c = empties.get(k)[1], b = 3*(r/3) + c/3;
+        for (int d = 1; d <= 9; d++) {
+            if (row[r][d] || col[c][d] || box[b][d]) continue;
+            board[r][c] = (char)('0' + d);
+            row[r][d] = col[c][d] = box[b][d] = true;
+            if (dfs(k + 1, board, row, col, box, empties)) return true;
+            row[r][d] = col[c][d] = box[b][d] = false;
+            board[r][c] = '.';
+        }
+        return false;
+    }
+}`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `class SudokuSolver {\n  bool isValid(vector<vector<char>>& b,int r,int c,char n){\n    for(int i=0;i<9;i++){\n      if(b[r][i]==n) return false;\n      if(b[i][c]==n) return false;\n      if(b[3*(r/3)+i/3][3*(c/3)+i%3]==n) return false;\n    }\n    return true;\n  }\npublic:\n  bool solve(vector<vector<char>>& b){\n    for(int r=0;r<9;r++) for(int c=0;c<9;c++){\n      if(b[r][c]=='.') {\n        for(char n='1';n<='9';n++){\n          if(isValid(b,r,c,n)){\n            b[r][c]=n;\n            if(solve(b)) return true;\n            b[r][c]='.';\n          }\n        }\n        return false;\n      }\n    }\n    return true;\n  }\n};`,
+            code: `class Solution {
+public:
+    void solveSudoku(vector<vector<char>>& board) {
+        vector<vector<bool>> row(9, vector<bool>(10, false)),
+                             col(9, vector<bool>(10, false)),
+                             box(9, vector<bool>(10, false));
+        vector<pair<int,int>> empties;
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++) {
+                if (board[r][c] == '.') { empties.push_back({r, c}); continue; }
+                int d = board[r][c] - '0', b = 3*(r/3) + c/3;
+                row[r][d] = col[c][d] = box[b][d] = true;
+            }
+        dfs(0, board, row, col, box, empties);
+    }
+private:
+    bool dfs(int k, vector<vector<char>>& b,
+             vector<vector<bool>>& row, vector<vector<bool>>& col, vector<vector<bool>>& box,
+             vector<pair<int,int>>& empties) {
+        if (k == (int)empties.size()) return true;
+        auto [r, c] = empties[k];
+        int bx = 3*(r/3) + c/3;
+        for (int d = 1; d <= 9; d++) {
+            if (row[r][d] || col[c][d] || box[bx][d]) continue;
+            b[r][c] = '0' + d;
+            row[r][d] = col[c][d] = box[bx][d] = true;
+            if (dfs(k + 1, b, row, col, box, empties)) return true;
+            row[r][d] = col[c][d] = box[bx][d] = false;
+            b[r][c] = '.';
+        }
+        return false;
+    }
+};`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [5, 3, 4, 6, 7, 8, 9, 1, 2] },
+        visualizationConfig: { type: "backtracking", defaultInput: [0] },
       },
     ],
   },
@@ -5714,36 +6939,710 @@ public class Huffman {
     slug: "bit-manipulation",
     name: "Bit Manipulation",
     icon: "🔢",
-    description: "Leverage binary representation for efficient operations.",
+    description:
+      "Work with numbers as bit vectors for constant-time set operations, parity tricks, and space-efficient state.",
     color: "bg-gray-500",
     topics: [
       {
         id: "bit-basics",
         slug: "bit-basics",
-        title: "Bit Operations & Tricks",
+        title: "Bitwise Operators & Tricks",
         difficulty: "easy",
-        description: "AND, OR, XOR, shifts, and common bit tricks.",
+        description:
+          "AND, OR, XOR, shifts, and the identities that power every bit-level algorithm.",
         timeComplexity: "O(1) per operation",
         spaceComplexity: "O(1)",
-        content: `## Bit Manipulation\n\n### Operations\n- \`n & 1\` — check odd\n- \`n >> 1\` — divide by 2\n- \`n << 1\` — multiply by 2\n- \`n & (n-1)\` — clear lowest set bit\n- \`n ^ n = 0\`, \`n ^ 0 = n\`\n\n### Classic Problems\n- Single Number (XOR all)\n- Count set bits (Brian Kernighan)\n- Power of Two`,
+        content: `## Thinking in Bits
+
+Every unsigned integer is a fixed-width bit vector. The five primitive operations compose into a surprisingly rich toolkit:
+
+### The five operators
+
+| Op    | Meaning                       | Key identity                |
+|-------|-------------------------------|-----------------------------|
+| \`&\` | AND — bit set iff **both** are | \`x & 0 = 0\`, \`x & x = x\` |
+| \`|\` | OR — bit set iff **either** is | \`x | 0 = x\`, \`x | x = x\` |
+| \`^\` | XOR — bit set iff **exactly one** | \`x ^ 0 = x\`, \`x ^ x = 0\` |
+| \`~\` | NOT — flip every bit           | \`~x = -x - 1\` (two's complement) |
+| \`<<\`, \`>>\` | Shift left / right (arithmetic or logical) | \`x << k\` = \`x · 2^k\` (no overflow check) |
+
+### The essential one-liners
+
+| Task                          | Expression              |
+|-------------------------------|-------------------------|
+| Test bit \`k\`                | \`(x >> k) & 1\`        |
+| Set bit \`k\`                 | \`x | (1 << k)\`        |
+| Clear bit \`k\`               | \`x & ~(1 << k)\`       |
+| Toggle bit \`k\`              | \`x ^ (1 << k)\`        |
+| Is odd                        | \`x & 1\`               |
+| Is power of two               | \`x > 0 && (x & (x-1)) == 0\` |
+| Lowest set bit (isolated)     | \`x & -x\`              |
+| Clear lowest set bit          | \`x & (x-1)\`           |
+| Count bits to flip to get y   | \`popcount(x ^ y)\`     |
+| Swap without temp             | \`a ^= b; b ^= a; a ^= b;\` |
+
+### Why XOR shows up everywhere
+
+\`x ^ x = 0\` and XOR is commutative + associative. So XORing every element of an array cancels out any value that appears an **even** number of times — ideal for "find the unique element" problems and for parity arguments.
+
+### Gotchas
+
+- In JavaScript, bitwise operators coerce to **32-bit signed ints**. \`(1 << 31)\` is \`-2147483648\`. Use \`>>>\` for unsigned right shift.
+- In Python, integers are arbitrary precision; \`~x = -x - 1\` can give weird-looking negatives.
+- In C/C++/Java, shifting by ≥ the width of the type is **undefined / implementation-defined**. Mask first.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function singleNumber(nums) {\n  return nums.reduce((a,b) => a^b, 0);\n}\n\nfunction countBits(n) {\n  let count = 0;\n  while (n) { n &= (n-1); count++; }\n  return count;\n}\n\nfunction isPowerOfTwo(n) {\n  return n > 0 && (n & (n-1)) === 0;\n}`,
+            code: `const testBit   = (x, k) => ((x >> k) & 1) === 1;
+const setBit    = (x, k) => x | (1 << k);
+const clearBit  = (x, k) => x & ~(1 << k);
+const toggleBit = (x, k) => x ^ (1 << k);
+
+const lowestBit      = (x) => x & -x;          // isolate lowest set bit
+const clearLowestBit = (x) => x & (x - 1);     // clear  lowest set bit
+
+// Swap in place without a temp
+function swap(a, b) { a ^= b; b ^= a; a ^= b; return [a, b]; }`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def single_number(nums):\n    result = 0\n    for n in nums: result ^= n\n    return result\n\ndef count_bits(n):\n    count = 0\n    while n:\n        n &= n-1; count += 1\n    return count\n\ndef is_power_of_two(n):\n    return n > 0 and (n & (n-1)) == 0`,
+            code: `def test_bit(x, k):   return (x >> k) & 1 == 1
+def set_bit(x, k):    return x | (1 << k)
+def clear_bit(x, k):  return x & ~(1 << k)
+def toggle_bit(x, k): return x ^ (1 << k)
+
+def lowest_bit(x):       return x & -x
+def clear_lowest_bit(x): return x & (x - 1)
+
+# Python int.bit_count() returns popcount on 3.10+
+def popcount(x): return bin(x & 0xFFFFFFFF).count("1")`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class BitTricks {
+    static boolean testBit(int x, int k)  { return ((x >> k) & 1) == 1; }
+    static int setBit(int x, int k)       { return x |  (1 << k); }
+    static int clearBit(int x, int k)     { return x & ~(1 << k); }
+    static int toggleBit(int x, int k)    { return x ^  (1 << k); }
+
+    static int lowestBit(int x)      { return x & -x; }
+    static int clearLowestBit(int x) { return x & (x - 1); }
+
+    static int popcount(int x) { return Integer.bitCount(x); }
+}`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int singleNumber(vector<int>& nums) {\n  int res=0;\n  for(int n:nums) res^=n;\n  return res;\n}\nint countBits(int n){\n  int cnt=0;\n  while(n){n&=n-1;cnt++;}\n  return cnt;\n}\nbool isPowerOfTwo(int n){\n  return n>0&&(n&(n-1))==0;\n}`,
+            code: `inline bool testBit(int x, int k)  { return (x >> k) & 1; }
+inline int  setBit(int x, int k)   { return x |  (1 << k); }
+inline int  clearBit(int x, int k) { return x & ~(1 << k); }
+inline int  toggleBit(int x, int k){ return x ^  (1 << k); }
+
+inline int  lowestBit(int x)       { return x & -x; }
+inline int  clearLowestBit(int x)  { return x & (x - 1); }
+
+// GCC/Clang builtin
+inline int  popcount(unsigned x)   { return __builtin_popcount(x); }`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+        visualizationConfig: { type: "bit", defaultInput: [29] },
+      },
+      {
+        id: "single-number",
+        slug: "single-number",
+        title: "Single Number (XOR)",
+        difficulty: "easy",
+        description:
+          "Find the element that appears exactly once when every other element appears twice.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Single Number
+
+Given \`nums\` where every element appears **twice** except one, return the unique element.
+
+### One-liner: XOR-accumulate
+
+Because \`x ^ x = 0\` and \`x ^ 0 = x\`, XORing the whole array cancels out every pair and leaves the unique value.
+
+\`\`\`
+result = nums[0] ^ nums[1] ^ ... ^ nums[n-1]
+\`\`\`
+
+**No extra memory, order-independent, one pass.** This is why XOR shows up in hash-less "find the odd one out" solutions.
+
+### Generalizations
+
+- **Single Number II** — every element appears *three* times except one. Count bits modulo 3 using two accumulators \`ones\`, \`twos\` that form a bit-level finite-state machine.
+- **Single Number III** — *two* elements appear once, the rest appear twice. XOR the whole array → \`x ^ y\`. Pick any bit that's set in the result (they differ there), partition the array by that bit, and XOR each partition separately to recover \`x\` and \`y\`.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function singleNumber(nums) {
+  let r = 0;
+  for (const x of nums) r ^= x;
+  return r;
+}
+
+// Single Number III — two uniques, everything else paired.
+function singleNumberIII(nums) {
+  let xor = 0;
+  for (const x of nums) xor ^= x;
+  const diffBit = xor & -xor;      // any bit where the two uniques differ
+  let a = 0, b = 0;
+  for (const x of nums) {
+    if (x & diffBit) a ^= x; else b ^= x;
+  }
+  return [a, b];
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def single_number(nums):
+    r = 0
+    for x in nums: r ^= x
+    return r
+
+
+def single_number_iii(nums):
+    xor = 0
+    for x in nums: xor ^= x
+    diff = xor & -xor
+    a = b = 0
+    for x in nums:
+        if x & diff: a ^= x
+        else:        b ^= x
+    return [a, b]`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public int singleNumber(int[] nums) {
+        int r = 0;
+        for (int x : nums) r ^= x;
+        return r;
+    }
+
+    public int[] singleNumberIII(int[] nums) {
+        int xor = 0;
+        for (int x : nums) xor ^= x;
+        int diff = xor & -xor;
+        int a = 0, b = 0;
+        for (int x : nums) {
+            if ((x & diff) != 0) a ^= x;
+            else                 b ^= x;
+        }
+        return new int[]{a, b};
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `int singleNumber(vector<int>& nums) {
+    int r = 0;
+    for (int x : nums) r ^= x;
+    return r;
+}
+
+vector<int> singleNumberIII(vector<int>& nums) {
+    int xorAll = 0;
+    for (int x : nums) xorAll ^= x;
+    int diff = xorAll & -xorAll;
+    int a = 0, b = 0;
+    for (int x : nums) {
+        if (x & diff) a ^= x;
+        else          b ^= x;
+    }
+    return {a, b};
+}`,
+          },
+        ],
+        visualizationConfig: { type: "bit", defaultInput: [2, 3, 5, 4, 5, 3, 4] },
+      },
+      {
+        id: "count-set-bits",
+        slug: "count-set-bits",
+        title: "Count Set Bits",
+        difficulty: "easy",
+        description:
+          "Three techniques to count 1-bits (popcount), in increasing sophistication.",
+        timeComplexity: "O(bits) / O(set bits) / O(1)",
+        spaceComplexity: "O(1)",
+        content: `## Counting 1-Bits (popcount / Hamming Weight)
+
+### 1. Scan every bit — O(log x)
+
+\`\`\`
+count = 0
+while x > 0:
+    count += x & 1
+    x >>= 1
+\`\`\`
+
+Simple, works, but visits zero bits too.
+
+### 2. Brian Kernighan's algorithm — O(number of set bits)
+
+\`x & (x - 1)\` clears the lowest set bit. Count how many times you can do that before \`x\` is 0. For sparse integers this is much faster than scanning.
+
+\`\`\`
+count = 0
+while x > 0:
+    x &= x - 1
+    count += 1
+\`\`\`
+
+### 3. SWAR / builtin — effectively O(1)
+
+Bit-parallel swizzling (below) counts all bits in a fixed-width int in a constant number of shift/mask/add operations:
+
+\`\`\`
+x = x - ((x >> 1) & 0x55555555);
+x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+x = (x + (x >> 4)) & 0x0F0F0F0F;
+return (x * 0x01010101) >> 24;
+\`\`\`
+
+In practice, use the language builtin (\`Integer.bitCount\`, \`int.bit_count()\`, \`__builtin_popcount\`) — hardware instructions on modern CPUs.
+
+### Counting Bits for every i in \[0..n\] — DP
+
+\`popcount(i) = popcount(i >> 1) + (i & 1)\`, or equivalently \`popcount(i) = popcount(i & (i-1)) + 1\`. Fills an array in O(n).`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `// Brian Kernighan
+function hammingWeight(n) {
+  let count = 0;
+  while (n !== 0) { n &= (n - 1); count++; }
+  return count;
+}
+
+// Build popcount[0..n] in O(n)
+function countBits(n) {
+  const dp = new Array(n + 1).fill(0);
+  for (let i = 1; i <= n; i++) dp[i] = dp[i >> 1] + (i & 1);
+  return dp;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def hamming_weight(n):
+    count = 0
+    while n:
+        n &= n - 1
+        count += 1
+    return count
+
+
+def count_bits(n):
+    dp = [0] * (n + 1)
+    for i in range(1, n + 1):
+        dp[i] = dp[i >> 1] + (i & 1)
+    return dp`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public int hammingWeight(int n) {
+        int count = 0;
+        while (n != 0) { n &= (n - 1); count++; }
+        return count;
+    }
+
+    public int[] countBits(int n) {
+        int[] dp = new int[n + 1];
+        for (int i = 1; i <= n; i++) dp[i] = dp[i >> 1] + (i & 1);
+        return dp;
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `int hammingWeight(uint32_t n) {
+    int count = 0;
+    while (n) { n &= (n - 1); count++; }
+    return count;
+}
+
+vector<int> countBits(int n) {
+    vector<int> dp(n + 1);
+    for (int i = 1; i <= n; i++) dp[i] = dp[i >> 1] + (i & 1);
+    return dp;
+}`,
+          },
+        ],
+        visualizationConfig: { type: "bit", defaultInput: [29] },
+      },
+      {
+        id: "power-of-two",
+        slug: "power-of-two",
+        title: "Power of Two / Four",
+        difficulty: "easy",
+        description:
+          "Detect powers using bit tricks that replace division and logarithms.",
+        timeComplexity: "O(1)",
+        spaceComplexity: "O(1)",
+        content: `## Is \`n\` a Power of Two?
+
+Exactly one bit is set, so \`n & (n - 1) == 0\` **and** \`n > 0\`.
+
+\`\`\`
+isPowerOfTwo(n) = n > 0 && (n & (n - 1)) == 0
+\`\`\`
+
+### Why it works
+
+A power of two has binary form \`10…0\`. Subtracting 1 flips that bit to 0 and all lower bits to 1 (e.g. \`1000 - 1 = 0111\`). The AND therefore is 0. Any number with two or more set bits leaves something non-zero after that AND.
+
+### Power of Four
+
+In addition to "single bit set", require that bit to be at an **even** index. Mask with the 32-bit constant \`0x55555555\` (= \`0101…0101\`): that's non-zero iff the single bit sits at an even position.
+
+\`\`\`
+isPowerOfFour(n) = n > 0 && (n & (n - 1)) == 0 && (n & 0x55555555) != 0
+\`\`\`
+
+### Power of Three
+
+There is no pure-bit trick because 3 is odd. The elegant one-liner relies on the fact that the largest 32-bit power of three is \`3^19 = 1162261467\`:
+
+\`\`\`
+isPowerOfThree(n) = n > 0 && 1162261467 % n == 0
+\`\`\``,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `const isPowerOfTwo  = (n) => n > 0 && (n & (n - 1)) === 0;
+const isPowerOfFour = (n) => isPowerOfTwo(n) && (n & 0x55555555) !== 0;
+const isPowerOfThree = (n) => n > 0 && 1162261467 % n === 0;`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def is_power_of_two(n):   return n > 0 and (n & (n - 1)) == 0
+def is_power_of_four(n):  return is_power_of_two(n) and (n & 0x55555555) != 0
+def is_power_of_three(n): return n > 0 and 1162261467 % n == 0`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public boolean isPowerOfTwo(int n)  { return n > 0 && (n & (n - 1)) == 0; }
+    public boolean isPowerOfFour(int n) { return isPowerOfTwo(n) && (n & 0x55555555) != 0; }
+    public boolean isPowerOfThree(int n){ return n > 0 && 1162261467 % n == 0; }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `bool isPowerOfTwo(int n)   { return n > 0 && (n & (n - 1)) == 0; }
+bool isPowerOfFour(int n)  { return isPowerOfTwo(n) && (n & 0x55555555) != 0; }
+bool isPowerOfThree(int n) { return n > 0 && 1162261467 % n == 0; }`,
+          },
+        ],
+        visualizationConfig: { type: "bit", defaultInput: [16] },
+      },
+      {
+        id: "reverse-bits",
+        slug: "reverse-bits",
+        title: "Reverse Bits",
+        difficulty: "easy",
+        description:
+          "Reverse the 32-bit representation of an unsigned integer.",
+        timeComplexity: "O(1) / O(log width) with SWAR",
+        spaceComplexity: "O(1)",
+        content: `## Reverse Bits
+
+Reverse the binary representation of a 32-bit unsigned integer.
+
+### Bit-by-bit — straightforward, O(32)
+
+Shift the input right; shift the output left; OR in the plucked low bit. 32 iterations.
+
+### SWAR — O(log 32) = 5 steps, branch-free
+
+Swap pairs of neighbors, then pairs-of-pairs, then nibbles, then bytes, then halves:
+
+\`\`\`
+n = ((n >> 1)  & 0x55555555) | ((n & 0x55555555) << 1);
+n = ((n >> 2)  & 0x33333333) | ((n & 0x33333333) << 2);
+n = ((n >> 4)  & 0x0F0F0F0F) | ((n & 0x0F0F0F0F) << 4);
+n = ((n >> 8)  & 0x00FF00FF) | ((n & 0x00FF00FF) << 8);
+n = (n >> 16) | (n << 16);
+\`\`\`
+
+Each line reverses bits within groups of width \`2^line\`. Five lines ⇒ 32 bits reversed. This is the canonical constant-time bit-reverse trick used in FFT implementations and hardware.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `// Bit-by-bit, unsigned right shift to stay in 32-bit space.
+function reverseBits(n) {
+  let res = 0;
+  for (let i = 0; i < 32; i++) {
+    res = (res << 1) | (n & 1);
+    n >>>= 1;
+  }
+  return res >>> 0;
+}
+
+// SWAR — five ops, constant time.
+function reverseBitsSwar(n) {
+  n = ((n >>> 1)  & 0x55555555) | ((n & 0x55555555) << 1);
+  n = ((n >>> 2)  & 0x33333333) | ((n & 0x33333333) << 2);
+  n = ((n >>> 4)  & 0x0F0F0F0F) | ((n & 0x0F0F0F0F) << 4);
+  n = ((n >>> 8)  & 0x00FF00FF) | ((n & 0x00FF00FF) << 8);
+  n = (n >>> 16) | (n << 16);
+  return n >>> 0;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def reverse_bits(n):
+    res = 0
+    for _ in range(32):
+        res = (res << 1) | (n & 1)
+        n >>= 1
+    return res & 0xFFFFFFFF
+
+
+def reverse_bits_swar(n):
+    n = ((n >> 1)  & 0x55555555) | ((n & 0x55555555) << 1)
+    n = ((n >> 2)  & 0x33333333) | ((n & 0x33333333) << 2)
+    n = ((n >> 4)  & 0x0F0F0F0F) | ((n & 0x0F0F0F0F) << 4)
+    n = ((n >> 8)  & 0x00FF00FF) | ((n & 0x00FF00FF) << 8)
+    n = (n >> 16) | ((n & 0xFFFF) << 16)
+    return n & 0xFFFFFFFF`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class Solution {
+    public int reverseBits(int n) {
+        int res = 0;
+        for (int i = 0; i < 32; i++) {
+            res = (res << 1) | (n & 1);
+            n >>>= 1;
+        }
+        return res;
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `uint32_t reverseBits(uint32_t n) {
+    uint32_t res = 0;
+    for (int i = 0; i < 32; i++) {
+        res = (res << 1) | (n & 1u);
+        n >>= 1;
+    }
+    return res;
+}`,
+          },
+        ],
+        visualizationConfig: { type: "bit", defaultInput: [43261596] },
+      },
+      {
+        id: "bitmask-subsets",
+        slug: "bitmask-subsets",
+        title: "Bitmask Subset Enumeration",
+        difficulty: "medium",
+        description:
+          "Use integers as subset identifiers for DP over subsets and fast enumeration.",
+        timeComplexity: "O(2^n · n) for full DP",
+        spaceComplexity: "O(2^n)",
+        content: `## Bitmasks as Sets
+
+An \`n\`-bit integer encodes a subset of \`{0, 1, …, n-1}\`: bit \`i\` is 1 iff element \`i\` is in the subset.
+
+This representation turns set operations into single CPU instructions:
+
+| Set op            | Bitmask expression       |
+|-------------------|--------------------------|
+| Union             | \`a | b\`                 |
+| Intersection      | \`a & b\`                 |
+| Difference        | \`a & ~b\`                |
+| Symmetric diff    | \`a ^ b\`                 |
+| Is \`i\` in \`s\` | \`(s >> i) & 1\`         |
+| Add \`i\`         | \`s | (1 << i)\`          |
+| Remove \`i\`      | \`s & ~(1 << i)\`         |
+| Toggle \`i\`      | \`s ^ (1 << i)\`          |
+
+### Enumerate every subset of \`{0…n-1}\`
+
+\`\`\`
+for mask in 0 .. (1 << n) - 1:
+    process(mask)
+\`\`\`
+
+### Enumerate every subset of a specific mask \`m\`
+
+\`\`\`
+sub = m
+while True:
+    process(sub)
+    if sub == 0: break
+    sub = (sub - 1) & m
+\`\`\`
+
+This walks exactly the subsets of \`m\` in decreasing order and **skips** bits that aren't in \`m\`. It's the workhorse of bitmask-DP problems like Travelling Salesman and set-cover variants.
+
+### When to reach for bitmask DP
+
+Use it when the state naturally includes "which elements have I used / visited so far" **and** \`n\` is small (≤ 20 or so). Beyond ~22 bits, \`2^n\` blows up.
+
+### Common bitmask-DP problems
+
+- **Travelling Salesman** — \`dp[mask][i]\` = min cost to visit set \`mask\` ending at city \`i\`.
+- **Assign n jobs to n workers** — \`dp[mask]\` = min cost when the set of assigned workers = \`mask\`.
+- **Word Break with fixed dictionary size** — bitmask of "words remaining".`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `// Enumerate all 2^n subsets
+function allSubsets(n) {
+  const out = [];
+  for (let mask = 0; mask < (1 << n); mask++) {
+    const subset = [];
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) subset.push(i);
+    out.push(subset);
+  }
+  return out;
+}
+
+// Enumerate every subset of a given mask m
+function subsetsOf(m) {
+  const out = [];
+  let sub = m;
+  while (true) {
+    out.push(sub);
+    if (sub === 0) break;
+    sub = (sub - 1) & m;
+  }
+  return out;
+}
+
+// Travelling Salesman — bitmask DP, O(2^n · n^2)
+function tsp(dist) {
+  const n = dist.length;
+  const INF = Infinity;
+  const dp = Array.from({ length: 1 << n }, () => new Array(n).fill(INF));
+  dp[1][0] = 0;
+  for (let mask = 1; mask < (1 << n); mask++) {
+    for (let u = 0; u < n; u++) {
+      if (!(mask & (1 << u)) || dp[mask][u] === INF) continue;
+      for (let v = 0; v < n; v++) {
+        if (mask & (1 << v)) continue;
+        const next = mask | (1 << v);
+        if (dp[mask][u] + dist[u][v] < dp[next][v])
+          dp[next][v] = dp[mask][u] + dist[u][v];
+      }
+    }
+  }
+  let best = INF;
+  for (let u = 1; u < n; u++)
+    best = Math.min(best, dp[(1 << n) - 1][u] + dist[u][0]);
+  return best;
+}`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def all_subsets(n):
+    return [[i for i in range(n) if mask & (1 << i)]
+            for mask in range(1 << n)]
+
+
+def subsets_of(m):
+    out, sub = [], m
+    while True:
+        out.append(sub)
+        if sub == 0: break
+        sub = (sub - 1) & m
+    return out
+
+
+def tsp(dist):
+    n = len(dist)
+    INF = float('inf')
+    dp = [[INF] * n for _ in range(1 << n)]
+    dp[1][0] = 0
+    for mask in range(1, 1 << n):
+        for u in range(n):
+            if not (mask & (1 << u)) or dp[mask][u] == INF: continue
+            for v in range(n):
+                if mask & (1 << v): continue
+                nxt = mask | (1 << v)
+                if dp[mask][u] + dist[u][v] < dp[nxt][v]:
+                    dp[nxt][v] = dp[mask][u] + dist[u][v]
+    return min(dp[(1 << n) - 1][u] + dist[u][0] for u in range(1, n))`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class BitmaskDP {
+    public int tsp(int[][] dist) {
+        int n = dist.length, FULL = (1 << n) - 1, INF = Integer.MAX_VALUE / 2;
+        int[][] dp = new int[1 << n][n];
+        for (int[] row : dp) Arrays.fill(row, INF);
+        dp[1][0] = 0;
+        for (int mask = 1; mask <= FULL; mask++)
+            for (int u = 0; u < n; u++) {
+                if ((mask & (1 << u)) == 0 || dp[mask][u] == INF) continue;
+                for (int v = 0; v < n; v++) {
+                    if ((mask & (1 << v)) != 0) continue;
+                    int nxt = mask | (1 << v);
+                    dp[nxt][v] = Math.min(dp[nxt][v], dp[mask][u] + dist[u][v]);
+                }
+            }
+        int best = INF;
+        for (int u = 1; u < n; u++)
+            best = Math.min(best, dp[FULL][u] + dist[u][0]);
+        return best;
+    }
+}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `int tsp(vector<vector<int>>& dist) {
+    int n = dist.size(), FULL = (1 << n) - 1;
+    const int INF = INT_MAX / 2;
+    vector<vector<int>> dp(1 << n, vector<int>(n, INF));
+    dp[1][0] = 0;
+    for (int mask = 1; mask <= FULL; ++mask)
+        for (int u = 0; u < n; ++u) {
+            if (!(mask & (1 << u)) || dp[mask][u] == INF) continue;
+            for (int v = 0; v < n; ++v) {
+                if (mask & (1 << v)) continue;
+                int nxt = mask | (1 << v);
+                dp[nxt][v] = min(dp[nxt][v], dp[mask][u] + dist[u][v]);
+            }
+        }
+    int best = INF;
+    for (int u = 1; u < n; ++u)
+        best = min(best, dp[FULL][u] + dist[u][0]);
+    return best;
+}`,
+          },
+        ],
+        visualizationConfig: { type: "bit", defaultInput: [13] },
       },
     ],
   },

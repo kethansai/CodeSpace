@@ -7,6 +7,8 @@ import GraphVisualizer from "./GraphVisualizer.vue";
 import StackQueueVisualizer from "./StackQueueVisualizer.vue";
 import DPVisualizer from "./DPVisualizer.vue";
 import GreedyVisualizer from "./GreedyVisualizer.vue";
+import BacktrackingVisualizer from "./BacktrackingVisualizer.vue";
+import BitManipulationVisualizer from "./BitManipulationVisualizer.vue";
 
 defineProps<{
   mode: string;
@@ -51,6 +53,16 @@ defineProps<{
   />
   <GreedyVisualizer
     v-else-if="mode === 'greedy'"
+    :data="data"
+    :currentStep="currentStep"
+  />
+  <BacktrackingVisualizer
+    v-else-if="mode === 'backtracking'"
+    :data="data"
+    :currentStep="currentStep"
+  />
+  <BitManipulationVisualizer
+    v-else-if="mode === 'bit'"
     :data="data"
     :currentStep="currentStep"
   />
