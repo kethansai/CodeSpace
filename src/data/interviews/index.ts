@@ -516,8 +516,25 @@ This pattern creates a feeling of instant response. Apple apps extensively use t
   },
 ];
 
-export const companies: Company[] = [...baseCompanies, ...additionalCompanies];
+import { buildRolesForCompany } from "./roles";
+import type { CompanyRole } from "@/data/types";
+
+export const companies: Company[] = [...baseCompanies, ...additionalCompanies].map((c) => ({
+  ...c,
+  roles: buildRolesForCompany(c.slug, c.name),
+}));
 
 export function getCompanyBySlug(slug: string): Company | undefined {
   return companies.find((c) => c.slug === slug);
+}
+
+export function getRoleBySlug(
+  companySlug: string,
+  roleSlug: string
+): { company: Company; role: CompanyRole } | undefined {
+  const company = getCompanyBySlug(companySlug);
+  if (!company?.roles) return undefined;
+  const role = company.roles.find((r) => r.slug === roleSlug);
+  if (!role) return undefined;
+  return { company, role };
 }

@@ -35,7 +35,9 @@ import { ArrowRight, Building2 } from 'lucide-vue-next'
             </div>
             <p class="text-sm text-muted-foreground line-clamp-2 mb-4">{{ company.description }}</p>
             <div class="flex items-center justify-between">
-              <Badge variant="secondary">{{ company.questions.length }} questions</Badge>
+              <Badge variant="secondary">
+                {{ company.roles?.length ? `${company.roles.length} roles` : `${company.questions.length} questions` }}
+              </Badge>
               <span class="flex items-center gap-1 text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                 View <ArrowRight class="w-3.5 h-3.5" />
               </span>

@@ -71,6 +71,12 @@ export type VisualizerType =
 export interface VisualizationConfig {
   type: string;
   defaultInput: number[];
+  /**
+   * Optional tree-shaped input (LeetCode-style level-order with `null` for
+   * missing children). Takes precedence over `defaultInput` for tree
+   * visualizations.
+   */
+  defaultTreeInput?: (number | null)[];
   target?: number;
 }
 
@@ -175,6 +181,28 @@ export interface InterviewQuestion {
   tags?: string[];
 }
 
+export interface InterviewRound {
+  id: string;
+  slug: string;
+  name: string; // e.g., "Phone Screen", "System Design"
+  description: string; // markdown
+  duration?: string; // "45 min", "1 hour", etc.
+  format?: string; // "Virtual", "Onsite", "Take-home"
+  topics?: string[];
+  questions: InterviewQuestion[];
+}
+
+export interface CompanyRole {
+  id: string;
+  slug: string;
+  title: string; // "Software Engineer", "Frontend Engineer"
+  level?: string; // "L3 / SDE 1", "Senior", "Staff"
+  description: string;
+  focus: string[]; // skills/areas emphasized
+  interviewLoop?: string; // overview markdown
+  rounds: InterviewRound[];
+}
+
 export interface Company {
   id: string;
   slug: string;
@@ -183,6 +211,7 @@ export interface Company {
   description: string;
   interviewProcess: string;
   questions: InterviewQuestion[];
+  roles?: CompanyRole[];
 }
 
 // ---------- Methodology ----------

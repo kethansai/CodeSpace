@@ -14,27 +14,75 @@ import {
   generateLinearSearchSteps,
   generateTwoPointersSteps,
   generateSlidingWindowSteps,
-  generateDFSSteps,
-  generateBFSSteps,
   generateStackSteps,
-  generateLinkedListReversalSteps,
   generateHashMapSteps,
-  generateFibonacciSteps,
 } from "@/utils/algorithms/sorting";
 import {
   generateRadixSortSteps,
   generateShellSortSteps,
   generateQueueSteps,
-  generateKnapsackSteps,
-  generateLCSSteps,
-  generateCoinChangeSteps,
-  generateLISSteps,
   generateSubsetSteps,
-  generateUnionFindSteps,
-  generateDijkstraSteps,
-  generateTopologicalSortSteps,
   generateBitManipSteps,
 } from "@/utils/algorithms/advanced";
+import {
+  generateSinglyLinkedListSteps,
+  generateDoublyLinkedListSteps,
+  generateLinkedListReversalSteps as generateReverseLLSteps,
+  generateFastSlowMiddleSteps,
+  generateCycleDetectionSteps as generateLinkedListCycleSteps,
+  generatePalindromeLinkedListSteps,
+  generateMergeSortedListsSteps,
+  generateRemoveNthFromEndSteps,
+} from "@/utils/algorithms/linked-list";
+import {
+  generateGraphBFSSteps,
+  generateGraphDFSSteps,
+  generateDijkstraGraphSteps,
+  generateTopoSortGraphSteps,
+  generateUnionFindGraphSteps,
+  generateKruskalGraphSteps,
+  generateShortestPathBFSSteps,
+  generateConnectedComponentsSteps,
+  generateCycleDetectionSteps as generateGraphCycleSteps,
+  generateBipartiteSteps,
+  generateBellmanFordSteps,
+} from "@/utils/algorithms/graph";
+import {
+  generateInorderSteps,
+  generateLevelOrderSteps,
+  generateBSTInsertSteps,
+  generateValidateBSTSteps,
+  generateInvertTreeSteps,
+  generateTreeHeightSteps,
+  generateLCASteps,
+  generatePathSumSteps,
+  generateTrieSteps,
+  generateSegmentTreeSteps,
+} from "@/utils/algorithms/tree";
+import {
+  generateFibDPSteps,
+  generateClimbStairsSteps,
+  generateHouseRobberSteps,
+  generateCoinChangeDPSteps,
+  generateLISDPSteps,
+  generateKnapsackDPSteps,
+  generateLCSDPSteps,
+  generateEditDistanceSteps,
+  generateUniquePathsSteps,
+  generatePartitionSubsetSumSteps,
+  generateKadaneSteps,
+} from "@/utils/algorithms/dp";
+import {
+  generateActivitySelectionSteps,
+  generateJumpGameSteps,
+  generateJumpGameIISteps,
+  generateGasStationSteps,
+  generateFractionalKnapsackSteps,
+  generateMergeIntervalsSteps,
+  generateNonOverlappingSteps,
+  generateTaskSchedulerSteps,
+  generateHuffmanSteps,
+} from "@/utils/algorithms/greedy";
 import MarkdownRenderer from "@/components/content/MarkdownRenderer.vue";
 import LanguageTabs from "@/components/content/LanguageTabs.vue";
 import DifficultyBadge from "@/components/content/DifficultyBadge.vue";
@@ -88,30 +136,58 @@ const visualizationSteps = computed(() => {
   if (slug === "kadanes-algorithm") return generateSlidingWindowSteps(input, 3);
 
   // Trees
-  if (slug === "binary-tree-traversal") return generateDFSSteps(input);
-  if (slug === "binary-search-tree")
-    return generateBinarySearchSteps([1, 3, 5, 7, 9, 11, 13], 7);
+  if (slug === "binary-tree-basics")
+    return generateInorderSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "binary-tree-traversal")
+    return generateInorderSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "level-order-traversal")
+    return generateLevelOrderSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "tree-height-depth")
+    return generateTreeHeightSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "invert-binary-tree-topic")
+    return generateInvertTreeSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "binary-search-tree") return generateBSTInsertSteps(input);
+  if (slug === "validate-bst")
+    return generateValidateBSTSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+    );
+  if (slug === "lowest-common-ancestor-topic")
+    return generateLCASteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+      target ?? 5,
+      4,
+    );
+  if (slug === "path-sum-topic")
+    return generatePathSumSteps(
+      topic.value!.visualizationConfig!.defaultTreeInput ?? input,
+      target ?? 22,
+    );
+  if (slug === "trie") return generateTrieSteps(["cat", "car", "cap", "dog"]);
+  if (slug === "segment-tree") return generateSegmentTreeSteps(input);
 
   // Graphs
-  if (slug === "bfs-dfs") return generateBFSSteps(input);
-  if (slug === "dijkstra") return generateDijkstraSteps();
-  if (slug === "topological-sort") return generateTopologicalSortSteps();
-  if (slug === "union-find")
-    return generateUnionFindSteps(6, [
-      [0, 1],
-      [1, 2],
-      [3, 4],
-      [4, 5],
-      [2, 4],
-    ]);
-  if (slug === "minimum-spanning-tree")
-    return generateUnionFindSteps(5, [
-      [0, 1],
-      [0, 2],
-      [1, 3],
-      [2, 3],
-      [3, 4],
-    ]);
+  if (slug === "bfs-dfs") return generateGraphBFSSteps();
+  if (slug === "graph-dfs") return generateGraphDFSSteps();
+  if (slug === "dijkstra") return generateDijkstraGraphSteps();
+  if (slug === "topological-sort") return generateTopoSortGraphSteps();
+  if (slug === "union-find") return generateUnionFindGraphSteps();
+  if (slug === "minimum-spanning-tree") return generateKruskalGraphSteps();
+  if (slug === "shortest-path-bfs") return generateShortestPathBFSSteps();
+  if (slug === "connected-components")
+    return generateConnectedComponentsSteps();
+  if (slug === "cycle-detection") return generateGraphCycleSteps();
+  if (slug === "bipartite-check") return generateBipartiteSteps();
+  if (slug === "bellman-ford") return generateBellmanFordSteps();
 
   // Stacks & Queues
   if (slug === "stack-implementation") return generateStackSteps(input);
@@ -123,28 +199,91 @@ const visualizationSteps = computed(() => {
 
   // Linked Lists
   if (slug === "singly-linked-list")
-    return generateLinkedListReversalSteps(input);
+    return generateSinglyLinkedListSteps(input);
   if (slug === "doubly-linked-list")
-    return generateLinkedListReversalSteps([1, 2, 3, 4, 5]);
+    return generateDoublyLinkedListSteps(input);
   if (slug === "fast-slow-pointers")
-    return generateLinkedListReversalSteps([1, 2, 3, 4, 5, 6]);
+    return generateFastSlowMiddleSteps(input);
+  if (slug === "reverse-linked-list-topic")
+    return generateReverseLLSteps(input);
+  if (slug === "merge-two-sorted-lists-topic")
+    return generateMergeSortedListsSteps([1, 2, 4], [1, 3, 4]);
+  if (slug === "remove-nth-from-end-topic")
+    return generateRemoveNthFromEndSteps(input, 2);
+  if (slug === "linked-list-cycle-detection")
+    return generateLinkedListCycleSteps(input, 1);
+  if (slug === "palindrome-linked-list-topic")
+    return generatePalindromeLinkedListSteps(input);
+  if (slug === "intersection-of-two-linked-lists")
+    return generateMergeSortedListsSteps([4, 1, 8, 4, 5], [5, 6, 1, 8, 4, 5]);
 
   // Hashing
   if (slug === "hash-map") return generateHashMapSteps(input, target ?? 9);
   if (slug === "hash-set") return generateHashMapSteps([1, 3, 5, 7, 2, 4], 9);
 
   // Dynamic Programming
-  if (slug === "introduction") return generateFibonacciSteps(8);
-  if (slug === "knapsack")
-    return generateKnapsackSteps([2, 3, 4, 5], [3, 4, 5, 6], 8);
-  if (slug === "longest-common-subsequence") return generateLCSSteps();
-  if (slug === "coin-change") return generateCoinChangeSteps([1, 3, 4], 6);
+  if (slug === "introduction") return generateFibDPSteps(8);
+  if (slug === "climbing-stairs") return generateClimbStairsSteps(6);
+  if (slug === "kadanes-dp")
+    return generateKadaneSteps([-2, 1, -3, 4, -1, 2, 1, -5, 4]);
+  if (slug === "house-robber")
+    return generateHouseRobberSteps([2, 7, 9, 3, 1, 8, 5]);
+  if (slug === "coin-change") return generateCoinChangeDPSteps([1, 3, 4], 6);
   if (slug === "longest-increasing-subsequence")
-    return generateLISSteps([10, 9, 2, 5, 3, 7, 101, 18]);
+    return generateLISDPSteps([10, 9, 2, 5, 3, 7, 101, 18]);
+  if (slug === "knapsack")
+    return generateKnapsackDPSteps([2, 3, 4, 5], [3, 4, 5, 6], 8);
+  if (slug === "partition-equal-subset-sum")
+    return generatePartitionSubsetSumSteps([1, 5, 11, 5]);
+  if (slug === "unique-paths") return generateUniquePathsSteps(4, 5);
+  if (slug === "longest-common-subsequence")
+    return generateLCSDPSteps("ABCBDAB", "BDCAB");
+  if (slug === "edit-distance") return generateEditDistanceSteps("horse", "ros");
 
   // Greedy
+  if (slug === "greedy-introduction") return [];
   if (slug === "activity-selection")
-    return generateSlidingWindowSteps([1, 3, 2, 5, 4, 6], 2);
+    return generateActivitySelectionSteps([
+      [1, 4],
+      [3, 5],
+      [0, 6],
+      [5, 7],
+      [3, 9],
+      [5, 9],
+      [6, 10],
+      [8, 11],
+      [8, 12],
+      [2, 14],
+      [12, 16],
+    ]);
+  if (slug === "jump-game") return generateJumpGameSteps([2, 3, 1, 1, 4]);
+  if (slug === "jump-game-ii")
+    return generateJumpGameIISteps([2, 3, 1, 1, 4]);
+  if (slug === "gas-station")
+    return generateGasStationSteps([1, 2, 3, 4, 5], [3, 4, 5, 1, 2]);
+  if (slug === "fractional-knapsack")
+    return generateFractionalKnapsackSteps([10, 20, 30], [60, 100, 120], 50);
+  if (slug === "merge-intervals")
+    return generateMergeIntervalsSteps([
+      [1, 3],
+      [2, 6],
+      [8, 10],
+      [15, 18],
+    ]);
+  if (slug === "non-overlapping-intervals")
+    return generateNonOverlappingSteps([
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [1, 3],
+    ]);
+  if (slug === "task-scheduler")
+    return generateTaskSchedulerSteps(["A", "A", "A", "B", "B", "B"], 2);
+  if (slug === "huffman-coding")
+    return generateHuffmanSteps(
+      ["a", "b", "c", "d", "e", "f"],
+      [5, 9, 12, 13, 16, 45],
+    );
 
   // Backtracking
   if (slug === "permutations-combinations")
@@ -168,20 +307,48 @@ const currentStep = computed(
 const vizMode = computed(() => {
   const slug = topic.value?.slug || "";
   if (
-    ["singly-linked-list", "doubly-linked-list", "fast-slow-pointers"].includes(
-      slug,
-    )
+    [
+      "singly-linked-list",
+      "doubly-linked-list",
+      "fast-slow-pointers",
+      "reverse-linked-list-topic",
+      "merge-two-sorted-lists-topic",
+      "remove-nth-from-end-topic",
+      "linked-list-cycle-detection",
+      "palindrome-linked-list-topic",
+      "intersection-of-two-linked-lists",
+    ].includes(slug)
   )
     return "linked-list";
-  if (["binary-tree-traversal", "binary-search-tree"].includes(slug))
+  if (
+    [
+      "binary-tree-basics",
+      "binary-tree-traversal",
+      "level-order-traversal",
+      "tree-height-depth",
+      "invert-binary-tree-topic",
+      "binary-search-tree",
+      "validate-bst",
+      "lowest-common-ancestor-topic",
+      "path-sum-topic",
+      "trie",
+      "segment-tree",
+    ].includes(slug)
+  )
     return "tree";
   if (
     [
       "bfs-dfs",
+      "graph-dfs",
       "dijkstra",
       "topological-sort",
       "union-find",
       "minimum-spanning-tree",
+      "shortest-path-bfs",
+      "connected-components",
+      "cycle-detection",
+      "bipartite-check",
+      "bellman-ford",
     ].includes(slug)
   )
     return "graph";
@@ -194,6 +361,37 @@ const vizMode = computed(() => {
     ].includes(slug)
   )
     return "stack-queue";
+  if (
+    [
+      "introduction",
+      "climbing-stairs",
+      "kadanes-dp",
+      "house-robber",
+      "coin-change",
+      "longest-increasing-subsequence",
+      "knapsack",
+      "partition-equal-subset-sum",
+      "unique-paths",
+      "longest-common-subsequence",
+      "edit-distance",
+    ].includes(slug)
+  )
+    return "dp";
+  if (
+    [
+      "greedy-introduction",
+      "activity-selection",
+      "jump-game",
+      "jump-game-ii",
+      "gas-station",
+      "fractional-knapsack",
+      "merge-intervals",
+      "non-overlapping-intervals",
+      "task-scheduler",
+      "huffman-coding",
+    ].includes(slug)
+  )
+    return "greedy";
   return "sorting";
 });
 

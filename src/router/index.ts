@@ -90,6 +90,12 @@ const router = createRouter({
           meta: { title: "Interview Questions" },
         },
         {
+          path: "interviews/:company/:role",
+          name: "RoleInterview",
+          component: () => import("@/pages/RoleInterviewPage.vue"),
+          meta: { title: "Role Interview" },
+        },
+        {
           path: "methodology",
           name: "Methodology",
           component: () => import("@/pages/MethodologyOverview.vue"),

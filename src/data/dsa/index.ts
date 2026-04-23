@@ -521,25 +521,30 @@ export const dsaCategories: DSACategory[] = [
           "A linear collection of nodes, each pointing to the next node.",
         timeComplexity: "O(n) traversal, O(1) insert at head",
         spaceComplexity: "O(n)",
-        content: `## Singly Linked List\n\nEach node holds a value and a pointer to the next node.\n\n### Operations\n- **Insert at head**: O(1)\n- **Insert at tail**: O(n) or O(1) with tail pointer\n- **Delete**: O(n) search + O(1) removal\n- **Search**: O(n)`,
+        content: `## Singly Linked List\n\nA **singly linked list** is a chain of nodes. Each node stores a \`value\` and a \`next\` pointer; the last node's \`next\` is \`null\`. Unlike an array, nodes are scattered in memory and linked together by pointers — so there's no random access, but inserts and deletes at the head are \`O(1)\`.\n\n### When to reach for it\n- You need **fast insert/delete at the front** (dynamic stacks, LRU fronts).\n- The size changes a lot and you don't need indexed access.\n- You want to build other structures — queues, adjacency lists, hash-table buckets.\n\n### Core operations\n| Operation | Complexity | Why |\n|-----------|------------|-----|\n| Insert at head | **O(1)** | just splice a new node in front and move \`head\` |\n| Insert at tail | O(n) or O(1) with a tail pointer | walk to the end |\n| Delete head | **O(1)** | \`head = head.next\` |\n| Search by value | O(n) | must traverse |\n| Access by index | O(n) | no random access |\n\n### Visual walkthrough\nThe animation builds the list, traverses it with a \`curr\` pointer, inserts a new head, then deletes it — showing how pointers (not values) change on every operation.\n\n### Common pitfalls\n- Updating \`head\` **after** you splice in the new node, not before.\n- Forgetting to null out the removed node's \`next\` (memory leak in languages without GC).\n- Off-by-one while searching — always check \`curr\` before dereferencing \`curr.next\`.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `class ListNode {\n  constructor(val, next = null) {\n    this.val = val;\n    this.next = next;\n  }\n}\n\nfunction reverseList(head) {\n  let prev = null, curr = head;\n  while (curr) {\n    const next = curr.next;\n    curr.next = prev;\n    prev = curr;\n    curr = next;\n  }\n  return prev;\n}`,
+            code: `// Node definition\nclass ListNode {\n  constructor(val, next = null) {\n    this.val = val;\n    this.next = next;\n  }\n}\n\nclass SinglyLinkedList {\n  constructor() { this.head = null; this.size = 0; }\n\n  // O(1) — splice at the front\n  prepend(val) {\n    this.head = new ListNode(val, this.head);\n    this.size++;\n    return this;\n  }\n\n  // O(n) — walk to the tail\n  append(val) {\n    if (!this.head) return this.prepend(val);\n    let curr = this.head;\n    while (curr.next) curr = curr.next;\n    curr.next = new ListNode(val);\n    this.size++;\n    return this;\n  }\n\n  // O(n) — first matching value\n  find(val) {\n    for (let curr = this.head; curr; curr = curr.next) {\n      if (curr.val === val) return curr;\n    }\n    return null;\n  }\n\n  // O(n) — remove first node with the given value\n  remove(val) {\n    if (!this.head) return false;\n    if (this.head.val === val) {\n      this.head = this.head.next;\n      this.size--;\n      return true;\n    }\n    let prev = this.head;\n    while (prev.next && prev.next.val !== val) prev = prev.next;\n    if (!prev.next) return false;\n    prev.next = prev.next.next;\n    this.size--;\n    return true;\n  }\n\n  // O(n) — produce a readable "1 -> 2 -> 3 -> null" string\n  toString() {\n    const parts = [];\n    for (let c = this.head; c; c = c.next) parts.push(c.val);\n    parts.push("null");\n    return parts.join(" -> ");\n  }\n}\n\n// Demo\nconst list = new SinglyLinkedList();\nlist.append(1).append(2).append(3);\nconsole.log(list.toString());   // 1 -> 2 -> 3 -> null\nlist.prepend(0);\nconsole.log(list.toString());   // 0 -> 1 -> 2 -> 3 -> null\nlist.remove(2);\nconsole.log(list.toString());   // 0 -> 1 -> 3 -> null\nconsole.log(list.find(3)?.val); // 3`,
           },
           {
             language: "python",
             label: "Python",
-            code: `class ListNode:\n    def __init__(self, val=0, next=None):\n        self.val = val\n        self.next = next\n\ndef reverse_list(head):\n    prev, curr = None, head\n    while curr:\n        curr.next, prev, curr = prev, curr, curr.next\n    return prev`,
+            code: `class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\nclass SinglyLinkedList:\n    def __init__(self):\n        self.head = None\n        self.size = 0\n\n    def prepend(self, val):                       # O(1)\n        self.head = ListNode(val, self.head)\n        self.size += 1\n        return self\n\n    def append(self, val):                        # O(n)\n        if self.head is None:\n            return self.prepend(val)\n        curr = self.head\n        while curr.next:\n            curr = curr.next\n        curr.next = ListNode(val)\n        self.size += 1\n        return self\n\n    def find(self, val):                          # O(n)\n        curr = self.head\n        while curr:\n            if curr.val == val:\n                return curr\n            curr = curr.next\n        return None\n\n    def remove(self, val):                        # O(n)\n        if not self.head:\n            return False\n        if self.head.val == val:\n            self.head = self.head.next\n            self.size -= 1\n            return True\n        prev = self.head\n        while prev.next and prev.next.val != val:\n            prev = prev.next\n        if prev.next is None:\n            return False\n        prev.next = prev.next.next\n        self.size -= 1\n        return True\n\n    def __str__(self):\n        parts, c = [], self.head\n        while c:\n            parts.append(str(c.val))\n            c = c.next\n        parts.append("null")\n        return " -> ".join(parts)\n\n# Demo\nlst = SinglyLinkedList()\nlst.append(1).append(2).append(3)\nprint(lst)                    # 1 -> 2 -> 3 -> null\nlst.prepend(0)\nprint(lst)                    # 0 -> 1 -> 2 -> 3 -> null\nlst.remove(2)\nprint(lst)                    # 0 -> 1 -> 3 -> null\nprint(lst.find(3).val)        # 3`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `struct ListNode {\n  int val;\n  ListNode* next;\n  ListNode(int x) : val(x), next(nullptr) {}\n};\n\nListNode* reverseList(ListNode* head) {\n  ListNode *prev=nullptr, *curr=head;\n  while(curr) {\n    auto nxt=curr->next;\n    curr->next=prev;\n    prev=curr;\n    curr=nxt;\n  }\n  return prev;\n}`,
+            code: `#include <iostream>\n#include <string>\nusing namespace std;\n\nstruct ListNode {\n    int val;\n    ListNode* next;\n    ListNode(int v, ListNode* n = nullptr) : val(v), next(n) {}\n};\n\nclass SinglyLinkedList {\n    ListNode* head = nullptr;\n    int size = 0;\npublic:\n    ~SinglyLinkedList() {\n        while (head) { auto* n = head->next; delete head; head = n; }\n    }\n    void prepend(int v) { head = new ListNode(v, head); ++size; }\n    void append(int v) {\n        if (!head) { prepend(v); return; }\n        auto* c = head;\n        while (c->next) c = c->next;\n        c->next = new ListNode(v);\n        ++size;\n    }\n    bool remove(int v) {\n        if (!head) return false;\n        if (head->val == v) {\n            auto* old = head; head = head->next; delete old; --size; return true;\n        }\n        auto* p = head;\n        while (p->next && p->next->val != v) p = p->next;\n        if (!p->next) return false;\n        auto* old = p->next; p->next = old->next; delete old; --size;\n        return true;\n    }\n    string to_string() const {\n        string s;\n        for (auto* c = head; c; c = c->next) s += std::to_string(c->val) + " -> ";\n        return s + "null";\n    }\n};\n\nint main() {\n    SinglyLinkedList l;\n    l.append(1); l.append(2); l.append(3);\n    cout << l.to_string() << "\\n";   // 1 -> 2 -> 3 -> null\n    l.prepend(0);\n    cout << l.to_string() << "\\n";   // 0 -> 1 -> 2 -> 3 -> null\n    l.remove(2);\n    cout << l.to_string() << "\\n";   // 0 -> 1 -> 3 -> null\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class SinglyLinkedList {\n    static class ListNode {\n        int val; ListNode next;\n        ListNode(int v, ListNode n) { this.val = v; this.next = n; }\n    }\n\n    private ListNode head;\n    private int size;\n\n    public void prepend(int v) {        // O(1)\n        head = new ListNode(v, head);\n        size++;\n    }\n\n    public void append(int v) {         // O(n)\n        if (head == null) { prepend(v); return; }\n        ListNode c = head;\n        while (c.next != null) c = c.next;\n        c.next = new ListNode(v, null);\n        size++;\n    }\n\n    public boolean remove(int v) {      // O(n)\n        if (head == null) return false;\n        if (head.val == v) { head = head.next; size--; return true; }\n        ListNode p = head;\n        while (p.next != null && p.next.val != v) p = p.next;\n        if (p.next == null) return false;\n        p.next = p.next.next; size--;\n        return true;\n    }\n\n    @Override public String toString() {\n        StringBuilder sb = new StringBuilder();\n        for (ListNode c = head; c != null; c = c.next) sb.append(c.val).append(" -> ");\n        return sb.append("null").toString();\n    }\n\n    public static void main(String[] args) {\n        SinglyLinkedList l = new SinglyLinkedList();\n        l.append(1); l.append(2); l.append(3);\n        System.out.println(l);    // 1 -> 2 -> 3 -> null\n        l.prepend(0);\n        System.out.println(l);    // 0 -> 1 -> 2 -> 3 -> null\n        l.remove(2);\n        System.out.println(l);    // 0 -> 1 -> 3 -> null\n    }\n}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+        visualizationConfig: { type: "linked-list", defaultInput: [1, 2, 3, 4] },
       },
       {
         id: "doubly-linked-list",
@@ -549,25 +554,30 @@ export const dsaCategories: DSACategory[] = [
         description: "Nodes with pointers to both next and previous elements.",
         timeComplexity: "O(1) insert/delete at known node",
         spaceComplexity: "O(n)",
-        content: `## Doubly Linked List\n\nEach node has both **next** and **prev** pointers, enabling bidirectional traversal.\n\n### Advantages\n- O(1) deletion with pointer to node\n- Can traverse backwards\n- Used in LRU cache`,
+        content: `## Doubly Linked List\n\nA **doubly linked list** stores an extra \`prev\` pointer in every node, so you can walk in both directions. That extra pointer gives you **O(1) deletion** once you have a reference to the node — which is exactly why the LRU cache, browser history, and many kernel data structures use it.\n\n### Anatomy\n\`\`\`\nnull <- [1] <-> [2] <-> [3] <-> [4] -> null\n\`\`\`\nMost implementations keep **sentinel head and tail nodes** so edge cases (empty list, inserting at either end) collapse into the general case — you always have neighbours on both sides.\n\n### When it pays off vs singly linked\n- You need to splice a known node out in O(1) (LRU).\n- You traverse backwards.\n- You want O(1) access to both ends — a **deque**.\n\n### When it doesn't\n- Memory is tight — every node costs an extra pointer.\n- You only insert/delete at the head.\n\n### Pitfalls\n- Forgetting one of the **four** pointer updates on splice — the list silently corrupts.\n- Not maintaining the sentinel invariants after custom \`moveToFront\` / \`moveToBack\`.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `class DLLNode {\n  constructor(val) {\n    this.val = val;\n    this.prev = null;\n    this.next = null;\n  }\n}\n\nclass DoublyLinkedList {\n  constructor() {\n    this.head = new DLLNode(0);\n    this.tail = new DLLNode(0);\n    this.head.next = this.tail;\n    this.tail.prev = this.head;\n  }\n  addToFront(val) {\n    const node = new DLLNode(val);\n    node.next = this.head.next;\n    node.prev = this.head;\n    this.head.next.prev = node;\n    this.head.next = node;\n    return node;\n  }\n  remove(node) {\n    node.prev.next = node.next;\n    node.next.prev = node.prev;\n  }\n}`,
+            code: `class Node {\n  constructor(val) {\n    this.val = val;\n    this.prev = null;\n    this.next = null;\n  }\n}\n\nclass DoublyLinkedList {\n  constructor() {\n    this.head = new Node(null); // sentinel\n    this.tail = new Node(null); // sentinel\n    this.head.next = this.tail;\n    this.tail.prev = this.head;\n    this.size = 0;\n  }\n\n  // O(1) — splice between prev-node and its current successor\n  _insertBetween(node, prev, next) {\n    node.prev = prev;\n    node.next = next;\n    prev.next = node;\n    next.prev = node;\n  }\n\n  pushFront(val) { const n = new Node(val); this._insertBetween(n, this.head, this.head.next); this.size++; return n; }\n  pushBack(val)  { const n = new Node(val); this._insertBetween(n, this.tail.prev, this.tail); this.size++; return n; }\n\n  // O(1) — unlink a node given a direct reference (this is the magic)\n  remove(node) {\n    if (!node || node === this.head || node === this.tail) return;\n    node.prev.next = node.next;\n    node.next.prev = node.prev;\n    node.prev = node.next = null;\n    this.size--;\n  }\n\n  // O(1) — classic LRU primitive\n  moveToFront(node) {\n    this.remove(node);\n    this._insertBetween(node, this.head, this.head.next);\n    this.size++;\n  }\n\n  toString() {\n    const parts = [];\n    for (let c = this.head.next; c !== this.tail; c = c.next) parts.push(c.val);\n    return \`null <-> \${parts.join(" <-> ")} <-> null\`;\n  }\n}\n\n// Demo\nconst dll = new DoublyLinkedList();\nconst a = dll.pushBack(1);\nconst b = dll.pushBack(2);\ndll.pushBack(3);\nconsole.log(dll.toString());        // null <-> 1 <-> 2 <-> 3 <-> null\ndll.moveToFront(b);\nconsole.log(dll.toString());        // null <-> 2 <-> 1 <-> 3 <-> null\ndll.remove(a);\nconsole.log(dll.toString());        // null <-> 2 <-> 3 <-> null`,
           },
           {
             language: "python",
             label: "Python",
-            code: `class DLLNode:\n    def __init__(self, val=0):\n        self.val = val\n        self.prev = self.next = None\n\nclass DoublyLinkedList:\n    def __init__(self):\n        self.head = DLLNode(0)\n        self.tail = DLLNode(0)\n        self.head.next = self.tail\n        self.tail.prev = self.head\n\n    def add_front(self, val):\n        node = DLLNode(val)\n        node.next = self.head.next\n        node.prev = self.head\n        self.head.next.prev = node\n        self.head.next = node\n        return node\n\n    def remove(self, node):\n        node.prev.next = node.next\n        node.next.prev = node.prev`,
+            code: `class Node:\n    __slots__ = ("val", "prev", "next")\n    def __init__(self, val=None):\n        self.val = val\n        self.prev = None\n        self.next = None\n\nclass DoublyLinkedList:\n    def __init__(self):\n        self.head = Node()   # sentinel\n        self.tail = Node()   # sentinel\n        self.head.next = self.tail\n        self.tail.prev = self.head\n        self.size = 0\n\n    def _splice(self, node, prev, nxt):\n        node.prev, node.next = prev, nxt\n        prev.next = node\n        nxt.prev = node\n\n    def push_front(self, val):\n        n = Node(val); self._splice(n, self.head, self.head.next); self.size += 1; return n\n    def push_back(self, val):\n        n = Node(val); self._splice(n, self.tail.prev, self.tail); self.size += 1; return n\n\n    def remove(self, node):       # O(1)\n        if node is None or node is self.head or node is self.tail:\n            return\n        node.prev.next = node.next\n        node.next.prev = node.prev\n        node.prev = node.next = None\n        self.size -= 1\n\n    def move_to_front(self, node):\n        self.remove(node)\n        self._splice(node, self.head, self.head.next)\n        self.size += 1\n\n    def __str__(self):\n        vals = []\n        c = self.head.next\n        while c is not self.tail:\n            vals.append(str(c.val)); c = c.next\n        return "null <-> " + " <-> ".join(vals) + " <-> null"\n\n# Demo\ndll = DoublyLinkedList()\na = dll.push_back(1); b = dll.push_back(2); dll.push_back(3)\nprint(dll)             # null <-> 1 <-> 2 <-> 3 <-> null\ndll.move_to_front(b)\nprint(dll)             # null <-> 2 <-> 1 <-> 3 <-> null\ndll.remove(a)\nprint(dll)             # null <-> 2 <-> 3 <-> null`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `struct DLLNode {\n  int val;\n  DLLNode *prev, *next;\n  DLLNode(int v):val(v),prev(nullptr),next(nullptr){}\n};\nclass DoublyLinkedList {\n  DLLNode *head, *tail;\npublic:\n  DoublyLinkedList() {\n    head=new DLLNode(0); tail=new DLLNode(0);\n    head->next=tail; tail->prev=head;\n  }\n  DLLNode* addFront(int val) {\n    auto* n=new DLLNode(val);\n    n->next=head->next; n->prev=head;\n    head->next->prev=n; head->next=n;\n    return n;\n  }\n  void remove(DLLNode* n) {\n    n->prev->next=n->next;\n    n->next->prev=n->prev;\n    delete n;\n  }\n};`,
+            code: `#include <iostream>\n#include <string>\nusing namespace std;\n\nstruct Node {\n    int val;\n    Node *prev = nullptr, *next = nullptr;\n    Node(int v = 0) : val(v) {}\n};\n\nclass DoublyLinkedList {\n    Node head{0}, tail{0};\n    int _size = 0;\n    void splice(Node* n, Node* p, Node* nx) {\n        n->prev = p; n->next = nx;\n        p->next = n; nx->prev = n;\n    }\npublic:\n    DoublyLinkedList() { head.next = &tail; tail.prev = &head; }\n    ~DoublyLinkedList() {\n        Node* c = head.next;\n        while (c != &tail) { Node* n = c->next; delete c; c = n; }\n    }\n    Node* pushBack(int v) {\n        Node* n = new Node(v);\n        splice(n, tail.prev, &tail);\n        ++_size; return n;\n    }\n    void remove(Node* n) {\n        if (!n || n == &head || n == &tail) return;\n        n->prev->next = n->next;\n        n->next->prev = n->prev;\n        delete n; --_size;\n    }\n    string str() const {\n        string s = "null";\n        for (auto* c = head.next; c != &tail; c = c->next)\n            s += " <-> " + std::to_string(c->val);\n        return s + " <-> null";\n    }\n};\n\nint main() {\n    DoublyLinkedList dll;\n    dll.pushBack(1); auto* b = dll.pushBack(2); dll.pushBack(3);\n    cout << dll.str() << "\\n";   // null <-> 1 <-> 2 <-> 3 <-> null\n    dll.remove(b);\n    cout << dll.str() << "\\n";   // null <-> 1 <-> 3 <-> null\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class DoublyLinkedList {\n    static class Node {\n        int val; Node prev, next;\n        Node(int v) { this.val = v; }\n    }\n    private final Node head = new Node(0), tail = new Node(0);\n    private int size = 0;\n\n    public DoublyLinkedList() { head.next = tail; tail.prev = head; }\n\n    private void splice(Node n, Node p, Node nx) {\n        n.prev = p; n.next = nx; p.next = n; nx.prev = n;\n    }\n    public Node pushBack(int v) {\n        Node n = new Node(v); splice(n, tail.prev, tail); size++; return n;\n    }\n    public void remove(Node n) {\n        if (n == null || n == head || n == tail) return;\n        n.prev.next = n.next; n.next.prev = n.prev;\n        size--;\n    }\n    @Override public String toString() {\n        StringBuilder sb = new StringBuilder("null");\n        for (Node c = head.next; c != tail; c = c.next) sb.append(" <-> ").append(c.val);\n        return sb.append(" <-> null").toString();\n    }\n    public static void main(String[] a) {\n        DoublyLinkedList dll = new DoublyLinkedList();\n        dll.pushBack(1); Node b = dll.pushBack(2); dll.pushBack(3);\n        System.out.println(dll); // null <-> 1 <-> 2 <-> 3 <-> null\n        dll.remove(b);\n        System.out.println(dll); // null <-> 1 <-> 3 <-> null\n    }\n}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+        visualizationConfig: { type: "linked-list", defaultInput: [1, 2, 3, 4] },
       },
       {
         id: "fast-slow-pointers",
@@ -578,25 +588,28 @@ export const dsaCategories: DSACategory[] = [
           "Floyd's Tortoise and Hare for cycle detection and midpoints.",
         timeComplexity: "O(n)",
         spaceComplexity: "O(1)",
-        content: `## Fast & Slow Pointers (Floyd's Algorithm)\n\nUse two pointers at different speeds:\n- **Slow** moves 1 step\n- **Fast** moves 2 steps\n\n### Applications\n- **Cycle detection**: Fast meets slow → cycle exists\n- **Find middle**: Fast at end → slow at middle\n- **Find cycle start**: Reset one pointer to head, move both at speed 1`,
+        content: `## Fast & Slow Pointers (Floyd's Algorithm)\n\nRun two pointers down the list at different speeds:\n- \`slow\` moves **1 step** per iteration.\n- \`fast\` moves **2 steps** per iteration.\n\n### What this unlocks\n1. **Find the middle** — when \`fast\` reaches the end, \`slow\` is at the midpoint (or just past it for even length).\n2. **Cycle detection** — if a cycle exists, \`fast\` laps \`slow\` and they meet. If \`fast\` ever hits \`null\`, there's no cycle.\n3. **Cycle entry** — after they meet, reset one pointer to \`head\` and walk both at speed 1; they meet at the cycle's first node.\n\n### Why speed 2 works\nEach iteration the pointers close the gap by 1 node. In a cycle of length \`C\`, they must collide within at most \`C\` iterations after slow enters the cycle.\n\n### Visualization\nThe animation below walks both pointers to find the middle of \`[1,2,3,4,5,6,7]\`. Watch \`slow\` inch forward while \`fast\` darts ahead.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function hasCycle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n    if (slow === fast) return true;\n  }\n  return false;\n}\n\nfunction findMiddle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n  }\n  return slow;\n}`,
+            code: `class ListNode {\n  constructor(val, next = null) { this.val = val; this.next = next; }\n}\n\n// Build a list from an array (helper)\nfunction listFrom(arr) {\n  let head = null;\n  for (let i = arr.length - 1; i >= 0; i--) head = new ListNode(arr[i], head);\n  return head;\n}\n\nfunction hasCycle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n    if (slow === fast) return true;\n  }\n  return false;\n}\n\nfunction findMiddle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n  }\n  return slow; // for even length, returns the second middle\n}\n\n// Demo\nconst list = listFrom([1, 2, 3, 4, 5, 6, 7]);\nconsole.log(findMiddle(list).val); // 4\nconsole.log(hasCycle(list));       // false`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def has_cycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast: return True\n    return False\n\ndef find_middle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n    return slow`,
+            code: `class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\ndef list_from(arr):\n    head = None\n    for v in reversed(arr):\n        head = ListNode(v, head)\n    return head\n\ndef has_cycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast:\n            return True\n    return False\n\ndef find_middle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n    return slow\n\n# Demo\nhead = list_from([1, 2, 3, 4, 5, 6, 7])\nprint(find_middle(head).val)  # 4\nprint(has_cycle(head))        # False`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `bool hasCycle(ListNode* head) {\n  auto *s=head, *f=head;\n  while(f && f->next) {\n    s=s->next; f=f->next->next;\n    if(s==f) return true;\n  }\n  return false;\n}`,
+            code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nstruct ListNode { int val; ListNode* next; ListNode(int v):val(v),next(nullptr){} };\n\nListNode* listFrom(const vector<int>& a) {\n    ListNode* head = nullptr;\n    for (int i = (int)a.size() - 1; i >= 0; --i) {\n        auto* n = new ListNode(a[i]); n->next = head; head = n;\n    }\n    return head;\n}\n\nbool hasCycle(ListNode* head) {\n    auto *s = head, *f = head;\n    while (f && f->next) {\n        s = s->next; f = f->next->next;\n        if (s == f) return true;\n    }\n    return false;\n}\n\nListNode* findMiddle(ListNode* head) {\n    auto *s = head, *f = head;\n    while (f && f->next) { s = s->next; f = f->next->next; }\n    return s;\n}\n\nint main() {\n    auto* head = listFrom({1,2,3,4,5,6,7});\n    cout << findMiddle(head)->val << "\\n"; // 4\n    cout << hasCycle(head) << "\\n";        // 0\n}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5, 6, 7, 8] },
+        visualizationConfig: {
+          type: "linked-list",
+          defaultInput: [1, 2, 3, 4, 5, 6, 7],
+        },
       },
       {
         id: "reverse-linked-list",
@@ -607,27 +620,35 @@ export const dsaCategories: DSACategory[] = [
           "Iteratively flip each node's next pointer using prev/curr/next.",
         timeComplexity: "O(n)",
         spaceComplexity: "O(1)",
-        content: `## Reverse a Linked List\n\nKeep three pointers — \`prev\`, \`curr\`, \`next\` — and flip \`curr.next\` to \`prev\` at each step.\n\n### Steps\n1. Save \`next = curr.next\`\n2. Reassign \`curr.next = prev\`\n3. Advance \`prev = curr\`, then \`curr = next\`\n\n### Pitfalls\n- Forgetting to cache \`next\` before overwriting \`curr.next\`\n- Returning \`curr\` (null at the end) instead of \`prev\``,
+        content: `## Reverse a Linked List\n\nWe walk the list once and flip each \`next\` pointer in place. Three pointers track the state:\n\n| Pointer | Meaning |\n|---------|---------|\n| \`prev\` | last node whose \`next\` has already been reversed (starts as \`null\`) |\n| \`curr\` | node whose \`next\` we'll flip this iteration |\n| \`next\` | cached \`curr.next\` so we don't lose the rest of the list |\n\n### The four-line loop\n1. \`next = curr.next\` — cache the tail.\n2. \`curr.next = prev\` — flip the pointer.\n3. \`prev = curr\` — the frontier moved forward.\n4. \`curr = next\` — advance.\n\nWhen \`curr\` is \`null\`, \`prev\` is the new head.\n\n### Recursive variant\n\`\`\`\nreverse(head):\n  if head is null or head.next is null: return head\n  newHead = reverse(head.next)\n  head.next.next = head\n  head.next = null\n  return newHead\n\`\`\`\nElegant, but uses O(n) stack space.\n\n### Pitfalls\n- Forgetting to cache \`next\` before overwriting \`curr.next\`.\n- Returning \`curr\` (\`null\` at the end) instead of \`prev\`.`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function reverseList(head) {\n  let prev = null, curr = head;\n  while (curr) {\n    const next = curr.next;\n    curr.next = prev;\n    prev = curr;\n    curr = next;\n  }\n  return prev;\n}`,
+            code: `class ListNode {\n  constructor(val, next = null) { this.val = val; this.next = next; }\n}\n\nfunction listFrom(arr) {\n  let head = null;\n  for (let i = arr.length - 1; i >= 0; i--) head = new ListNode(arr[i], head);\n  return head;\n}\n\nfunction toArray(head) {\n  const out = [];\n  for (let c = head; c; c = c.next) out.push(c.val);\n  return out;\n}\n\n// Iterative — O(n) time, O(1) space\nfunction reverseList(head) {\n  let prev = null, curr = head;\n  while (curr) {\n    const next = curr.next; // cache tail\n    curr.next = prev;       // flip pointer\n    prev = curr;            // move frontier\n    curr = next;            // advance\n  }\n  return prev;              // new head\n}\n\n// Recursive — O(n) time, O(n) stack\nfunction reverseListRec(head) {\n  if (!head || !head.next) return head;\n  const newHead = reverseListRec(head.next);\n  head.next.next = head;\n  head.next = null;\n  return newHead;\n}\n\n// Demo\nconsole.log(toArray(reverseList(listFrom([1,2,3,4,5]))));     // [5,4,3,2,1]\nconsole.log(toArray(reverseListRec(listFrom([1,2,3,4,5]))));  // [5,4,3,2,1]`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def reverse_list(head):\n    prev, curr = None, head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nxt\n    return prev`,
+            code: `class ListNode:\n    def __init__(self, val=0, nxt=None):\n        self.val = val\n        self.next = nxt\n\ndef list_from(arr):\n    head = None\n    for v in reversed(arr):\n        head = ListNode(v, head)\n    return head\n\ndef to_array(head):\n    out = []\n    while head:\n        out.append(head.val); head = head.next\n    return out\n\n# Iterative — O(n) time, O(1) space\ndef reverse_list(head):\n    prev, curr = None, head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev, curr = curr, nxt\n    return prev\n\n# Recursive — O(n) stack\ndef reverse_list_rec(head):\n    if head is None or head.next is None:\n        return head\n    new_head = reverse_list_rec(head.next)\n    head.next.next = head\n    head.next = None\n    return new_head\n\nprint(to_array(reverse_list(list_from([1,2,3,4,5]))))      # [5,4,3,2,1]\nprint(to_array(reverse_list_rec(list_from([1,2,3,4,5]))))  # [5,4,3,2,1]`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `ListNode* reverseList(ListNode* head) {\n  ListNode *prev=nullptr, *curr=head;\n  while (curr) {\n    auto* nxt = curr->next;\n    curr->next = prev;\n    prev = curr;\n    curr = nxt;\n  }\n  return prev;\n}`,
+            code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nstruct ListNode { int val; ListNode* next; ListNode(int v):val(v),next(nullptr){} };\n\nListNode* listFrom(const vector<int>& a) {\n    ListNode* head = nullptr;\n    for (int i = (int)a.size() - 1; i >= 0; --i) {\n        auto* n = new ListNode(a[i]); n->next = head; head = n;\n    }\n    return head;\n}\nvoid print(ListNode* h) {\n    for (; h; h = h->next) cout << h->val << (h->next ? " -> " : "");\n    cout << "\\n";\n}\n\nListNode* reverseList(ListNode* head) {\n    ListNode *prev = nullptr, *curr = head;\n    while (curr) {\n        auto* nxt = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = nxt;\n    }\n    return prev;\n}\n\nint main() {\n    print(reverseList(listFrom({1,2,3,4,5}))); // 5 -> 4 -> 3 -> 2 -> 1\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class ReverseList {\n    static class ListNode { int val; ListNode next; ListNode(int v){val=v;} }\n\n    static ListNode listFrom(int[] a) {\n        ListNode head = null;\n        for (int i = a.length - 1; i >= 0; i--) {\n            ListNode n = new ListNode(a[i]); n.next = head; head = n;\n        }\n        return head;\n    }\n    static String print(ListNode h) {\n        StringBuilder sb = new StringBuilder();\n        while (h != null) { sb.append(h.val); if (h.next != null) sb.append(" -> "); h = h.next; }\n        return sb.toString();\n    }\n\n    static ListNode reverseList(ListNode head) {\n        ListNode prev = null, curr = head;\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        return prev;\n    }\n\n    public static void main(String[] a) {\n        System.out.println(print(reverseList(listFrom(new int[]{1,2,3,4,5}))));\n        // 5 -> 4 -> 3 -> 2 -> 1\n    }\n}`,
           },
         ],
         relatedProblems: ["reverse-linked-list"],
         tags: ["Two Pointers", "In-Place"],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+        visualizationConfig: {
+          type: "linked-list",
+          defaultInput: [1, 2, 3, 4, 5],
+        },
       },
       {
         id: "merge-two-sorted-lists",
@@ -1043,35 +1064,193 @@ export const dsaCategories: DSACategory[] = [
     color: "bg-green-500",
     topics: [
       {
-        id: "binary-tree-traversal",
-        slug: "binary-tree-traversal",
-        title: "Binary Tree Traversals",
+        id: "binary-tree-basics",
+        slug: "binary-tree-basics",
+        title: "Binary Tree Basics",
         difficulty: "easy",
         description:
-          "Inorder, Preorder, Postorder, and Level-order traversals.",
-        timeComplexity: "O(n)",
-        spaceComplexity: "O(h)",
-        content: `## Binary Tree Traversals\n\n### Depth-First (DFS)\n- **In-order** (Left, Root, Right): Gives sorted order for BST\n- **Pre-order** (Root, Left, Right): Tree serialization\n- **Post-order** (Left, Right, Root): Deletion, expression trees\n\n### Breadth-First (BFS)\n- **Level-order**: Visit all nodes at each depth level`,
+          "TreeNode structure, terminology, and common tree shapes.",
+        timeComplexity: "O(1) per node",
+        spaceComplexity: "O(n)",
+        content: `## Binary Tree Basics\n\nA **binary tree** is a hierarchical structure where each node has at most two children — conventionally called \`left\` and \`right\`.\n\n### Core terminology\n- **Root** — the top node\n- **Leaf** — a node with no children\n- **Depth of a node** — edges from the root to that node\n- **Height of a tree** — depth of the deepest leaf\n- **Subtree** — any node together with all its descendants\n\n### Common shapes\n| Shape | Rule | Notes |\n|---|---|---|\n| **Full** | every node has 0 or 2 children | no "only-child" nodes |\n| **Complete** | every level filled left-to-right, last level may be partial | heaps are complete |\n| **Perfect** | every internal node has 2 children and all leaves at the same depth | node count = 2^h − 1 |\n| **Balanced** | heights of the two subtrees of every node differ by ≤ 1 | AVL / Red-Black |\n| **Skewed** | every node has at most one child | degenerates into a linked list, O(n) height |\n\n### Why study trees first\n- Recursion + pointers in a single shape — the perfect training ground.\n- File systems, the DOM, expression parsers, syntax trees, BSTs, heaps, tries, segment trees, and most game-AI data structures are all trees.\n\n### Representing a tree in memory\n\`\`\`\nTreeNode { val, left, right }\n\`\`\`\nFor testing we often pass a **level-order array** with \`null\` for missing nodes, e.g. \`[1, 2, 3, null, 4]\` ⇒\n\`\`\`\n      1\n     / \\\n    2   3\n     \\\n      4\n\`\`\``,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function inorder(root, res = []) {\n  if (!root) return res;\n  inorder(root.left, res);\n  res.push(root.val);\n  inorder(root.right, res);\n  return res;\n}\n\nfunction levelOrder(root) {\n  if (!root) return [];\n  const result = [], queue = [root];\n  while (queue.length) {\n    const level = [], size = queue.length;\n    for (let i = 0; i < size; i++) {\n      const node = queue.shift();\n      level.push(node.val);\n      if (node.left) queue.push(node.left);\n      if (node.right) queue.push(node.right);\n    }\n    result.push(level);\n  }\n  return result;\n}`,
+            code: `// Minimal TreeNode and level-order builder used throughout this section\nclass TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val;\n    this.left = left;\n    this.right = right;\n  }\n}\n\n// Build a tree from a LeetCode-style level-order array with nulls.\nfunction buildTree(arr) {\n  if (!arr.length || arr[0] == null) return null;\n  const root = new TreeNode(arr[0]);\n  const q = [root];\n  let i = 1;\n  while (q.length && i < arr.length) {\n    const node = q.shift();\n    if (i < arr.length && arr[i] != null) {\n      node.left = new TreeNode(arr[i]);\n      q.push(node.left);\n    }\n    i++;\n    if (i < arr.length && arr[i] != null) {\n      node.right = new TreeNode(arr[i]);\n      q.push(node.right);\n    }\n    i++;\n  }\n  return root;\n}\n\n// Demo\nconst root = buildTree([1, 2, 3, null, 4, 5, 6]);\nconsole.log(root.val);               // 1\nconsole.log(root.left.val);          // 2\nconsole.log(root.left.right.val);    // 4\nconsole.log(root.right.left.val);    // 5`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def inorder(root):\n    return inorder(root.left) + [root.val] + inorder(root.right) if root else []\n\ndef level_order(root):\n    if not root: return []\n    result, queue = [], [root]\n    while queue:\n        level = []\n        for _ in range(len(queue)):\n            node = queue.pop(0)\n            level.append(node.val)\n            if node.left: queue.append(node.left)\n            if node.right: queue.append(node.right)\n        result.append(level)\n    return result`,
+            code: `from collections import deque\n\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef build_tree(arr):\n    if not arr or arr[0] is None:\n        return None\n    root = TreeNode(arr[0])\n    q = deque([root])\n    i = 1\n    while q and i < len(arr):\n        node = q.popleft()\n        if i < len(arr) and arr[i] is not None:\n            node.left = TreeNode(arr[i]); q.append(node.left)\n        i += 1\n        if i < len(arr) and arr[i] is not None:\n            node.right = TreeNode(arr[i]); q.append(node.right)\n        i += 1\n    return root\n\nroot = build_tree([1, 2, 3, None, 4, 5, 6])\nprint(root.val, root.left.val, root.left.right.val, root.right.left.val)\n# 1 2 4 5`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `void inorder(TreeNode* root, vector<int>& res) {\n  if(!root) return;\n  inorder(root->left, res);\n  res.push_back(root->val);\n  inorder(root->right, res);\n}`,
+            code: `#include <iostream>\n#include <queue>\n#include <vector>\n#include <optional>\nusing namespace std;\n\nstruct TreeNode {\n  int val;\n  TreeNode *left, *right;\n  TreeNode(int v): val(v), left(nullptr), right(nullptr) {}\n};\n\nTreeNode* buildTree(const vector<optional<int>>& a) {\n  if (a.empty() || !a[0].has_value()) return nullptr;\n  auto* root = new TreeNode(*a[0]);\n  queue<TreeNode*> q; q.push(root);\n  size_t i = 1;\n  while (!q.empty() && i < a.size()) {\n    auto* n = q.front(); q.pop();\n    if (i < a.size() && a[i]) { n->left = new TreeNode(*a[i]); q.push(n->left); }\n    i++;\n    if (i < a.size() && a[i]) { n->right = new TreeNode(*a[i]); q.push(n->right); }\n    i++;\n  }\n  return root;\n}\n\nint main() {\n  auto* root = buildTree({1, 2, 3, nullopt, 4, 5, 6});\n  cout << root->val << " " << root->left->val << " " << root->left->right->val << "\\n";\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;\n\nclass TreeNode {\n  int val;\n  TreeNode left, right;\n  TreeNode(int v) { val = v; }\n}\n\npublic class Main {\n  static TreeNode buildTree(Integer[] a) {\n    if (a.length == 0 || a[0] == null) return null;\n    TreeNode root = new TreeNode(a[0]);\n    Queue<TreeNode> q = new LinkedList<>();\n    q.add(root);\n    int i = 1;\n    while (!q.isEmpty() && i < a.length) {\n      TreeNode n = q.poll();\n      if (i < a.length && a[i] != null) { n.left = new TreeNode(a[i]); q.add(n.left); }\n      i++;\n      if (i < a.length && a[i] != null) { n.right = new TreeNode(a[i]); q.add(n.right); }\n      i++;\n    }\n    return root;\n  }\n\n  public static void main(String[] args) {\n    TreeNode root = buildTree(new Integer[]{1, 2, 3, null, 4, 5, 6});\n    System.out.println(root.val + " " + root.left.val + " " + root.left.right.val);\n  }\n}`,
           },
         ],
         visualizationConfig: {
-          type: "array",
+          type: "tree",
           defaultInput: [1, 2, 3, 4, 5, 6, 7],
+          defaultTreeInput: [1, 2, 3, null, 4, 5, 6],
+        },
+      },
+      {
+        id: "binary-tree-traversal",
+        slug: "binary-tree-traversal",
+        title: "DFS Traversals (In / Pre / Post)",
+        difficulty: "easy",
+        description:
+          "Depth-first traversals of a binary tree — the three orderings and when to use each.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h) recursion",
+        content: `## DFS Traversals\n\nAll three DFS orderings visit every node exactly once — what differs is **when** the current node is recorded relative to its children.\n\n| Order | Sequence | Classic use-case |\n|---|---|---|\n| **In-order** | Left → **Root** → Right | BST → sorted output |\n| **Pre-order** | **Root** → Left → Right | Copy / serialize a tree |\n| **Post-order** | Left → Right → **Root** | Delete tree, evaluate expression tree, compute subtree metrics |\n\n### Visual walkthrough — in-order on \`[1,2,3,4,5,6,7]\`\nShape:\n\`\`\`\n        1\n       / \\\n      2   3\n     / \\ / \\\n    4  5 6  7\n\`\`\`\nIn-order visits: 4, 2, 5, 1, 6, 3, 7.\n\n### Iterative forms\n- **In-order** uses an explicit stack + "go-left-as-far-as-possible" pointer.\n- **Pre-order** can use a stack by pushing right before left.\n- **Post-order** is trickiest — use two stacks or a visited flag.\n\n### Pitfalls\n- Returning \`void\` and relying on a closure \`result\` array is fine, but be careful with recursion limits on very deep trees.\n- A skewed tree gives O(n) stack depth — iterative versions prevent stack overflows.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction inorder(root) {\n  const res = [];\n  (function dfs(n) {\n    if (!n) return;\n    dfs(n.left);\n    res.push(n.val);\n    dfs(n.right);\n  })(root);\n  return res;\n}\n\nfunction preorder(root) {\n  const res = [];\n  (function dfs(n) {\n    if (!n) return;\n    res.push(n.val);\n    dfs(n.left);\n    dfs(n.right);\n  })(root);\n  return res;\n}\n\nfunction postorder(root) {\n  const res = [];\n  (function dfs(n) {\n    if (!n) return;\n    dfs(n.left);\n    dfs(n.right);\n    res.push(n.val);\n  })(root);\n  return res;\n}\n\n// Iterative in-order (no recursion)\nfunction inorderIter(root) {\n  const res = [], stack = [];\n  let cur = root;\n  while (cur || stack.length) {\n    while (cur) { stack.push(cur); cur = cur.left; }\n    cur = stack.pop();\n    res.push(cur.val);\n    cur = cur.right;\n  }\n  return res;\n}\n\n// Demo\nconst build = (arr) => { /* level-order helper, see Binary Tree Basics */\n  if (!arr.length) return null;\n  const nodes = arr.map(v => v == null ? null : new TreeNode(v));\n  for (let i = 0, j = 1; j < nodes.length; i++) {\n    if (!nodes[i]) continue;\n    if (j < nodes.length) nodes[i].left = nodes[j++];\n    if (j < nodes.length) nodes[i].right = nodes[j++];\n  }\n  return nodes[0];\n};\nconst root = build([1, 2, 3, 4, 5, 6, 7]);\nconsole.log("in  ", inorder(root));     // [4,2,5,1,6,3,7]\nconsole.log("pre ", preorder(root));    // [1,2,4,5,3,6,7]\nconsole.log("post", postorder(root));   // [4,5,2,6,7,3,1]\nconsole.log("iter", inorderIter(root)); // [4,2,5,1,6,3,7]`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef inorder(root):\n    res = []\n    def dfs(n):\n        if not n: return\n        dfs(n.left); res.append(n.val); dfs(n.right)\n    dfs(root); return res\n\ndef preorder(root):\n    res = []\n    def dfs(n):\n        if not n: return\n        res.append(n.val); dfs(n.left); dfs(n.right)\n    dfs(root); return res\n\ndef postorder(root):\n    res = []\n    def dfs(n):\n        if not n: return\n        dfs(n.left); dfs(n.right); res.append(n.val)\n    dfs(root); return res\n\ndef inorder_iter(root):\n    res, stack, cur = [], [], root\n    while cur or stack:\n        while cur:\n            stack.append(cur); cur = cur.left\n        cur = stack.pop()\n        res.append(cur.val)\n        cur = cur.right\n    return res\n\n# Demo: build from level-order [1,2,3,4,5,6,7]\ndef build(a):\n    if not a: return None\n    nodes = [TreeNode(v) if v is not None else None for v in a]\n    j = 1\n    for i in range(len(a)):\n        if not nodes[i]: continue\n        if j < len(a): nodes[i].left = nodes[j]; j += 1\n        if j < len(a): nodes[i].right = nodes[j]; j += 1\n    return nodes[0]\n\nroot = build([1, 2, 3, 4, 5, 6, 7])\nprint("in  ", inorder(root))       # [4,2,5,1,6,3,7]\nprint("pre ", preorder(root))      # [1,2,4,5,3,6,7]\nprint("post", postorder(root))     # [4,5,2,6,7,3,1]\nprint("iter", inorder_iter(root))  # [4,2,5,1,6,3,7]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\n#include <vector>\n#include <stack>\nusing namespace std;\n\nstruct TreeNode {\n  int val;\n  TreeNode *left, *right;\n  TreeNode(int v): val(v), left(nullptr), right(nullptr) {}\n};\n\nvoid inorder(TreeNode* n, vector<int>& res) {\n  if (!n) return;\n  inorder(n->left, res);\n  res.push_back(n->val);\n  inorder(n->right, res);\n}\n\nvector<int> inorderIter(TreeNode* root) {\n  vector<int> res;\n  stack<TreeNode*> st;\n  TreeNode* cur = root;\n  while (cur || !st.empty()) {\n    while (cur) { st.push(cur); cur = cur->left; }\n    cur = st.top(); st.pop();\n    res.push_back(cur->val);\n    cur = cur->right;\n  }\n  return res;\n}\n\nint main() {\n  TreeNode* root = new TreeNode(1);\n  root->left = new TreeNode(2); root->right = new TreeNode(3);\n  root->left->left = new TreeNode(4); root->left->right = new TreeNode(5);\n  root->right->left = new TreeNode(6); root->right->right = new TreeNode(7);\n  vector<int> res;\n  inorder(root, res);\n  for (int v : res) cout << v << ' '; // 4 2 5 1 6 3 7\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;\n\nclass TreeNode {\n  int val; TreeNode left, right;\n  TreeNode(int v) { val = v; }\n}\n\npublic class Main {\n  static void inorder(TreeNode n, List<Integer> res) {\n    if (n == null) return;\n    inorder(n.left, res);\n    res.add(n.val);\n    inorder(n.right, res);\n  }\n\n  public static void main(String[] args) {\n    TreeNode root = new TreeNode(1);\n    root.left = new TreeNode(2); root.right = new TreeNode(3);\n    root.left.left = new TreeNode(4); root.left.right = new TreeNode(5);\n    root.right.left = new TreeNode(6); root.right.right = new TreeNode(7);\n    List<Integer> out = new ArrayList<>();\n    inorder(root, out);\n    System.out.println(out); // [4, 2, 5, 1, 6, 3, 7]\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [1, 2, 3, 4, 5, 6, 7],
+          defaultTreeInput: [1, 2, 3, 4, 5, 6, 7],
+        },
+      },
+      {
+        id: "level-order-traversal",
+        slug: "level-order-traversal",
+        title: "Level-Order Traversal (BFS)",
+        difficulty: "easy",
+        description:
+          "Visit every node level-by-level using a queue — the bread-and-butter of BFS on trees.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(w) — max width",
+        content: `## Level-Order Traversal\n\nProcess nodes level-by-level using a **FIFO queue**.\n\n### Algorithm\n1. Push root into a queue.\n2. While the queue is not empty:\n   - Record its current \`size\` — that's how many nodes are on this level.\n   - Dequeue \`size\` nodes, recording their values into a \`level\` array.\n   - For each dequeued node, enqueue its non-null children.\n3. Append \`level\` to the result.\n\n### When to pick BFS over DFS\n- You need results **grouped by depth** (level-order output).\n- You're computing shortest paths in an unweighted tree/graph.\n- You need the **minimum depth** of a tree (BFS stops at the first leaf).\n- You need a **zig-zag / right-side view / bottom-up** ordering — all trivial variants of BFS.\n\n### Complexity\n- Time O(n) — each node enqueued once.\n- Space O(w) where \`w\` is the maximum level width — for a complete tree of height \`h\`, w ≈ n/2.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction levelOrder(root) {\n  if (!root) return [];\n  const result = [];\n  const queue = [root];\n  while (queue.length) {\n    const size = queue.length;\n    const level = [];\n    for (let i = 0; i < size; i++) {\n      const node = queue.shift();\n      level.push(node.val);\n      if (node.left) queue.push(node.left);\n      if (node.right) queue.push(node.right);\n    }\n    result.push(level);\n  }\n  return result;\n}\n\n// Demo tree:  3\n//            / \\\n//           9  20\n//              / \\\n//            15   7\nconst root = new TreeNode(3,\n  new TreeNode(9),\n  new TreeNode(20, new TreeNode(15), new TreeNode(7))\n);\nconsole.log(levelOrder(root)); // [[3], [9, 20], [15, 7]]`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import deque\n\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef level_order(root):\n    if not root: return []\n    out, q = [], deque([root])\n    while q:\n        level = []\n        for _ in range(len(q)):\n            n = q.popleft()\n            level.append(n.val)\n            if n.left: q.append(n.left)\n            if n.right: q.append(n.right)\n        out.append(level)\n    return out\n\nroot = TreeNode(3, TreeNode(9), TreeNode(20, TreeNode(15), TreeNode(7)))\nprint(level_order(root))  # [[3], [9, 20], [15, 7]]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\n#include <queue>\n#include <vector>\nusing namespace std;\n\nstruct TreeNode {\n  int val;\n  TreeNode *left, *right;\n  TreeNode(int v): val(v), left(nullptr), right(nullptr) {}\n};\n\nvector<vector<int>> levelOrder(TreeNode* root) {\n  vector<vector<int>> out;\n  if (!root) return out;\n  queue<TreeNode*> q; q.push(root);\n  while (!q.empty()) {\n    int sz = q.size();\n    vector<int> level;\n    while (sz--) {\n      auto* n = q.front(); q.pop();\n      level.push_back(n->val);\n      if (n->left) q.push(n->left);\n      if (n->right) q.push(n->right);\n    }\n    out.push_back(level);\n  }\n  return out;\n}\n\nint main() {\n  auto* root = new TreeNode(3);\n  root->left = new TreeNode(9);\n  root->right = new TreeNode(20);\n  root->right->left = new TreeNode(15);\n  root->right->right = new TreeNode(7);\n  for (auto& lvl : levelOrder(root)) {\n    for (int v : lvl) cout << v << ' ';\n    cout << '\\n';\n  }\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;\n\nclass TreeNode {\n  int val; TreeNode left, right;\n  TreeNode(int v) { val = v; }\n}\n\npublic class Main {\n  static List<List<Integer>> levelOrder(TreeNode root) {\n    List<List<Integer>> out = new ArrayList<>();\n    if (root == null) return out;\n    Deque<TreeNode> q = new ArrayDeque<>();\n    q.add(root);\n    while (!q.isEmpty()) {\n      int sz = q.size();\n      List<Integer> level = new ArrayList<>();\n      while (sz-- > 0) {\n        TreeNode n = q.poll();\n        level.add(n.val);\n        if (n.left != null) q.add(n.left);\n        if (n.right != null) q.add(n.right);\n      }\n      out.add(level);\n    }\n    return out;\n  }\n\n  public static void main(String[] args) {\n    TreeNode root = new TreeNode(3);\n    root.left = new TreeNode(9);\n    root.right = new TreeNode(20);\n    root.right.left = new TreeNode(15);\n    root.right.right = new TreeNode(7);\n    System.out.println(levelOrder(root)); // [[3], [9, 20], [15, 7]]\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [3, 9, 20, 15, 7],
+          defaultTreeInput: [3, 9, 20, null, null, 15, 7],
+        },
+      },
+      {
+        id: "tree-height-depth",
+        slug: "tree-height-depth",
+        title: "Tree Height & Max Depth",
+        difficulty: "easy",
+        description:
+          "Compute the maximum depth of a binary tree with a one-line recurrence.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h)",
+        content: `## Tree Height & Max Depth\n\n\`\`\`\nheight(root) = 0,                                if root is null\n             = 1 + max(height(left), height(right)), otherwise\n\`\`\`\n\n### Why this matters\n- **Balance checks** use subtree heights.\n- **Diameter** = max over all nodes of \`height(left) + height(right)\`.\n- Many "compute-something-bottom-up" problems are variations of this recurrence.\n\n### Iterative alternative\nDo BFS and count how many levels the queue produces.\n\n### Edge cases\n| Input | Height |\n|---|---|\n| \`null\` | 0 |\n| single node | 1 |\n| skewed chain of n nodes | n |`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction maxDepth(root) {\n  if (!root) return 0;\n  return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));\n}\n\n// Iterative BFS version\nfunction maxDepthIter(root) {\n  if (!root) return 0;\n  let depth = 0;\n  const q = [root];\n  while (q.length) {\n    let size = q.length;\n    depth++;\n    while (size--) {\n      const n = q.shift();\n      if (n.left) q.push(n.left);\n      if (n.right) q.push(n.right);\n    }\n  }\n  return depth;\n}\n\nconst root = new TreeNode(3,\n  new TreeNode(9),\n  new TreeNode(20, new TreeNode(15), new TreeNode(7))\n);\nconsole.log(maxDepth(root));     // 3\nconsole.log(maxDepthIter(root)); // 3`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import deque\n\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef max_depth(root):\n    if not root: return 0\n    return 1 + max(max_depth(root.left), max_depth(root.right))\n\ndef max_depth_iter(root):\n    if not root: return 0\n    depth, q = 0, deque([root])\n    while q:\n        depth += 1\n        for _ in range(len(q)):\n            n = q.popleft()\n            if n.left: q.append(n.left)\n            if n.right: q.append(n.right)\n    return depth\n\nroot = TreeNode(3, TreeNode(9), TreeNode(20, TreeNode(15), TreeNode(7)))\nprint(max_depth(root), max_depth_iter(root))  # 3 3`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\n#include <algorithm>\nusing namespace std;\n\nstruct TreeNode { int val; TreeNode *l, *r; TreeNode(int v): val(v), l(nullptr), r(nullptr) {} };\n\nint maxDepth(TreeNode* root) {\n  if (!root) return 0;\n  return 1 + max(maxDepth(root->l), maxDepth(root->r));\n}\n\nint main() {\n  auto* root = new TreeNode(3);\n  root->l = new TreeNode(9);\n  root->r = new TreeNode(20);\n  root->r->l = new TreeNode(15);\n  root->r->r = new TreeNode(7);\n  cout << maxDepth(root); // 3\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class TreeNode { int val; TreeNode left, right; TreeNode(int v){val=v;} }\n\npublic class Main {\n  static int maxDepth(TreeNode n) {\n    if (n == null) return 0;\n    return 1 + Math.max(maxDepth(n.left), maxDepth(n.right));\n  }\n  public static void main(String[] args) {\n    TreeNode root = new TreeNode(3);\n    root.left = new TreeNode(9);\n    root.right = new TreeNode(20);\n    root.right.left = new TreeNode(15);\n    root.right.right = new TreeNode(7);\n    System.out.println(maxDepth(root)); // 3\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [3, 9, 20, 15, 7],
+          defaultTreeInput: [3, 9, 20, null, null, 15, 7],
+        },
+      },
+      {
+        id: "invert-binary-tree-topic",
+        slug: "invert-binary-tree-topic",
+        title: "Invert a Binary Tree",
+        difficulty: "easy",
+        description:
+          "Swap left and right children of every node — the classic recursion warm-up.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h)",
+        content: `## Invert a Binary Tree\n\n> "Swap every node's left and right children." — *Google phone screen, 2015* 🙂\n\n### Recursive post-order\n1. Invert the left subtree.\n2. Invert the right subtree.\n3. Swap \`node.left\` and \`node.right\`.\n\n### Iterative BFS\nPush nodes in a queue; for each, swap its children then enqueue both sides.\n\n### Why it's worth doing\n- It teaches **tree recursion without a return value that matters** — the work happens *as a side effect*.\n- The identical pattern is reused for "apply a transformation to every node in a tree".\n\n### Sanity check\nAfter inverting a BST, an in-order traversal yields values in **reverse** sorted order.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction invertTree(root) {\n  if (!root) return null;\n  [root.left, root.right] = [root.right, root.left];\n  invertTree(root.left);\n  invertTree(root.right);\n  return root;\n}\n\nfunction inorder(root, out = []) {\n  if (!root) return out;\n  inorder(root.left, out);\n  out.push(root.val);\n  inorder(root.right, out);\n  return out;\n}\n\n// Demo:  4           4\n//       / \\         / \\\n//      2   7   →   7   2\n//     /\\ /\\       /\\ /\\\n//    1 3 6 9     9 6 3 1\nconst root = new TreeNode(4,\n  new TreeNode(2, new TreeNode(1), new TreeNode(3)),\n  new TreeNode(7, new TreeNode(6), new TreeNode(9))\n);\nconsole.log(inorder(root));             // [1,2,3,4,6,7,9]\ninvertTree(root);\nconsole.log(inorder(root));             // [9,7,6,4,3,2,1]`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef invert(root):\n    if not root: return None\n    root.left, root.right = root.right, root.left\n    invert(root.left); invert(root.right)\n    return root\n\ndef inorder(r, out=None):\n    if out is None: out = []\n    if not r: return out\n    inorder(r.left, out); out.append(r.val); inorder(r.right, out)\n    return out\n\nroot = TreeNode(4,\n    TreeNode(2, TreeNode(1), TreeNode(3)),\n    TreeNode(7, TreeNode(6), TreeNode(9)))\nprint(inorder(root))           # [1,2,3,4,6,7,9]\ninvert(root)\nprint(inorder(root))           # [9,7,6,4,3,2,1]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\n#include <algorithm>\nusing namespace std;\n\nstruct TreeNode { int val; TreeNode *l, *r; TreeNode(int v): val(v), l(nullptr), r(nullptr) {} };\n\nTreeNode* invert(TreeNode* root) {\n  if (!root) return nullptr;\n  swap(root->l, root->r);\n  invert(root->l); invert(root->r);\n  return root;\n}\n\nvoid inorder(TreeNode* n) {\n  if (!n) return;\n  inorder(n->l); cout << n->val << ' '; inorder(n->r);\n}\n\nint main() {\n  auto* root = new TreeNode(4);\n  root->l = new TreeNode(2); root->r = new TreeNode(7);\n  root->l->l = new TreeNode(1); root->l->r = new TreeNode(3);\n  root->r->l = new TreeNode(6); root->r->r = new TreeNode(9);\n  inorder(root); cout << '\\n';        // 1 2 3 4 6 7 9\n  invert(root);\n  inorder(root);                      // 9 7 6 4 3 2 1\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class TreeNode { int val; TreeNode left, right; TreeNode(int v){val=v;} }\n\npublic class Main {\n  static TreeNode invert(TreeNode n) {\n    if (n == null) return null;\n    TreeNode t = n.left; n.left = n.right; n.right = t;\n    invert(n.left); invert(n.right);\n    return n;\n  }\n  static void inorder(TreeNode n) {\n    if (n == null) return;\n    inorder(n.left); System.out.print(n.val + " "); inorder(n.right);\n  }\n  public static void main(String[] args) {\n    TreeNode root = new TreeNode(4);\n    root.left = new TreeNode(2); root.right = new TreeNode(7);\n    root.left.left = new TreeNode(1); root.left.right = new TreeNode(3);\n    root.right.left = new TreeNode(6); root.right.right = new TreeNode(9);\n    inorder(root); System.out.println();\n    invert(root);\n    inorder(root); // 9 7 6 4 3 2 1\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [4, 2, 7, 1, 3, 6, 9],
+          defaultTreeInput: [4, 2, 7, 1, 3, 6, 9],
         },
       },
       {
@@ -1079,28 +1258,153 @@ export const dsaCategories: DSACategory[] = [
         slug: "binary-search-tree",
         title: "Binary Search Tree",
         difficulty: "medium",
-        description: "A tree where left < parent < right for every node.",
-        timeComplexity: "O(h) search/insert/delete",
+        description:
+          "A tree where left < parent < right — gives O(h) search, insert, and delete.",
+        timeComplexity: "O(h) — O(log n) balanced, O(n) worst-case",
         spaceComplexity: "O(n)",
-        content: `## Binary Search Tree (BST)\n\nA binary tree satisfying: **left < root < right** for every node.\n\n### Operations\n- **Search**: O(h)\n- **Insert**: O(h)\n- **Delete**: O(h) — three cases (leaf, one child, two children)\n- **In-order traversal**: Gives sorted order`,
+        content: `## Binary Search Tree (BST)\n\n**BST invariant**: for every node, all values in the left subtree are **strictly less**, all values in the right subtree are **strictly greater**.\n\n### Core operations\n| Operation | Idea | Time |\n|---|---|---|\n| **search(x)** | compare → go left / right | O(h) |\n| **insert(x)** | walk down, attach new leaf | O(h) |\n| **delete(x)** | 3 cases — see below | O(h) |\n| **in-order traversal** | yields **sorted** output | O(n) |\n\n### Delete cases\n1. **Leaf** → just detach.\n2. **One child** → replace node with its only child.\n3. **Two children** → replace with **in-order successor** (smallest value in the right subtree), then delete that successor.\n\n### Why balance matters\nA BST built from a sorted input degenerates into a linked list — operations become O(n). That's why self-balancing variants (AVL, Red-Black, Treap) exist.\n\n### Visual walkthrough (default input \`[5, 3, 7, 1, 4, 6, 8]\`)\nInserting in that order produces:\n\`\`\`\n        5\n       / \\\n      3   7\n     / \\ / \\\n    1  4 6  8\n\`\`\`\nIn-order traversal → \`[1, 3, 4, 5, 6, 7, 8]\` ✓`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `class BSTNode {\n  constructor(val) {\n    this.val = val;\n    this.left = this.right = null;\n  }\n}\nfunction insert(root, val) {\n  if (!root) return new BSTNode(val);\n  if (val < root.val) root.left = insert(root.left, val);\n  else root.right = insert(root.right, val);\n  return root;\n}\nfunction search(root, val) {\n  if (!root || root.val === val) return root;\n  return val < root.val ? search(root.left, val) : search(root.right, val);\n}`,
+            code: `class BSTNode {\n  constructor(val) { this.val = val; this.left = this.right = null; }\n}\n\nfunction insert(root, val) {\n  if (!root) return new BSTNode(val);\n  if (val < root.val) root.left = insert(root.left, val);\n  else if (val > root.val) root.right = insert(root.right, val);\n  return root;\n}\n\nfunction search(root, val) {\n  if (!root || root.val === val) return root;\n  return val < root.val ? search(root.left, val) : search(root.right, val);\n}\n\nfunction remove(root, val) {\n  if (!root) return null;\n  if (val < root.val) root.left = remove(root.left, val);\n  else if (val > root.val) root.right = remove(root.right, val);\n  else {\n    if (!root.left)  return root.right;\n    if (!root.right) return root.left;\n    // Two children — find in-order successor.\n    let succ = root.right;\n    while (succ.left) succ = succ.left;\n    root.val = succ.val;\n    root.right = remove(root.right, succ.val);\n  }\n  return root;\n}\n\nfunction inorder(r, out = []) {\n  if (!r) return out;\n  inorder(r.left, out); out.push(r.val); inorder(r.right, out);\n  return out;\n}\n\n// Demo\nlet root = null;\nfor (const v of [5, 3, 7, 1, 4, 6, 8]) root = insert(root, v);\nconsole.log(inorder(root));           // [1, 3, 4, 5, 6, 7, 8]\nconsole.log(!!search(root, 4));       // true\nconsole.log(!!search(root, 10));      // false\nroot = remove(root, 7);\nconsole.log(inorder(root));           // [1, 3, 4, 5, 6, 8]`,
           },
           {
             language: "python",
             label: "Python",
-            code: `class BSTNode:\n    def __init__(self, val):\n        self.val = val\n        self.left = self.right = None\n\ndef insert(root, val):\n    if not root: return BSTNode(val)\n    if val < root.val: root.left = insert(root.left, val)\n    else: root.right = insert(root.right, val)\n    return root`,
+            code: `class BSTNode:\n    def __init__(self, val):\n        self.val = val; self.left = self.right = None\n\ndef insert(root, val):\n    if not root: return BSTNode(val)\n    if val < root.val: root.left = insert(root.left, val)\n    elif val > root.val: root.right = insert(root.right, val)\n    return root\n\ndef search(root, val):\n    if not root or root.val == val: return root\n    return search(root.left, val) if val < root.val else search(root.right, val)\n\ndef remove(root, val):\n    if not root: return None\n    if val < root.val: root.left = remove(root.left, val)\n    elif val > root.val: root.right = remove(root.right, val)\n    else:\n        if not root.left: return root.right\n        if not root.right: return root.left\n        succ = root.right\n        while succ.left: succ = succ.left\n        root.val = succ.val\n        root.right = remove(root.right, succ.val)\n    return root\n\ndef inorder(r, out=None):\n    if out is None: out = []\n    if not r: return out\n    inorder(r.left, out); out.append(r.val); inorder(r.right, out)\n    return out\n\nroot = None\nfor v in [5, 3, 7, 1, 4, 6, 8]: root = insert(root, v)\nprint(inorder(root))      # [1, 3, 4, 5, 6, 7, 8]\nprint(bool(search(root, 4)), bool(search(root, 10)))  # True False\nroot = remove(root, 7)\nprint(inorder(root))      # [1, 3, 4, 5, 6, 8]`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `struct BSTNode {\n  int val;\n  BSTNode *left, *right;\n  BSTNode(int v):val(v),left(nullptr),right(nullptr){}\n};\nBSTNode* insert(BSTNode* root, int val) {\n  if(!root) return new BSTNode(val);\n  if(val<root->val) root->left=insert(root->left,val);\n  else root->right=insert(root->right,val);\n  return root;\n}`,
+            code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nstruct Node { int val; Node *l, *r; Node(int v): val(v), l(nullptr), r(nullptr) {} };\n\nNode* insert(Node* r, int v) {\n  if (!r) return new Node(v);\n  if (v < r->val) r->l = insert(r->l, v);\n  else if (v > r->val) r->r = insert(r->r, v);\n  return r;\n}\n\nNode* search(Node* r, int v) {\n  if (!r || r->val == v) return r;\n  return v < r->val ? search(r->l, v) : search(r->r, v);\n}\n\nvoid inorder(Node* n, vector<int>& out) {\n  if (!n) return;\n  inorder(n->l, out); out.push_back(n->val); inorder(n->r, out);\n}\n\nint main() {\n  Node* root = nullptr;\n  for (int v : {5, 3, 7, 1, 4, 6, 8}) root = insert(root, v);\n  vector<int> out; inorder(root, out);\n  for (int v : out) cout << v << ' '; // 1 3 4 5 6 7 8\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;\n\nclass Node { int val; Node l, r; Node(int v) { val = v; } }\n\npublic class Main {\n  static Node insert(Node r, int v) {\n    if (r == null) return new Node(v);\n    if (v < r.val) r.l = insert(r.l, v);\n    else if (v > r.val) r.r = insert(r.r, v);\n    return r;\n  }\n  static void inorder(Node n, List<Integer> out) {\n    if (n == null) return;\n    inorder(n.l, out); out.add(n.val); inorder(n.r, out);\n  }\n  public static void main(String[] args) {\n    Node root = null;\n    for (int v : new int[]{5, 3, 7, 1, 4, 6, 8}) root = insert(root, v);\n    List<Integer> out = new ArrayList<>();\n    inorder(root, out);\n    System.out.println(out); // [1, 3, 4, 5, 6, 7, 8]\n  }\n}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [5, 3, 7, 1, 4, 6, 8] },
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [5, 3, 7, 1, 4, 6, 8],
+        },
+      },
+      {
+        id: "validate-bst",
+        slug: "validate-bst",
+        title: "Validate BST",
+        difficulty: "medium",
+        description:
+          "Check whether a binary tree obeys the BST ordering property.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h)",
+        content: `## Validate BST\n\nA common bug: comparing only a node with its two immediate children — that's not enough.\n\n### Example — fails the naive check\n\`\`\`\n    5\n   / \\\n  1   6\n     / \\\n    3   7    ← 3 < 5, but it sits in the right subtree of 5 → invalid BST\n\`\`\`\n\n### Technique 1 — tight bounds\nPropagate (min, max) limits down the recursion:\n\`\`\`\nvalid(node, min, max):\n  if node is null: return true\n  if node.val <= min or node.val >= max: return false\n  return valid(left, min, node.val) and valid(right, node.val, max)\n\`\`\`\nInitial call: \`valid(root, -∞, +∞)\`.\n\n### Technique 2 — in-order must be strictly increasing\nRun an in-order traversal, tracking the previous value. If \`prev >= current\`, reject.\n\nBoth are O(n); the bounds version is usually easier to reason about with \`null\` corner cases.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction isValidBST(root, min = -Infinity, max = Infinity) {\n  if (!root) return true;\n  if (root.val <= min || root.val >= max) return false;\n  return isValidBST(root.left, min, root.val)\n      && isValidBST(root.right, root.val, max);\n}\n\n// Demo\nconst good = new TreeNode(5,\n  new TreeNode(3, new TreeNode(1), new TreeNode(4)),\n  new TreeNode(7, new TreeNode(6), new TreeNode(8))\n);\nconst bad = new TreeNode(5,\n  new TreeNode(1),\n  new TreeNode(6, new TreeNode(3), new TreeNode(7))\n);\nconsole.log(isValidBST(good)); // true\nconsole.log(isValidBST(bad));  // false`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef is_valid_bst(node, lo=float('-inf'), hi=float('inf')):\n    if not node: return True\n    if not (lo < node.val < hi): return False\n    return is_valid_bst(node.left, lo, node.val) and \\\n           is_valid_bst(node.right, node.val, hi)\n\ngood = TreeNode(5, TreeNode(3, TreeNode(1), TreeNode(4)),\n                   TreeNode(7, TreeNode(6), TreeNode(8)))\nbad  = TreeNode(5, TreeNode(1), TreeNode(6, TreeNode(3), TreeNode(7)))\nprint(is_valid_bst(good), is_valid_bst(bad))  # True False`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\n#include <limits>\nusing namespace std;\n\nstruct TreeNode { int val; TreeNode *l, *r; TreeNode(int v): val(v), l(nullptr), r(nullptr) {} };\n\nbool isValid(TreeNode* n, long lo, long hi) {\n  if (!n) return true;\n  if (n->val <= lo || n->val >= hi) return false;\n  return isValid(n->l, lo, n->val) && isValid(n->r, n->val, hi);\n}\nbool isValidBST(TreeNode* r) {\n  return isValid(r, LONG_MIN, LONG_MAX);\n}\n\nint main() {\n  auto* t = new TreeNode(5);\n  t->l = new TreeNode(3); t->r = new TreeNode(7);\n  t->l->l = new TreeNode(1); t->l->r = new TreeNode(4);\n  cout << isValidBST(t); // 1\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class TreeNode { int val; TreeNode left, right; TreeNode(int v){val=v;} }\n\npublic class Main {\n  static boolean valid(TreeNode n, long lo, long hi) {\n    if (n == null) return true;\n    if (n.val <= lo || n.val >= hi) return false;\n    return valid(n.left, lo, n.val) && valid(n.right, n.val, hi);\n  }\n  static boolean isValidBST(TreeNode r) {\n    return valid(r, Long.MIN_VALUE, Long.MAX_VALUE);\n  }\n  public static void main(String[] args) {\n    TreeNode t = new TreeNode(5);\n    t.left = new TreeNode(3); t.right = new TreeNode(7);\n    System.out.println(isValidBST(t)); // true\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [5, 3, 7, 1, 4, 6, 8],
+          defaultTreeInput: [5, 3, 7, 1, 4, 6, 8],
+        },
+      },
+      {
+        id: "lowest-common-ancestor-topic",
+        slug: "lowest-common-ancestor-topic",
+        title: "Lowest Common Ancestor",
+        difficulty: "medium",
+        description:
+          "Find the deepest node that is an ancestor of both p and q.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h)",
+        content: `## Lowest Common Ancestor (LCA)\n\nGiven a binary tree and two nodes \`p\` and \`q\`, the LCA is the **lowest** node that has both \`p\` and \`q\` in its subtrees (a node is allowed to be its own ancestor).\n\n### General binary tree — recursive\n\`\`\`\nlca(node, p, q):\n  if node is null or node == p or node == q:\n    return node\n  L = lca(node.left,  p, q)\n  R = lca(node.right, p, q)\n  if L and R: return node            # p in one side, q in the other\n  return L or R                      # both in one side, or neither\n\`\`\`\nInvariant: once \`lca\` returns non-null from both subtrees, the current node is the answer.\n\n### BST shortcut\nWhile both values are < node, go left. While both > node, go right. The first split is the LCA.\n\n### Why post-order\nThe recursion only decides what to return *after* seeing both subtrees — that's the hallmark of a post-order solution.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction lca(root, p, q) {\n  if (!root || root.val === p || root.val === q) return root;\n  const L = lca(root.left,  p, q);\n  const R = lca(root.right, p, q);\n  if (L && R) return root;\n  return L || R;\n}\n\n// Demo tree: [3,5,1,6,2,0,8,null,null,7,4]\nconst n = (v, l=null, r=null) => new TreeNode(v, l, r);\nconst root = n(3,\n  n(5, n(6), n(2, n(7), n(4))),\n  n(1, n(0), n(8))\n);\nconsole.log(lca(root, 5, 1).val); // 3\nconsole.log(lca(root, 5, 4).val); // 5  (5 is an ancestor of itself)`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef lca(root, p, q):\n    if not root or root.val == p or root.val == q:\n        return root\n    L = lca(root.left,  p, q)\n    R = lca(root.right, p, q)\n    if L and R: return root\n    return L or R\n\nn = TreeNode\nroot = n(3,\n    n(5, n(6), n(2, n(7), n(4))),\n    n(1, n(0), n(8))\n)\nprint(lca(root, 5, 1).val)  # 3\nprint(lca(root, 5, 4).val)  # 5`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\nusing namespace std;\n\nstruct TreeNode { int val; TreeNode *l, *r; TreeNode(int v): val(v), l(nullptr), r(nullptr) {} };\n\nTreeNode* lca(TreeNode* r, int p, int q) {\n  if (!r || r->val == p || r->val == q) return r;\n  auto* L = lca(r->l, p, q);\n  auto* R = lca(r->r, p, q);\n  if (L && R) return r;\n  return L ? L : R;\n}\n\nint main() {\n  auto* r = new TreeNode(3);\n  r->l = new TreeNode(5); r->r = new TreeNode(1);\n  r->l->l = new TreeNode(6); r->l->r = new TreeNode(2);\n  r->r->l = new TreeNode(0); r->r->r = new TreeNode(8);\n  cout << lca(r, 5, 1)->val; // 3\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class TreeNode { int val; TreeNode left, right; TreeNode(int v){val=v;} }\n\npublic class Main {\n  static TreeNode lca(TreeNode r, int p, int q) {\n    if (r == null || r.val == p || r.val == q) return r;\n    TreeNode L = lca(r.left, p, q), R = lca(r.right, p, q);\n    if (L != null && R != null) return r;\n    return L != null ? L : R;\n  }\n  public static void main(String[] args) {\n    TreeNode r = new TreeNode(3);\n    r.left = new TreeNode(5); r.right = new TreeNode(1);\n    System.out.println(lca(r, 5, 1).val); // 3\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [3, 5, 1, 6, 2, 0, 8],
+          defaultTreeInput: [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4],
+          target: 5,
+        },
+      },
+      {
+        id: "path-sum-topic",
+        slug: "path-sum-topic",
+        title: "Path Sum",
+        difficulty: "easy",
+        description:
+          "Does the tree have a root-to-leaf path whose node values sum to a target?",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(h)",
+        content: `## Path Sum\n\n> Return \`true\` iff some **root-to-leaf** path in the tree has values summing to \`target\`.\n\n### Technique\nSubtract the current node's value from the target as you descend. At a leaf, succeed iff the remaining sum is zero.\n\n\`\`\`\nhasPath(node, remaining):\n  if node is null: return false\n  remaining -= node.val\n  if node is a leaf: return remaining == 0\n  return hasPath(left,  remaining) or hasPath(right, remaining)\n\`\`\`\n\n### Variations\n- **Count all paths with sum = target** (not necessarily root-to-leaf) — prefix-sum trick, O(n).\n- **Return all root-to-leaf paths that sum to target** — same recursion, carry a path array, copy into result on success.\n- **Max path sum (any node → any node)** — LeetCode 124, classic tree DP with a global maximum.`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `class TreeNode {\n  constructor(val, left = null, right = null) {\n    this.val = val; this.left = left; this.right = right;\n  }\n}\n\nfunction hasPathSum(root, target) {\n  if (!root) return false;\n  const remaining = target - root.val;\n  if (!root.left && !root.right) return remaining === 0;\n  return hasPathSum(root.left,  remaining)\n      || hasPathSum(root.right, remaining);\n}\n\n// List every root-to-leaf path that hits the target\nfunction pathSum(root, target) {\n  const out = [];\n  (function dfs(n, remaining, path) {\n    if (!n) return;\n    path.push(n.val);\n    if (!n.left && !n.right && remaining === n.val) out.push([...path]);\n    dfs(n.left,  remaining - n.val, path);\n    dfs(n.right, remaining - n.val, path);\n    path.pop();\n  })(root, target, []);\n  return out;\n}\n\nconst n = (v, l=null, r=null) => new TreeNode(v, l, r);\nconst root = n(5,\n  n(4, n(11, n(7), n(2))),\n  n(8, n(13), n(4, null, n(1)))\n);\nconsole.log(hasPathSum(root, 22)); // true\nconsole.log(pathSum(root, 22));    // [[5,4,11,2], [5,8,4,...]]`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val, self.left, self.right = val, left, right\n\ndef has_path_sum(root, target):\n    if not root: return False\n    rem = target - root.val\n    if not root.left and not root.right:\n        return rem == 0\n    return has_path_sum(root.left, rem) or has_path_sum(root.right, rem)\n\ndef path_sum(root, target):\n    out = []\n    def dfs(n, rem, path):\n        if not n: return\n        path.append(n.val)\n        if not n.left and not n.right and rem == n.val:\n            out.append(list(path))\n        dfs(n.left, rem - n.val, path)\n        dfs(n.right, rem - n.val, path)\n        path.pop()\n    dfs(root, target, [])\n    return out\n\nn = TreeNode\nroot = n(5,\n    n(4, n(11, n(7), n(2))),\n    n(8, n(13), n(4, None, n(1))))\nprint(has_path_sum(root, 22))  # True\nprint(path_sum(root, 22))`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <iostream>\nusing namespace std;\n\nstruct TreeNode { int val; TreeNode *l, *r; TreeNode(int v): val(v), l(nullptr), r(nullptr) {} };\n\nbool hasPathSum(TreeNode* n, int target) {\n  if (!n) return false;\n  int rem = target - n->val;\n  if (!n->l && !n->r) return rem == 0;\n  return hasPathSum(n->l, rem) || hasPathSum(n->r, rem);\n}\n\nint main() {\n  auto* r = new TreeNode(5);\n  r->l = new TreeNode(4); r->r = new TreeNode(8);\n  r->l->l = new TreeNode(11);\n  r->l->l->l = new TreeNode(7);\n  r->l->l->r = new TreeNode(2);\n  cout << hasPathSum(r, 22); // 1\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `class TreeNode { int val; TreeNode left, right; TreeNode(int v){val=v;} }\n\npublic class Main {\n  static boolean hasPathSum(TreeNode n, int target) {\n    if (n == null) return false;\n    int rem = target - n.val;\n    if (n.left == null && n.right == null) return rem == 0;\n    return hasPathSum(n.left, rem) || hasPathSum(n.right, rem);\n  }\n  public static void main(String[] args) {\n    TreeNode r = new TreeNode(5);\n    r.left = new TreeNode(4); r.right = new TreeNode(8);\n    r.left.left = new TreeNode(11);\n    r.left.left.left = new TreeNode(7);\n    r.left.left.right = new TreeNode(2);\n    System.out.println(hasPathSum(r, 22)); // true\n  }\n}`,
+          },
+        ],
+        visualizationConfig: {
+          type: "tree",
+          defaultInput: [5, 4, 8, 11, 13, 4, 7, 2, 1],
+          defaultTreeInput: [5, 4, 8, 11, null, 13, 4, 7, 2, null, null, null, 1],
+          target: 22,
+        },
       },
       {
         id: "trie",
@@ -1115,20 +1419,25 @@ export const dsaCategories: DSACategory[] = [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `class TrieNode {\n  constructor() {\n    this.children = {};\n    this.isEnd = false;\n  }\n}\nclass Trie {\n  constructor() { this.root = new TrieNode(); }\n  insert(word) {\n    let node = this.root;\n    for (const ch of word) {\n      if (!node.children[ch]) node.children[ch] = new TrieNode();\n      node = node.children[ch];\n    }\n    node.isEnd = true;\n  }\n  search(word) {\n    let node = this.root;\n    for (const ch of word) {\n      if (!node.children[ch]) return false;\n      node = node.children[ch];\n    }\n    return node.isEnd;\n  }\n  startsWith(prefix) {\n    let node = this.root;\n    for (const ch of prefix) {\n      if (!node.children[ch]) return false;\n      node = node.children[ch];\n    }\n    return true;\n  }\n}`,
+            code: `class TrieNode {\n  constructor() { this.children = {}; this.isEnd = false; }\n}\n\nclass Trie {\n  constructor() { this.root = new TrieNode(); }\n  insert(word) {\n    let node = this.root;\n    for (const ch of word) {\n      if (!node.children[ch]) node.children[ch] = new TrieNode();\n      node = node.children[ch];\n    }\n    node.isEnd = true;\n  }\n  search(word) {\n    const node = this._walk(word);\n    return node != null && node.isEnd;\n  }\n  startsWith(prefix) { return this._walk(prefix) != null; }\n  _walk(s) {\n    let node = this.root;\n    for (const ch of s) {\n      if (!node.children[ch]) return null;\n      node = node.children[ch];\n    }\n    return node;\n  }\n}\n\n// Demo\nconst t = new Trie();\n["cat", "car", "cap", "dog"].forEach(w => t.insert(w));\nconsole.log(t.search("cat"));       // true\nconsole.log(t.search("ca"));        // false — not marked end\nconsole.log(t.startsWith("ca"));    // true\nconsole.log(t.startsWith("do"));    // true\nconsole.log(t.startsWith("dox"));   // false`,
           },
           {
             language: "python",
             label: "Python",
-            code: `class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word):\n        node = self.root\n        for ch in word:\n            if ch not in node.children:\n                node.children[ch] = TrieNode()\n            node = node.children[ch]\n        node.is_end = True\n\n    def search(self, word):\n        node = self.root\n        for ch in word:\n            if ch not in node.children: return False\n            node = node.children[ch]\n        return node.is_end`,
+            code: `class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word):\n        node = self.root\n        for ch in word:\n            if ch not in node.children:\n                node.children[ch] = TrieNode()\n            node = node.children[ch]\n        node.is_end = True\n\n    def _walk(self, s):\n        node = self.root\n        for ch in s:\n            if ch not in node.children: return None\n            node = node.children[ch]\n        return node\n\n    def search(self, word):\n        node = self._walk(word)\n        return node is not None and node.is_end\n\n    def starts_with(self, prefix):\n        return self._walk(prefix) is not None\n\nt = Trie()\nfor w in ["cat", "car", "cap", "dog"]: t.insert(w)\nprint(t.search("cat"))        # True\nprint(t.search("ca"))         # False\nprint(t.starts_with("ca"))    # True\nprint(t.starts_with("dox"))   # False`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `struct TrieNode {\n  TrieNode* ch[26] = {};\n  bool isEnd = false;\n};\nclass Trie {\n  TrieNode* root = new TrieNode();\npublic:\n  void insert(string w) {\n    auto* n = root;\n    for (char c : w) {\n      if (!n->ch[c-'a']) n->ch[c-'a'] = new TrieNode();\n      n = n->ch[c-'a'];\n    }\n    n->isEnd = true;\n  }\n  bool search(string w) {\n    auto* n = root;\n    for (char c : w) {\n      if (!n->ch[c-'a']) return false;\n      n = n->ch[c-'a'];\n    }\n    return n->isEnd;\n  }\n};`,
+            code: `#include <iostream>\n#include <string>\n#include <unordered_map>\nusing namespace std;\n\nstruct TrieNode {\n  unordered_map<char, TrieNode*> children;\n  bool isEnd = false;\n};\n\nclass Trie {\n  TrieNode* root = new TrieNode();\n  TrieNode* walk(const string& s) {\n    auto* n = root;\n    for (char c : s) {\n      if (!n->children.count(c)) return nullptr;\n      n = n->children[c];\n    }\n    return n;\n  }\npublic:\n  void insert(const string& w) {\n    auto* n = root;\n    for (char c : w) {\n      if (!n->children.count(c)) n->children[c] = new TrieNode();\n      n = n->children[c];\n    }\n    n->isEnd = true;\n  }\n  bool search(const string& w) { auto* n = walk(w); return n && n->isEnd; }\n  bool startsWith(const string& p) { return walk(p) != nullptr; }\n};\n\nint main() {\n  Trie t;\n  for (auto& w : {"cat", "car", "cap", "dog"}) t.insert(w);\n  cout << t.search("cat") << ' ' << t.search("ca") << ' ' << t.startsWith("ca");\n}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;\n\nclass TrieNode {\n  Map<Character, TrieNode> children = new HashMap<>();\n  boolean isEnd = false;\n}\n\nclass Trie {\n  TrieNode root = new TrieNode();\n  public void insert(String w) {\n    TrieNode n = root;\n    for (char c : w.toCharArray()) {\n      n.children.putIfAbsent(c, new TrieNode());\n      n = n.children.get(c);\n    }\n    n.isEnd = true;\n  }\n  private TrieNode walk(String s) {\n    TrieNode n = root;\n    for (char c : s.toCharArray()) {\n      n = n.children.get(c);\n      if (n == null) return null;\n    }\n    return n;\n  }\n  public boolean search(String w) { TrieNode n = walk(w); return n != null && n.isEnd; }\n  public boolean startsWith(String p) { return walk(p) != null; }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    Trie t = new Trie();\n    for (String w : new String[]{"cat", "car", "cap", "dog"}) t.insert(w);\n    System.out.println(t.search("cat"));      // true\n    System.out.println(t.startsWith("ca"));   // true\n  }\n}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 2, 3, 4, 5] },
+        visualizationConfig: { type: "tree", defaultInput: [1, 2, 3, 4, 5] },
       },
       {
         id: "segment-tree",
@@ -1156,7 +1465,7 @@ export const dsaCategories: DSACategory[] = [
             code: `class SegTree {\n  vector<int> tree;\n  int n;\n  void build(vector<int>& a, int nd, int lo, int hi) {\n    if(lo==hi){tree[nd]=a[lo];return;}\n    int mid=(lo+hi)/2;\n    build(a,2*nd,lo,mid); build(a,2*nd+1,mid+1,hi);\n    tree[nd]=tree[2*nd]+tree[2*nd+1];\n  }\npublic:\n  SegTree(vector<int>& a):n(a.size()),tree(4*a.size()){\n    build(a,1,0,n-1);\n  }\n  int query(int nd,int lo,int hi,int l,int r){\n    if(r<lo||hi<l)return 0;\n    if(l<=lo&&hi<=r)return tree[nd];\n    int mid=(lo+hi)/2;\n    return query(2*nd,lo,mid,l,r)+query(2*nd+1,mid+1,hi,l,r);\n  }\n};`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 3, 5, 7, 9, 11] },
+        visualizationConfig: { type: "tree", defaultInput: [1, 3, 5, 7, 9, 11] },
       },
     ],
   },
@@ -1168,39 +1477,484 @@ export const dsaCategories: DSACategory[] = [
     name: "Graphs",
     icon: "🌐",
     description:
-      "Graph traversals, shortest paths, and connectivity algorithms.",
+      "Graph traversals, shortest paths, MSTs, and connectivity algorithms.",
     color: "bg-indigo-500",
     topics: [
       {
         id: "bfs-dfs",
         slug: "bfs-dfs",
-        title: "BFS & DFS Traversal",
+        title: "BFS Graph Traversal",
         difficulty: "medium",
-        description: "Breadth-first and depth-first search on graphs.",
+        description:
+          "Breadth-first exploration: visit every vertex in layers using a queue.",
         timeComplexity: "O(V + E)",
         spaceComplexity: "O(V)",
-        content: `## Graph Traversals\n\n### BFS\nExplore all neighbors at current depth before going deeper. Uses a **queue**.\n\n### DFS\nExplore as far as possible along each branch. Uses a **stack** or recursion.\n\n### Applications\n- Shortest path (unweighted) — BFS\n- Cycle detection — DFS\n- Connected components\n- Topological sort`,
+        content: `## Breadth-First Search on Graphs
+
+BFS visits vertices in **increasing order of distance** from the source, using a **FIFO queue**. It is the foundation for shortest-path-in-unweighted-graphs, level-order reasoning, bipartite checking, and crawler-style expansions.
+
+### Algorithm
+1. Enqueue the source and mark it visited.
+2. While the queue is non-empty:
+   - Dequeue \`u\`.
+   - For every neighbor \`v\` of \`u\` not yet visited, mark it and enqueue it.
+3. Optionally record a parent pointer per vertex to reconstruct paths.
+
+### When to reach for BFS
+| Problem | Why BFS |
+| --- | --- |
+| Shortest path in unweighted graph | First visit = fewest edges |
+| Connected components | One BFS per unvisited node |
+| Bipartite check | Alternate colors layer by layer |
+| Word ladder, maze shortest steps | Uniform-cost expansion |
+
+### Complexity
+- **Time:** \`O(V + E)\` — each vertex and edge touched once.
+- **Space:** \`O(V)\` — queue + visited set.
+
+### Pitfalls
+- Using \`array.shift()\` in JavaScript is \`O(n)\` — acceptable for small inputs, but use a real queue for large graphs.
+- Forgetting to mark a neighbor visited **when enqueued** (not when dequeued) creates duplicates.
+- On directed graphs, remember edges are one-way — don't traverse \`v → u\` unless the edge exists.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function bfs(graph, start) {\n  const visited = new Set([start]);\n  const queue = [start];\n  const order = [];\n  while (queue.length) {\n    const node = queue.shift();\n    order.push(node);\n    for (const nb of graph[node] || []) {\n      if (!visited.has(nb)) {\n        visited.add(nb);\n        queue.push(nb);\n      }\n    }\n  }\n  return order;\n}\n\nfunction dfs(graph, start, visited = new Set()) {\n  visited.add(start);\n  const order = [start];\n  for (const nb of graph[start] || [])\n    if (!visited.has(nb)) order.push(...dfs(graph, nb, visited));\n  return order;\n}`,
+            code: `function bfs(graph, start) {
+  const visited = new Set([start]);
+  const queue = [start];
+  const order = [];
+  while (queue.length) {
+    const u = queue.shift();
+    order.push(u);
+    for (const v of graph[u] || []) {
+      if (!visited.has(v)) {
+        visited.add(v);
+        queue.push(v);
+      }
+    }
+  }
+  return order;
+}
+
+// Demo
+const graph = {
+  A: ["B", "D"],
+  B: ["A", "C", "E"],
+  C: ["B", "E"],
+  D: ["A", "E", "F"],
+  E: ["B", "C", "D", "F", "G"],
+  F: ["D", "E", "G"],
+  G: ["E", "F"],
+};
+console.log(bfs(graph, "A").join(" -> "));
+// A -> B -> D -> C -> E -> F -> G`,
           },
           {
             language: "python",
             label: "Python",
-            code: `from collections import deque\n\ndef bfs(graph, start):\n    visited = {start}\n    queue = deque([start])\n    order = []\n    while queue:\n        node = queue.popleft()\n        order.append(node)\n        for nb in graph.get(node, []):\n            if nb not in visited:\n                visited.add(nb)\n                queue.append(nb)\n    return order`,
+            code: `from collections import deque
+
+def bfs(graph, start):
+    visited = {start}
+    queue = deque([start])
+    order = []
+    while queue:
+        u = queue.popleft()
+        order.append(u)
+        for v in graph.get(u, []):
+            if v not in visited:
+                visited.add(v)
+                queue.append(v)
+    return order
+
+if __name__ == "__main__":
+    graph = {
+        "A": ["B", "D"],
+        "B": ["A", "C", "E"],
+        "C": ["B", "E"],
+        "D": ["A", "E", "F"],
+        "E": ["B", "C", "D", "F", "G"],
+        "F": ["D", "E", "G"],
+        "G": ["E", "F"],
+    }
+    print(" -> ".join(bfs(graph, "A")))
+    # A -> B -> D -> C -> E -> F -> G`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `vector<int> bfs(unordered_map<int,vector<int>>& g, int s) {\n  unordered_set<int> vis{s};\n  queue<int> q; q.push(s);\n  vector<int> order;\n  while(!q.empty()) {\n    int n=q.front(); q.pop(); order.push_back(n);\n    for(int nb:g[n]) if(!vis.count(nb)){vis.insert(nb);q.push(nb);}\n  }\n  return order;\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> bfs(const unordered_map<int, vector<int>>& g, int s) {
+    unordered_set<int> vis{s};
+    queue<int> q; q.push(s);
+    vector<int> order;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        order.push_back(u);
+        auto it = g.find(u);
+        if (it == g.end()) continue;
+        for (int v : it->second)
+            if (!vis.count(v)) { vis.insert(v); q.push(v); }
+    }
+    return order;
+}
+
+int main() {
+    unordered_map<int, vector<int>> g = {
+        {0, {1, 3}}, {1, {0, 2, 4}}, {2, {1, 4}},
+        {3, {0, 4, 5}}, {4, {1, 2, 3, 5, 6}},
+        {5, {3, 4, 6}}, {6, {4, 5}},
+    };
+    for (int x : bfs(g, 0)) cout << x << ' ';
+    // 0 1 3 2 4 5 6
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class GraphBFS {
+    public static List<Integer> bfs(Map<Integer, List<Integer>> g, int s) {
+        Set<Integer> vis = new HashSet<>();
+        Deque<Integer> q = new ArrayDeque<>();
+        List<Integer> order = new ArrayList<>();
+        vis.add(s); q.add(s);
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            order.add(u);
+            for (int v : g.getOrDefault(u, List.of()))
+                if (vis.add(v)) q.add(v);
+        }
+        return order;
+    }
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> g = Map.of(
+            0, List.of(1, 3), 1, List.of(0, 2, 4), 2, List.of(1, 4),
+            3, List.of(0, 4, 5), 4, List.of(1, 2, 3, 5, 6),
+            5, List.of(3, 4, 6), 6, List.of(4, 5)
+        );
+        System.out.println(bfs(g, 0));
+        // [0, 1, 3, 2, 4, 5, 6]
+    }
+}`,
           },
         ],
-        visualizationConfig: {
-          type: "array",
-          defaultInput: [1, 2, 3, 4, 5, 6, 7],
-        },
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "graph-dfs",
+        slug: "graph-dfs",
+        title: "DFS Graph Traversal",
+        difficulty: "medium",
+        description:
+          "Depth-first exploration: dive as deep as possible, then backtrack.",
+        timeComplexity: "O(V + E)",
+        spaceComplexity: "O(V)",
+        content: `## Depth-First Search on Graphs
+
+DFS commits to one branch, explores it fully, then backtracks. It's the natural choice whenever you care about **paths, topological order, cycles, bridges, or recursion structure** rather than shortest distance.
+
+### Two implementations
+- **Recursive** — clean, matches the call-tree intuition; limited by stack depth.
+- **Explicit stack** — push start; pop \`u\`; push unvisited neighbors.
+
+### Classic applications
+- Cycle detection (back-edge in an undirected DFS tree, or gray-to-gray in a directed one)
+- Topological sort via reverse post-order
+- Finding bridges / articulation points (Tarjan)
+- Counting connected components
+- Flood fill / solving mazes
+
+### Colors trick (directed cycle detection)
+- **white** = not visited
+- **gray** = on the current recursion stack
+- **black** = fully processed
+
+A gray → gray edge ⇒ cycle.
+
+### Pitfalls
+- Deep graphs blow the call stack; use an iterative version for \`V > ~10 000\`.
+- Don't confuse "visited" with "finished" — you need both for algorithms like SCC.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function dfs(graph, start) {
+  const visited = new Set();
+  const order = [];
+  (function visit(u) {
+    visited.add(u);
+    order.push(u);
+    for (const v of graph[u] || [])
+      if (!visited.has(v)) visit(v);
+  })(start);
+  return order;
+}
+
+const graph = {
+  A: ["B", "D"], B: ["A", "C", "E"], C: ["B", "E"],
+  D: ["A", "E", "F"], E: ["B", "C", "D", "F", "G"],
+  F: ["D", "E", "G"], G: ["E", "F"],
+};
+console.log(dfs(graph, "A").join(" -> "));
+// A -> B -> C -> E -> D -> F -> G`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def dfs(graph, start):
+    visited, order = set(), []
+    def visit(u):
+        visited.add(u)
+        order.append(u)
+        for v in graph.get(u, []):
+            if v not in visited:
+                visit(v)
+    visit(start)
+    return order
+
+if __name__ == "__main__":
+    graph = {
+        "A": ["B", "D"], "B": ["A", "C", "E"], "C": ["B", "E"],
+        "D": ["A", "E", "F"], "E": ["B", "C", "D", "F", "G"],
+        "F": ["D", "E", "G"], "G": ["E", "F"],
+    }
+    print(" -> ".join(dfs(graph, "A")))
+    # A -> B -> C -> E -> D -> F -> G`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+unordered_set<int> vis;
+vector<int> order_;
+
+void dfs(const unordered_map<int, vector<int>>& g, int u) {
+    vis.insert(u);
+    order_.push_back(u);
+    auto it = g.find(u);
+    if (it == g.end()) return;
+    for (int v : it->second)
+        if (!vis.count(v)) dfs(g, v);
+}
+
+int main() {
+    unordered_map<int, vector<int>> g = {
+        {0, {1, 3}}, {1, {0, 2, 4}}, {2, {1, 4}},
+        {3, {0, 4, 5}}, {4, {1, 2, 3, 5, 6}},
+        {5, {3, 4, 6}}, {6, {4, 5}},
+    };
+    dfs(g, 0);
+    for (int x : order_) cout << x << ' ';
+    // 0 1 2 4 3 5 6
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class GraphDFS {
+    static Set<Integer> vis = new HashSet<>();
+    static List<Integer> order = new ArrayList<>();
+
+    static void dfs(Map<Integer, List<Integer>> g, int u) {
+        vis.add(u); order.add(u);
+        for (int v : g.getOrDefault(u, List.of()))
+            if (!vis.contains(v)) dfs(g, v);
+    }
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> g = Map.of(
+            0, List.of(1, 3), 1, List.of(0, 2, 4), 2, List.of(1, 4),
+            3, List.of(0, 4, 5), 4, List.of(1, 2, 3, 5, 6),
+            5, List.of(3, 4, 6), 6, List.of(4, 5)
+        );
+        dfs(g, 0);
+        System.out.println(order);
+        // [0, 1, 2, 4, 3, 5, 6]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "shortest-path-bfs",
+        slug: "shortest-path-bfs",
+        title: "Shortest Path (Unweighted)",
+        difficulty: "medium",
+        description:
+          "Use BFS with a parent array to recover the minimum-edge path.",
+        timeComplexity: "O(V + E)",
+        spaceComplexity: "O(V)",
+        content: `## BFS for Shortest Paths
+
+When all edge weights are equal, **BFS gives the shortest path** — the first time a vertex is dequeued, you've reached it with the minimum number of edges.
+
+### Pattern
+1. Keep \`dist[v]\` and \`parent[v]\`. Initialize \`dist[src] = 0\`.
+2. Run BFS. When you first discover \`v\` through edge \`u → v\`:
+   \`\`\`
+   dist[v] = dist[u] + 1
+   parent[v] = u
+   \`\`\`
+3. To recover the path, walk \`parent\` from target back to source, then reverse.
+
+### When to use vs Dijkstra
+- **All weights equal** (unweighted, or uniform weight 1) → BFS, \`O(V+E)\`.
+- **Non-negative weights, possibly different** → Dijkstra, \`O((V+E)log V)\`.
+- **Weights ∈ {0, 1}** → 0-1 BFS with a deque, still \`O(V+E)\`.
+
+### Pitfalls
+- Don't mark visited at dequeue time — a later, longer path might squeeze in first.
+- If target is unreachable, \`dist[target]\` stays \`-1\` / \`∞\`; handle the miss.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function shortestPath(graph, src, dst) {
+  const dist = {}, parent = {};
+  for (const k of Object.keys(graph)) { dist[k] = -1; parent[k] = null; }
+  dist[src] = 0;
+  const q = [src];
+  while (q.length) {
+    const u = q.shift();
+    if (u === dst) break;
+    for (const v of graph[u] || []) {
+      if (dist[v] === -1) { dist[v] = dist[u] + 1; parent[v] = u; q.push(v); }
+    }
+  }
+  if (dist[dst] === -1) return null;
+  const path = [];
+  for (let x = dst; x != null; x = parent[x]) path.push(x);
+  return { length: dist[dst], path: path.reverse() };
+}
+
+const graph = {
+  A: ["B", "D"], B: ["A", "C", "E"], C: ["B", "E"],
+  D: ["A", "E", "F"], E: ["B", "C", "D", "F", "G"],
+  F: ["D", "E", "G"], G: ["E", "F"],
+};
+console.log(shortestPath(graph, "A", "G"));
+// { length: 3, path: ["A","D","E","G"] }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import deque
+
+def shortest_path(graph, src, dst):
+    dist = {k: -1 for k in graph}
+    parent = {k: None for k in graph}
+    dist[src] = 0
+    q = deque([src])
+    while q:
+        u = q.popleft()
+        if u == dst: break
+        for v in graph.get(u, []):
+            if dist[v] == -1:
+                dist[v] = dist[u] + 1
+                parent[v] = u
+                q.append(v)
+    if dist[dst] == -1: return None
+    path, x = [], dst
+    while x is not None:
+        path.append(x); x = parent[x]
+    return {"length": dist[dst], "path": path[::-1]}
+
+if __name__ == "__main__":
+    g = {"A": ["B","D"], "B": ["A","C","E"], "C": ["B","E"],
+         "D": ["A","E","F"], "E": ["B","C","D","F","G"],
+         "F": ["D","E","G"], "G": ["E","F"]}
+    print(shortest_path(g, "A", "G"))
+    # {'length': 3, 'path': ['A', 'D', 'E', 'G']}`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+pair<int, vector<int>> shortestPath(
+    const vector<vector<int>>& g, int src, int dst) {
+    int n = g.size();
+    vector<int> dist(n, -1), par(n, -1);
+    dist[src] = 0;
+    queue<int> q; q.push(src);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        if (u == dst) break;
+        for (int v : g[u])
+            if (dist[v] == -1) { dist[v] = dist[u]+1; par[v]=u; q.push(v); }
+    }
+    if (dist[dst] == -1) return {-1, {}};
+    vector<int> path;
+    for (int x = dst; x != -1; x = par[x]) path.push_back(x);
+    reverse(path.begin(), path.end());
+    return {dist[dst], path};
+}
+
+int main() {
+    vector<vector<int>> g = {
+        {1,3}, {0,2,4}, {1,4},
+        {0,4,5}, {1,2,3,5,6}, {3,4,6}, {4,5}
+    };
+    auto [len, path] = shortestPath(g, 0, 6);
+    cout << "len=" << len << " path:";
+    for (int x : path) cout << ' ' << x;
+    // len=3 path: 0 3 4 6
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class ShortestPathBFS {
+    public static Object[] shortestPath(int[][] g, int src, int dst) {
+        int n = g.length;
+        int[] dist = new int[n], par = new int[n];
+        Arrays.fill(dist, -1); Arrays.fill(par, -1);
+        dist[src] = 0;
+        Deque<Integer> q = new ArrayDeque<>();
+        q.add(src);
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            if (u == dst) break;
+            for (int v : g[u])
+                if (dist[v] == -1) { dist[v] = dist[u]+1; par[v]=u; q.add(v); }
+        }
+        if (dist[dst] == -1) return new Object[]{-1, List.of()};
+        List<Integer> path = new ArrayList<>();
+        for (int x = dst; x != -1; x = par[x]) path.add(x);
+        Collections.reverse(path);
+        return new Object[]{dist[dst], path};
+    }
+
+    public static void main(String[] args) {
+        int[][] g = {
+            {1,3}, {0,2,4}, {1,4},
+            {0,4,5}, {1,2,3,5,6}, {3,4,6}, {4,5}
+        };
+        Object[] r = shortestPath(g, 0, 6);
+        System.out.println("len=" + r[0] + " path=" + r[1]);
+        // len=3 path=[0, 3, 4, 6]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
       },
       {
         id: "dijkstra",
@@ -1208,28 +1962,322 @@ export const dsaCategories: DSACategory[] = [
         title: "Dijkstra's Algorithm",
         difficulty: "medium",
         description:
-          "Shortest path from source to all vertices (non-negative weights).",
+          "Single-source shortest paths on graphs with non-negative weights.",
         timeComplexity: "O((V + E) log V)",
         spaceComplexity: "O(V)",
-        content: `## Dijkstra's Algorithm\n\nFinds shortest paths from source to all vertices with **non-negative** edge weights.\n\n### Steps\n1. Initialize: source = 0, all others = ∞\n2. Use a **min-heap**\n3. Greedily pick closest unvisited vertex\n4. Relax neighbors`,
+        content: `## Dijkstra's Algorithm
+
+Greedy shortest-path algorithm for graphs with **non-negative** edge weights. Repeatedly finalize the closest unvisited vertex and relax its outgoing edges.
+
+### Core invariant
+When we pop \`u\` from the priority queue with distance \`d\`, \`d\` is the final shortest distance from source to \`u\` — because all remaining candidates are at least as far.
+
+### Algorithm
+1. \`dist[src] = 0\`; everywhere else \`∞\`.
+2. Push \`(0, src)\` into a min-heap.
+3. Pop the smallest \`(d, u)\`. If \`d > dist[u]\`, skip (stale).
+4. For each edge \`u → v\` with weight \`w\`: if \`dist[u] + w < dist[v]\`, update and push.
+
+### Complexity
+- Binary heap: \`O((V + E) log V)\`.
+- Fibonacci heap: \`O(V log V + E)\` (rarely used in practice).
+- Dense graphs: array-based \`O(V²)\` is sometimes faster.
+
+### Pitfalls
+- **Negative edges break it.** Use Bellman-Ford or Johnson's algorithm.
+- Always check \`d > dist[u]\` before relaxing — standard heaps don't support decrease-key, so stale entries must be discarded.
+- If you need *shortest path* (not just distance), keep a \`parent[v]\` array updated in step 4.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function dijkstra(graph, src) {\n  const dist = {};\n  for (const n of Object.keys(graph)) dist[n] = Infinity;\n  dist[src] = 0;\n  const pq = [[0, src]];\n  const visited = new Set();\n  while (pq.length) {\n    pq.sort((a,b) => a[0]-b[0]);\n    const [d, u] = pq.shift();\n    if (visited.has(u)) continue;\n    visited.add(u);\n    for (const [v, w] of graph[u] || []) {\n      if (d + w < dist[v]) {\n        dist[v] = d + w;\n        pq.push([dist[v], v]);\n      }\n    }\n  }\n  return dist;\n}`,
+            code: `function dijkstra(graph, src) {
+  const dist = {};
+  for (const n of Object.keys(graph)) dist[n] = Infinity;
+  dist[src] = 0;
+  // Simple priority queue; for production use a real heap.
+  const pq = [[0, src]];
+  while (pq.length) {
+    pq.sort((a, b) => a[0] - b[0]);
+    const [d, u] = pq.shift();
+    if (d > dist[u]) continue;
+    for (const [v, w] of graph[u] || []) {
+      const nd = d + w;
+      if (nd < dist[v]) { dist[v] = nd; pq.push([nd, v]); }
+    }
+  }
+  return dist;
+}
+
+const graph = {
+  A: [["B", 4], ["D", 1]],
+  B: [["A", 4], ["C", 5], ["E", 3]],
+  C: [["B", 5], ["E", 2]],
+  D: [["A", 1], ["E", 2], ["F", 6]],
+  E: [["B", 3], ["C", 2], ["D", 2], ["F", 4], ["G", 3]],
+  F: [["D", 6], ["E", 4], ["G", 2]],
+  G: [["E", 3], ["F", 2]],
+};
+console.log(dijkstra(graph, "A"));
+// { A:0, B:4, C:5, D:1, E:3, F:7, G:6 }`,
           },
           {
             language: "python",
             label: "Python",
-            code: `import heapq\ndef dijkstra(graph, src):\n    dist = {n: float('inf') for n in graph}\n    dist[src] = 0\n    pq = [(0, src)]\n    visited = set()\n    while pq:\n        d, u = heapq.heappop(pq)\n        if u in visited: continue\n        visited.add(u)\n        for v, w in graph[u]:\n            if d + w < dist[v]:\n                dist[v] = d + w\n                heapq.heappush(pq, (dist[v], v))\n    return dist`,
+            code: `import heapq
+
+def dijkstra(graph, src):
+    dist = {n: float('inf') for n in graph}
+    dist[src] = 0
+    pq = [(0, src)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist[u]: continue
+        for v, w in graph[u]:
+            nd = d + w
+            if nd < dist[v]:
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+    return dist
+
+if __name__ == "__main__":
+    g = {
+        "A": [("B",4),("D",1)],
+        "B": [("A",4),("C",5),("E",3)],
+        "C": [("B",5),("E",2)],
+        "D": [("A",1),("E",2),("F",6)],
+        "E": [("B",3),("C",2),("D",2),("F",4),("G",3)],
+        "F": [("D",6),("E",4),("G",2)],
+        "G": [("E",3),("F",2)],
+    }
+    print(dijkstra(g, "A"))
+    # {'A': 0, 'B': 4, 'C': 5, 'D': 1, 'E': 3, 'F': 7, 'G': 6}`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `vector<int> dijkstra(vector<vector<pair<int,int>>>& g, int src) {\n  int n=g.size();\n  vector<int> dist(n, INT_MAX); dist[src]=0;\n  priority_queue<pair<int,int>,vector<pair<int,int>>,greater<>> pq;\n  pq.push({0,src});\n  while(!pq.empty()) {\n    auto [d,u]=pq.top(); pq.pop();\n    if(d>dist[u]) continue;\n    for(auto [v,w]:g[u])\n      if(d+w<dist[v]){dist[v]=d+w;pq.push({dist[v],v});}\n  }\n  return dist;\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> dijkstra(const vector<vector<pair<int,int>>>& g, int src) {
+    int n = g.size();
+    vector<int> dist(n, INT_MAX);
+    dist[src] = 0;
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
+    pq.push({0, src});
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+        for (auto [v, w] : g[u]) {
+            int nd = d + w;
+            if (nd < dist[v]) { dist[v] = nd; pq.push({nd, v}); }
+        }
+    }
+    return dist;
+}
+
+int main() {
+    vector<vector<pair<int,int>>> g(7);
+    auto add = [&](int u, int v, int w){ g[u].push_back({v,w}); g[v].push_back({u,w}); };
+    add(0,1,4); add(0,3,1); add(1,2,5); add(1,4,3);
+    add(2,4,2); add(3,4,2); add(3,5,6); add(4,5,4); add(4,6,3); add(5,6,2);
+    for (int d : dijkstra(g, 0)) cout << d << ' ';
+    // 0 4 5 1 3 7 6
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class Dijkstra {
+    public static int[] dijkstra(List<int[]>[] g, int src) {
+        int n = g.length;
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a,b)->a[0]-b[0]);
+        pq.add(new int[]{0, src});
+        while (!pq.isEmpty()) {
+            int[] top = pq.poll();
+            int d = top[0], u = top[1];
+            if (d > dist[u]) continue;
+            for (int[] e : g[u]) {
+                int v = e[0], w = e[1], nd = d + w;
+                if (nd < dist[v]) { dist[v] = nd; pq.add(new int[]{nd, v}); }
+            }
+        }
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        int n = 7;
+        List<int[]>[] g = new List[n];
+        for (int i = 0; i < n; i++) g[i] = new ArrayList<>();
+        int[][] edges = {{0,1,4},{0,3,1},{1,2,5},{1,4,3},{2,4,2},
+                         {3,4,2},{3,5,6},{4,5,4},{4,6,3},{5,6,2}};
+        for (int[] e : edges) {
+            g[e[0]].add(new int[]{e[1], e[2]});
+            g[e[1]].add(new int[]{e[0], e[2]});
+        }
+        System.out.println(Arrays.toString(dijkstra(g, 0)));
+        // [0, 4, 5, 1, 3, 7, 6]
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [0, 4, 8, 5, 3, 7, 6] },
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "bellman-ford",
+        slug: "bellman-ford",
+        title: "Bellman-Ford",
+        difficulty: "medium",
+        description:
+          "Shortest paths that tolerates negative weights and detects negative cycles.",
+        timeComplexity: "O(V · E)",
+        spaceComplexity: "O(V)",
+        content: `## Bellman-Ford
+
+Unlike Dijkstra, Bellman-Ford **handles negative edge weights** and can **detect reachable negative cycles**. It's slower — \`O(V·E)\` — but unbeatable for currency-arbitrage, difference-constraints, and routing protocols (RIP).
+
+### Algorithm
+1. \`dist[src] = 0\`; everywhere else \`∞\`.
+2. Repeat \`V − 1\` times:
+   - For every edge \`(u → v, w)\`: if \`dist[u] + w < dist[v]\`, relax.
+3. One more pass: if any edge still relaxes, there is a **negative cycle** reachable from \`src\`.
+
+### Why \`V − 1\` iterations?
+The shortest simple path uses at most \`V − 1\` edges. After \`k\` passes, \`dist[v]\` is correct for all vertices reachable in \`≤ k\` edges.
+
+### Optimizations
+- **SPFA** — queue-based variant, faster on average but still \`O(V·E)\` worst-case.
+- **Early stop** — if a pass changes no distance, you're done.
+
+### Pitfalls
+- Only declares a negative cycle if it is **reachable from the source**. To detect any negative cycle in a graph, add a dummy vertex with 0-weight edges to every vertex and run from there.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function bellmanFord(n, edges, src) {
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  for (let i = 0; i < n - 1; i++) {
+    let changed = false;
+    for (const [u, v, w] of edges) {
+      if (dist[u] !== Infinity && dist[u] + w < dist[v]) {
+        dist[v] = dist[u] + w;
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+  for (const [u, v, w] of edges)
+    if (dist[u] !== Infinity && dist[u] + w < dist[v])
+      return { dist: null, negativeCycle: true };
+  return { dist, negativeCycle: false };
+}
+
+// Edges may have negative weights
+const edges = [
+  [0,1,4], [0,2,5], [1,2,-3], [1,3,6], [2,3,1], [3,4,2],
+];
+console.log(bellmanFord(5, edges, 0));
+// { dist: [0, 4, 1, 2, 4], negativeCycle: false }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def bellman_ford(n, edges, src):
+    INF = float('inf')
+    dist = [INF]*n
+    dist[src] = 0
+    for _ in range(n-1):
+        changed = False
+        for u, v, w in edges:
+            if dist[u] != INF and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                changed = True
+        if not changed: break
+    for u, v, w in edges:
+        if dist[u] != INF and dist[u] + w < dist[v]:
+            return None, True
+    return dist, False
+
+if __name__ == "__main__":
+    edges = [(0,1,4),(0,2,5),(1,2,-3),(1,3,6),(2,3,1),(3,4,2)]
+    print(bellman_ford(5, edges, 0))
+    # ([0, 4, 1, 2, 4], False)`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+pair<vector<long long>, bool> bellmanFord(
+    int n, const vector<tuple<int,int,int>>& edges, int src) {
+    const long long INF = LLONG_MAX / 4;
+    vector<long long> dist(n, INF);
+    dist[src] = 0;
+    for (int i = 0; i < n - 1; i++) {
+        bool changed = false;
+        for (auto [u, v, w] : edges)
+            if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; changed = true; }
+        if (!changed) break;
+    }
+    for (auto [u, v, w] : edges)
+        if (dist[u] + w < dist[v]) return {{}, true};
+    return {dist, false};
+}
+
+int main() {
+    vector<tuple<int,int,int>> edges = {
+        {0,1,4},{0,2,5},{1,2,-3},{1,3,6},{2,3,1},{3,4,2}
+    };
+    auto [d, neg] = bellmanFord(5, edges, 0);
+    if (neg) cout << "neg cycle";
+    else for (auto x : d) cout << x << ' ';
+    // 0 4 1 2 4
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class BellmanFord {
+    public static long[] bellmanFord(int n, int[][] edges, int src) {
+        long INF = Long.MAX_VALUE / 4;
+        long[] dist = new long[n];
+        Arrays.fill(dist, INF);
+        dist[src] = 0;
+        for (int i = 0; i < n - 1; i++) {
+            boolean changed = false;
+            for (int[] e : edges)
+                if (dist[e[0]] + e[2] < dist[e[1]]) {
+                    dist[e[1]] = dist[e[0]] + e[2]; changed = true;
+                }
+            if (!changed) break;
+        }
+        for (int[] e : edges)
+            if (dist[e[0]] + e[2] < dist[e[1]])
+                throw new RuntimeException("negative cycle");
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        int[][] edges = {{0,1,4},{0,2,5},{1,2,-3},{1,3,6},{2,3,1},{3,4,2}};
+        System.out.println(Arrays.toString(bellmanFord(5, edges, 0)));
+        // [0, 4, 1, 2, 4]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
       },
       {
         id: "topological-sort",
@@ -1237,84 +2285,940 @@ export const dsaCategories: DSACategory[] = [
         title: "Topological Sort",
         difficulty: "medium",
         description:
-          "Linear ordering of vertices in a DAG respecting edge directions.",
+          "Linear ordering of DAG vertices that respects all edge directions.",
         timeComplexity: "O(V + E)",
         spaceComplexity: "O(V)",
-        content: `## Topological Sort\n\nLinear ordering so for every edge u → v, u comes before v. Only for **DAGs**.\n\n### Approaches\n1. **Kahn's (BFS)**: Process nodes with in-degree 0\n2. **DFS-based**: Reverse post-order\n\n### Applications\n- Build systems\n- Course scheduling\n- Task ordering`,
+        content: `## Topological Sort (Kahn's Algorithm)
+
+For a **directed acyclic graph** (DAG), a topological order \`π\` satisfies: for every edge \`u → v\`, \`π(u) < π(v)\`.
+
+### Kahn's BFS variant
+1. Compute \`inDeg[v]\` for every vertex.
+2. Enqueue every vertex with \`inDeg == 0\`.
+3. Loop: dequeue \`u\`, append to order, decrement \`inDeg\` of each neighbor; enqueue any that hit 0.
+4. If the final order has fewer than \`V\` vertices, the graph has a cycle — no topological order exists.
+
+### DFS variant
+Run DFS; when a node finishes, prepend it to the result (or append and reverse). The finish order is a reverse topological order.
+
+### Applications
+- Build systems / Makefiles
+- Course prerequisite planning
+- Package dependency resolution
+- Compile-time evaluation order
+
+### Pitfalls
+- Works only on DAGs; a cycle means no valid order.
+- Topological order is rarely unique — any valid one is acceptable.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function topologicalSort(n, edges) {\n  const inDeg = new Array(n).fill(0);\n  const adj = Array.from({length: n}, () => []);\n  for (const [u, v] of edges) { adj[u].push(v); inDeg[v]++; }\n  const queue = [];\n  for (let i = 0; i < n; i++) if (inDeg[i] === 0) queue.push(i);\n  const order = [];\n  while (queue.length) {\n    const u = queue.shift();\n    order.push(u);\n    for (const v of adj[u]) if (--inDeg[v] === 0) queue.push(v);\n  }\n  return order.length === n ? order : [];\n}`,
+            code: `function topologicalSort(n, edges) {
+  const inDeg = new Array(n).fill(0);
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) { adj[u].push(v); inDeg[v]++; }
+  const queue = [];
+  for (let i = 0; i < n; i++) if (inDeg[i] === 0) queue.push(i);
+  const order = [];
+  while (queue.length) {
+    const u = queue.shift();
+    order.push(u);
+    for (const v of adj[u]) if (--inDeg[v] === 0) queue.push(v);
+  }
+  return order.length === n ? order : null; // null ⇒ cycle
+}
+
+// 0→C(2), 0→D(3), 1→D, C→E(4), C→F(5), D→F, E→F
+const edges = [[0,2],[0,3],[1,3],[2,4],[2,5],[3,5],[4,5]];
+console.log(topologicalSort(6, edges));
+// e.g. [0, 1, 2, 3, 4, 5]`,
           },
           {
             language: "python",
             label: "Python",
-            code: `from collections import deque\ndef topo_sort(n, edges):\n    in_deg = [0]*n\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v); in_deg[v] += 1\n    q = deque(i for i in range(n) if in_deg[i]==0)\n    order = []\n    while q:\n        u = q.popleft(); order.append(u)\n        for v in adj[u]:\n            in_deg[v] -= 1\n            if in_deg[v]==0: q.append(v)\n    return order if len(order)==n else []`,
+            code: `from collections import deque
+
+def topo_sort(n, edges):
+    in_deg = [0]*n
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v); in_deg[v] += 1
+    q = deque(i for i in range(n) if in_deg[i] == 0)
+    order = []
+    while q:
+        u = q.popleft(); order.append(u)
+        for v in adj[u]:
+            in_deg[v] -= 1
+            if in_deg[v] == 0: q.append(v)
+    return order if len(order) == n else None
+
+if __name__ == "__main__":
+    edges = [(0,2),(0,3),(1,3),(2,4),(2,5),(3,5),(4,5)]
+    print(topo_sort(6, edges))
+    # [0, 1, 2, 3, 4, 5]`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `vector<int> topoSort(int n, vector<vector<int>>& adj) {\n  vector<int> inDeg(n,0);\n  for(int u=0;u<n;u++) for(int v:adj[u]) inDeg[v]++;\n  queue<int> q;\n  for(int i=0;i<n;i++) if(!inDeg[i]) q.push(i);\n  vector<int> order;\n  while(!q.empty()){\n    int u=q.front();q.pop();order.push_back(u);\n    for(int v:adj[u]) if(--inDeg[v]==0) q.push(v);\n  }\n  return order.size()==(size_t)n?order:vector<int>();\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> topoSort(int n, vector<vector<int>>& adj) {
+    vector<int> inDeg(n, 0);
+    for (int u = 0; u < n; u++) for (int v : adj[u]) inDeg[v]++;
+    queue<int> q;
+    for (int i = 0; i < n; i++) if (!inDeg[i]) q.push(i);
+    vector<int> order;
+    while (!q.empty()) {
+        int u = q.front(); q.pop(); order.push_back(u);
+        for (int v : adj[u]) if (--inDeg[v] == 0) q.push(v);
+    }
+    return (int)order.size() == n ? order : vector<int>{};
+}
+
+int main() {
+    vector<vector<int>> adj(6);
+    int e[][2] = {{0,2},{0,3},{1,3},{2,4},{2,5},{3,5},{4,5}};
+    for (auto& p : e) adj[p[0]].push_back(p[1]);
+    for (int x : topoSort(6, adj)) cout << x << ' ';
+    // 0 1 2 3 4 5
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class TopoSort {
+    public static List<Integer> topo(int n, int[][] edges) {
+        int[] inDeg = new int[n];
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (int[] e : edges) { adj.get(e[0]).add(e[1]); inDeg[e[1]]++; }
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < n; i++) if (inDeg[i] == 0) q.add(i);
+        List<Integer> order = new ArrayList<>();
+        while (!q.isEmpty()) {
+            int u = q.poll(); order.add(u);
+            for (int v : adj.get(u)) if (--inDeg[v] == 0) q.add(v);
+        }
+        return order.size() == n ? order : null;
+    }
+
+    public static void main(String[] args) {
+        int[][] edges = {{0,2},{0,3},{1,3},{2,4},{2,5},{3,5},{4,5}};
+        System.out.println(topo(6, edges));
+        // [0, 1, 2, 3, 4, 5]
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [0, 1, 2, 3, 4, 5] },
+        visualizationConfig: { type: "graph", defaultInput: [] },
       },
       {
         id: "union-find",
         slug: "union-find",
         title: "Union-Find (Disjoint Set)",
         difficulty: "medium",
-        description: "Efficiently group elements and check connectivity.",
-        timeComplexity: "O(α(n)) ≈ O(1)",
+        description:
+          "Near-constant time merge/query for disjoint sets of elements.",
+        timeComplexity: "O(α(n)) per op",
         spaceComplexity: "O(n)",
-        content: `## Union-Find\n\nTracks partition of elements into disjoint sets.\n\n### Operations\n- **find(x)**: Which set? (path compression)\n- **union(x,y)**: Merge sets (union by rank)\n\n### Applications\n- Kruskal's MST\n- Cycle detection\n- Connected components`,
+        content: `## Union-Find (DSU)
+
+A data structure that maintains a partition of \`{0, …, n−1}\` into disjoint sets and supports:
+- \`find(x)\` — representative of \`x\`'s set.
+- \`union(x, y)\` — merge the sets containing \`x\` and \`y\`.
+
+With **path compression + union by rank (or size)** the amortized cost per operation is \`O(α(n))\`, where α is the inverse-Ackermann function — effectively constant.
+
+### Why it matters
+- **Kruskal's MST** — accept an edge iff its endpoints live in different sets.
+- **Cycle detection in undirected graphs** — iterating edges, \`union\` fails when we'd merge a set with itself.
+- **Online connectivity queries** — \`"are x and y connected?"\` ⇒ \`find(x) === find(y)\`.
+- **Kruskal-style clustering**, account merging, percolation.
+
+### Pitfalls
+- Without path compression **or** union by rank, worst case degrades to \`O(n)\` per op.
+- \`find\` must be idempotent; bugs often come from stale parent pointers after recursion.
+- For string keys, use a hash map for the parent table.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `class UnionFind {\n  constructor(n) {\n    this.parent = Array.from({length:n},(_,i)=>i);\n    this.rank = new Array(n).fill(0);\n  }\n  find(x) {\n    if (this.parent[x]!==x) this.parent[x]=this.find(this.parent[x]);\n    return this.parent[x];\n  }\n  union(x, y) {\n    const px=this.find(x), py=this.find(y);\n    if (px===py) return false;\n    if (this.rank[px]<this.rank[py]) this.parent[px]=py;\n    else if (this.rank[px]>this.rank[py]) this.parent[py]=px;\n    else { this.parent[py]=px; this.rank[px]++; }\n    return true;\n  }\n}`,
+            code: `class UnionFind {
+  constructor(n) {
+    this.parent = Array.from({ length: n }, (_, i) => i);
+    this.rank = new Array(n).fill(0);
+    this.components = n;
+  }
+  find(x) {
+    if (this.parent[x] !== x) this.parent[x] = this.find(this.parent[x]);
+    return this.parent[x];
+  }
+  union(x, y) {
+    const a = this.find(x), b = this.find(y);
+    if (a === b) return false;
+    if (this.rank[a] < this.rank[b]) this.parent[a] = b;
+    else if (this.rank[a] > this.rank[b]) this.parent[b] = a;
+    else { this.parent[b] = a; this.rank[a]++; }
+    this.components--;
+    return true;
+  }
+}
+
+// Demo
+const uf = new UnionFind(7);
+for (const [u, v] of [[0,1],[0,2],[1,2],[3,4],[5,6]]) uf.union(u, v);
+console.log("components:", uf.components);  // 3
+console.log("0↔2?", uf.find(0) === uf.find(2)); // true
+console.log("0↔4?", uf.find(0) === uf.find(4)); // false`,
           },
           {
             language: "python",
             label: "Python",
-            code: `class UnionFind:\n    def __init__(self, n):\n        self.parent = list(range(n))\n        self.rank = [0]*n\n    def find(self, x):\n        if self.parent[x]!=x:\n            self.parent[x]=self.find(self.parent[x])\n        return self.parent[x]\n    def union(self, x, y):\n        px,py=self.find(x),self.find(y)\n        if px==py: return False\n        if self.rank[px]<self.rank[py]: px,py=py,px\n        self.parent[py]=px\n        if self.rank[px]==self.rank[py]: self.rank[px]+=1\n        return True`,
+            code: `class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0]*n
+        self.components = n
+    def find(self, x):
+        while self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]
+            x = self.parent[x]
+        return x
+    def union(self, x, y):
+        a, b = self.find(x), self.find(y)
+        if a == b: return False
+        if self.rank[a] < self.rank[b]: a, b = b, a
+        self.parent[b] = a
+        if self.rank[a] == self.rank[b]: self.rank[a] += 1
+        self.components -= 1
+        return True
+
+if __name__ == "__main__":
+    uf = UnionFind(7)
+    for u, v in [(0,1),(0,2),(1,2),(3,4),(5,6)]: uf.union(u, v)
+    print("components:", uf.components)           # 3
+    print("0 ↔ 2?", uf.find(0) == uf.find(2))     # True
+    print("0 ↔ 4?", uf.find(0) == uf.find(4))     # False`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `class UnionFind {\n  vector<int> par, rnk;\npublic:\n  UnionFind(int n):par(n),rnk(n,0){\n    iota(par.begin(),par.end(),0);\n  }\n  int find(int x){return par[x]==x?x:par[x]=find(par[x]);}\n  bool unite(int x,int y){\n    int a=find(x),b=find(y);\n    if(a==b)return false;\n    if(rnk[a]<rnk[b])swap(a,b);\n    par[b]=a;\n    if(rnk[a]==rnk[b])rnk[a]++;\n    return true;\n  }\n};`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+struct UnionFind {
+    vector<int> par, rnk;
+    int components;
+    UnionFind(int n) : par(n), rnk(n, 0), components(n) {
+        iota(par.begin(), par.end(), 0);
+    }
+    int find(int x) { return par[x] == x ? x : par[x] = find(par[x]); }
+    bool unite(int x, int y) {
+        int a = find(x), b = find(y);
+        if (a == b) return false;
+        if (rnk[a] < rnk[b]) swap(a, b);
+        par[b] = a;
+        if (rnk[a] == rnk[b]) rnk[a]++;
+        components--;
+        return true;
+    }
+};
+
+int main() {
+    UnionFind uf(7);
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{0,2},{1,2},{3,4},{5,6}})
+        uf.unite(u, v);
+    cout << "components: " << uf.components << '\\n';       // 3
+    cout << "0-2? " << (uf.find(0) == uf.find(2)) << '\\n';  // 1
+    cout << "0-4? " << (uf.find(0) == uf.find(4)) << '\\n';  // 0
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class UnionFind {
+    int[] parent, rank;
+    int components;
+    public UnionFind(int n) {
+        parent = new int[n]; rank = new int[n]; components = n;
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    public int find(int x) {
+        while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+        return x;
+    }
+    public boolean union(int x, int y) {
+        int a = find(x), b = find(y);
+        if (a == b) return false;
+        if (rank[a] < rank[b]) { int t = a; a = b; b = t; }
+        parent[b] = a;
+        if (rank[a] == rank[b]) rank[a]++;
+        components--;
+        return true;
+    }
+    public static void main(String[] args) {
+        UnionFind uf = new UnionFind(7);
+        int[][] ops = {{0,1},{0,2},{1,2},{3,4},{5,6}};
+        for (int[] e : ops) uf.union(e[0], e[1]);
+        System.out.println("components: " + uf.components); // 3
+        System.out.println("0-2? " + (uf.find(0) == uf.find(2))); // true
+        System.out.println("0-4? " + (uf.find(0) == uf.find(4))); // false
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [0, 1, 2, 3, 4, 5, 6] },
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "connected-components",
+        slug: "connected-components",
+        title: "Connected Components",
+        difficulty: "easy",
+        description:
+          "Count and label connected components with BFS, DFS, or union-find.",
+        timeComplexity: "O(V + E)",
+        spaceComplexity: "O(V)",
+        content: `## Connected Components
+
+A connected component of an undirected graph is a maximal set of vertices mutually reachable via edges. Counting / labeling them is the backbone of countless problems (islands on a grid, social-network cliques, clustering, duplicate-group merging).
+
+### Three common recipes
+1. **BFS / DFS** — iterate vertices; whenever one is unvisited, launch a traversal from it and tag every reachable vertex with the current component id. Components = number of launches.
+2. **Union-Find** — for every edge \`(u, v)\`, \`union(u, v)\`. Components = \`uf.components\`.
+3. **Matrix / grid variants** — neighbors are \`(r±1, c)\` and \`(r, c±1)\`; same DFS/BFS template.
+
+### Complexity
+- BFS/DFS: \`O(V + E)\`.
+- Union-Find: \`O((V + E) α(V))\`, slightly slower in constant factor but online-friendly (edges may stream in).
+
+### Pitfalls
+- Directed graphs need **strongly** connected components (Tarjan / Kosaraju) — plain BFS/DFS only finds weakly connected pieces.
+- Forgetting to loop over all vertices misses components that contain the source's enemies. Always outer-loop every \`i\`.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function connectedComponents(n, edges) {
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) { adj[u].push(v); adj[v].push(u); }
+  const comp = new Array(n).fill(-1);
+  let c = 0;
+  for (let start = 0; start < n; start++) {
+    if (comp[start] !== -1) continue;
+    const stack = [start]; comp[start] = c;
+    while (stack.length) {
+      const u = stack.pop();
+      for (const v of adj[u]) if (comp[v] === -1) { comp[v] = c; stack.push(v); }
+    }
+    c++;
+  }
+  return { count: c, labels: comp };
+}
+
+// 3 components: {0,1,2}, {3,4}, {5,6}
+console.log(connectedComponents(7, [[0,1],[0,2],[1,2],[3,4],[5,6]]));
+// { count: 3, labels: [0,0,0,1,1,2,2] }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def connected_components(n, edges):
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v); adj[v].append(u)
+    comp = [-1]*n
+    c = 0
+    for start in range(n):
+        if comp[start] != -1: continue
+        stack = [start]; comp[start] = c
+        while stack:
+            u = stack.pop()
+            for v in adj[u]:
+                if comp[v] == -1: comp[v] = c; stack.append(v)
+        c += 1
+    return c, comp
+
+if __name__ == "__main__":
+    print(connected_components(7, [(0,1),(0,2),(1,2),(3,4),(5,6)]))
+    # (3, [0, 0, 0, 1, 1, 2, 2])`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+pair<int, vector<int>> components(int n, const vector<pair<int,int>>& edges) {
+    vector<vector<int>> adj(n);
+    for (auto [u, v] : edges) { adj[u].push_back(v); adj[v].push_back(u); }
+    vector<int> comp(n, -1);
+    int c = 0;
+    for (int s = 0; s < n; s++) {
+        if (comp[s] != -1) continue;
+        stack<int> st; st.push(s); comp[s] = c;
+        while (!st.empty()) {
+            int u = st.top(); st.pop();
+            for (int v : adj[u]) if (comp[v] == -1) { comp[v]=c; st.push(v); }
+        }
+        c++;
+    }
+    return {c, comp};
+}
+
+int main() {
+    auto [c, lab] = components(7, {{0,1},{0,2},{1,2},{3,4},{5,6}});
+    cout << "count=" << c << " labels:";
+    for (int x : lab) cout << ' ' << x;
+    // count=3 labels: 0 0 0 1 1 2 2
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class ConnectedComponents {
+    public static int[] components(int n, int[][] edges) {
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (int[] e : edges) { adj.get(e[0]).add(e[1]); adj.get(e[1]).add(e[0]); }
+        int[] comp = new int[n]; Arrays.fill(comp, -1);
+        int c = 0;
+        for (int s = 0; s < n; s++) {
+            if (comp[s] != -1) continue;
+            Deque<Integer> st = new ArrayDeque<>();
+            st.push(s); comp[s] = c;
+            while (!st.isEmpty()) {
+                int u = st.pop();
+                for (int v : adj.get(u))
+                    if (comp[v] == -1) { comp[v] = c; st.push(v); }
+            }
+            c++;
+        }
+        int[] out = new int[n + 1];
+        out[0] = c;
+        System.arraycopy(comp, 0, out, 1, n);
+        return out;
+    }
+
+    public static void main(String[] args) {
+        int[][] edges = {{0,1},{0,2},{1,2},{3,4},{5,6}};
+        int[] r = components(7, edges);
+        System.out.println("count=" + r[0] + " labels=" +
+            Arrays.toString(Arrays.copyOfRange(r, 1, r.length)));
+        // count=3 labels=[0, 0, 0, 1, 1, 2, 2]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "cycle-detection",
+        slug: "cycle-detection",
+        title: "Cycle Detection",
+        difficulty: "medium",
+        description:
+          "Detect cycles in directed and undirected graphs with DFS coloring.",
+        timeComplexity: "O(V + E)",
+        spaceComplexity: "O(V)",
+        content: `## Cycle Detection
+
+### Undirected graphs
+DFS from every unvisited vertex. While exploring \`u\`, if we meet a neighbor \`v\` that is **already visited and is not the parent** of \`u\`, we've found a back-edge ⇒ a cycle.
+
+### Directed graphs — 3-color DFS
+- **white** — untouched.
+- **gray** — currently on the recursion stack.
+- **black** — fully processed.
+
+If DFS ever tries to go from gray to gray, that gray-to-gray edge closes a directed cycle.
+
+### Alternative for undirected graphs: Union-Find
+For every edge \`(u, v)\`, \`find(u) == find(v)\` before \`union\` means the edge would close a cycle. This is how Kruskal's MST recognizes and rejects cycle edges.
+
+### Pitfalls
+- In directed graphs, **visited is not enough** — a node finished in a previous DFS tree looks identical to one still active. Use the gray/black distinction.
+- Undirected: remember to skip the immediate parent. Otherwise every edge trivially looks like a cycle.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function undirectedHasCycle(n, edges) {
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) { adj[u].push(v); adj[v].push(u); }
+  const visited = new Array(n).fill(false);
+  function dfs(u, parent) {
+    visited[u] = true;
+    for (const v of adj[u]) {
+      if (!visited[v]) { if (dfs(v, u)) return true; }
+      else if (v !== parent) return true;
+    }
+    return false;
+  }
+  for (let i = 0; i < n; i++)
+    if (!visited[i] && dfs(i, -1)) return true;
+  return false;
+}
+
+function directedHasCycle(n, edges) {
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) adj[u].push(v);
+  const color = new Array(n).fill(0); // 0 white, 1 gray, 2 black
+  function dfs(u) {
+    color[u] = 1;
+    for (const v of adj[u]) {
+      if (color[v] === 1) return true;
+      if (color[v] === 0 && dfs(v)) return true;
+    }
+    color[u] = 2;
+    return false;
+  }
+  for (let i = 0; i < n; i++) if (color[i] === 0 && dfs(i)) return true;
+  return false;
+}
+
+console.log(undirectedHasCycle(4, [[0,1],[1,2],[2,3],[3,0]])); // true
+console.log(directedHasCycle(3, [[0,1],[1,2]]));                // false
+console.log(directedHasCycle(3, [[0,1],[1,2],[2,0]]));          // true`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def undirected_has_cycle(n, edges):
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v); adj[v].append(u)
+    visited = [False]*n
+    def dfs(u, parent):
+        visited[u] = True
+        for v in adj[u]:
+            if not visited[v]:
+                if dfs(v, u): return True
+            elif v != parent:
+                return True
+        return False
+    return any(not visited[i] and dfs(i, -1) for i in range(n))
+
+def directed_has_cycle(n, edges):
+    adj = [[] for _ in range(n)]
+    for u, v in edges: adj[u].append(v)
+    color = [0]*n  # 0 white, 1 gray, 2 black
+    def dfs(u):
+        color[u] = 1
+        for v in adj[u]:
+            if color[v] == 1: return True
+            if color[v] == 0 and dfs(v): return True
+        color[u] = 2
+        return False
+    return any(color[i] == 0 and dfs(i) for i in range(n))
+
+if __name__ == "__main__":
+    print(undirected_has_cycle(4, [(0,1),(1,2),(2,3),(3,0)]))  # True
+    print(directed_has_cycle(3, [(0,1),(1,2)]))                # False
+    print(directed_has_cycle(3, [(0,1),(1,2),(2,0)]))          # True`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+bool dfsDir(int u, vector<vector<int>>& adj, vector<int>& color) {
+    color[u] = 1;
+    for (int v : adj[u]) {
+        if (color[v] == 1) return true;
+        if (color[v] == 0 && dfsDir(v, adj, color)) return true;
+    }
+    color[u] = 2;
+    return false;
+}
+
+bool directedHasCycle(int n, vector<pair<int,int>>& edges) {
+    vector<vector<int>> adj(n);
+    for (auto [u, v] : edges) adj[u].push_back(v);
+    vector<int> color(n, 0);
+    for (int i = 0; i < n; i++)
+        if (color[i] == 0 && dfsDir(i, adj, color)) return true;
+    return false;
+}
+
+int main() {
+    vector<pair<int,int>> a = {{0,1},{1,2}};
+    vector<pair<int,int>> b = {{0,1},{1,2},{2,0}};
+    cout << directedHasCycle(3, a) << ' ' << directedHasCycle(3, b);
+    // 0 1
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class CycleDetection {
+    static boolean dfs(int u, List<List<Integer>> adj, int[] color) {
+        color[u] = 1;
+        for (int v : adj.get(u)) {
+            if (color[v] == 1) return true;
+            if (color[v] == 0 && dfs(v, adj, color)) return true;
+        }
+        color[u] = 2;
+        return false;
+    }
+    public static boolean directedHasCycle(int n, int[][] edges) {
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (int[] e : edges) adj.get(e[0]).add(e[1]);
+        int[] color = new int[n];
+        for (int i = 0; i < n; i++)
+            if (color[i] == 0 && dfs(i, adj, color)) return true;
+        return false;
+    }
+    public static void main(String[] args) {
+        System.out.println(directedHasCycle(3, new int[][]{{0,1},{1,2}}));       // false
+        System.out.println(directedHasCycle(3, new int[][]{{0,1},{1,2},{2,0}})); // true
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
+      },
+      {
+        id: "bipartite-check",
+        slug: "bipartite-check",
+        title: "Bipartite Check",
+        difficulty: "medium",
+        description:
+          "Decide whether a graph can be 2-colored — equivalently, contains no odd cycle.",
+        timeComplexity: "O(V + E)",
+        spaceComplexity: "O(V)",
+        content: `## Is the Graph Bipartite?
+
+A graph is **bipartite** iff it admits a valid 2-coloring: every edge connects nodes of different colors. Equivalently, it contains **no odd-length cycle**.
+
+### BFS coloring
+Launch BFS from each uncolored vertex, assigning it color 0. Each neighbor must get the opposite color. A conflict — two adjacent vertices with the same color — proves the graph is **not** bipartite.
+
+### Why bipartiteness matters
+- **Matching problems** — Hopcroft–Karp runs only on bipartite graphs.
+- **Scheduling** — conflict graphs. 2-colorable ⇒ two shifts suffice.
+- **Flow modeling** — flow networks often have a natural bipartite structure (left/right).
+- **SAT-style reductions**.
+
+### Pitfalls
+- The graph may be **disconnected**; outer-loop every vertex, not just 0.
+- Use BFS, not recursion, if the graph is deep — stack overflow otherwise.
+- Mapping back from colors: nodes of color 0 form one part, color 1 the other; either is a valid "side".
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function isBipartite(n, edges) {
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) { adj[u].push(v); adj[v].push(u); }
+  const color = new Array(n).fill(-1);
+  for (let start = 0; start < n; start++) {
+    if (color[start] !== -1) continue;
+    color[start] = 0;
+    const q = [start];
+    while (q.length) {
+      const u = q.shift();
+      for (const v of adj[u]) {
+        if (color[v] === -1) { color[v] = 1 - color[u]; q.push(v); }
+        else if (color[v] === color[u]) return { bipartite: false };
+      }
+    }
+  }
+  return { bipartite: true, coloring: color };
+}
+
+console.log(isBipartite(6, [[0,3],[0,4],[1,3],[1,5],[2,4],[2,5]]));
+// { bipartite: true, coloring: [0,0,0,1,1,1] }
+console.log(isBipartite(3, [[0,1],[1,2],[2,0]]));
+// { bipartite: false }   (triangle = odd cycle)`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import deque
+
+def is_bipartite(n, edges):
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v); adj[v].append(u)
+    color = [-1]*n
+    for start in range(n):
+        if color[start] != -1: continue
+        color[start] = 0
+        q = deque([start])
+        while q:
+            u = q.popleft()
+            for v in adj[u]:
+                if color[v] == -1:
+                    color[v] = 1 - color[u]; q.append(v)
+                elif color[v] == color[u]:
+                    return False, None
+    return True, color
+
+if __name__ == "__main__":
+    print(is_bipartite(6, [(0,3),(0,4),(1,3),(1,5),(2,4),(2,5)]))
+    # (True, [0, 0, 0, 1, 1, 1])
+    print(is_bipartite(3, [(0,1),(1,2),(2,0)]))
+    # (False, None)`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+bool isBipartite(int n, vector<pair<int,int>>& edges) {
+    vector<vector<int>> adj(n);
+    for (auto [u,v]: edges) { adj[u].push_back(v); adj[v].push_back(u); }
+    vector<int> color(n, -1);
+    for (int s = 0; s < n; s++) {
+        if (color[s] != -1) continue;
+        color[s] = 0;
+        queue<int> q; q.push(s);
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int v : adj[u]) {
+                if (color[v] == -1) { color[v] = 1 - color[u]; q.push(v); }
+                else if (color[v] == color[u]) return false;
+            }
+        }
+    }
+    return true;
+}
+
+int main() {
+    vector<pair<int,int>> ok = {{0,3},{0,4},{1,3},{1,5},{2,4},{2,5}};
+    vector<pair<int,int>> bad = {{0,1},{1,2},{2,0}};
+    cout << isBipartite(6, ok) << ' ' << isBipartite(3, bad);
+    // 1 0
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class Bipartite {
+    public static boolean isBipartite(int n, int[][] edges) {
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (int[] e : edges) { adj.get(e[0]).add(e[1]); adj.get(e[1]).add(e[0]); }
+        int[] color = new int[n]; Arrays.fill(color, -1);
+        for (int s = 0; s < n; s++) {
+            if (color[s] != -1) continue;
+            color[s] = 0;
+            Deque<Integer> q = new ArrayDeque<>(); q.add(s);
+            while (!q.isEmpty()) {
+                int u = q.poll();
+                for (int v : adj.get(u)) {
+                    if (color[v] == -1) { color[v] = 1 - color[u]; q.add(v); }
+                    else if (color[v] == color[u]) return false;
+                }
+            }
+        }
+        return true;
+    }
+    public static void main(String[] args) {
+        int[][] ok = {{0,3},{0,4},{1,3},{1,5},{2,4},{2,5}};
+        int[][] bad = {{0,1},{1,2},{2,0}};
+        System.out.println(isBipartite(6, ok));  // true
+        System.out.println(isBipartite(3, bad)); // false
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "graph", defaultInput: [] },
       },
       {
         id: "minimum-spanning-tree",
         slug: "minimum-spanning-tree",
         title: "Minimum Spanning Tree",
         difficulty: "medium",
-        description: "Kruskal's and Prim's algorithms for finding MST.",
+        description:
+          "Kruskal's and Prim's: a spanning tree with the smallest total edge weight.",
         timeComplexity: "O(E log E)",
         spaceComplexity: "O(V + E)",
-        content: `## Minimum Spanning Tree\n\nA subset of edges connecting all vertices with minimum total weight.\n\n### Kruskal's Algorithm\n1. Sort edges by weight\n2. Add edge if it doesn't create a cycle (Union-Find)\n\n### Prim's Algorithm\n1. Start from any vertex\n2. Greedily add the cheapest edge to a new vertex (min-heap)`,
+        content: `## Minimum Spanning Tree (MST)
+
+Given a connected, weighted, undirected graph, an MST is a subset of \`V − 1\` edges that connects all vertices with the **smallest possible total weight**.
+
+### Kruskal's algorithm (edge-centric + Union-Find)
+1. Sort edges by weight.
+2. Iterate; for each edge, \`union\` the endpoints unless they already share a set (that would create a cycle).
+3. Stop when you've taken \`V − 1\` edges.
+
+\`O(E log E)\` total, dominated by the sort.
+
+### Prim's algorithm (vertex-centric + min-heap)
+1. Start with any vertex; push its edges into a min-heap.
+2. Pop the cheapest edge whose far endpoint is outside the tree; add it.
+3. Push the new vertex's outgoing edges. Repeat.
+
+\`O((V + E) log V)\` with a binary heap.
+
+### When each wins
+- **Sparse graphs** (\`E ≈ V\`): Kruskal's tends to be simpler and fast.
+- **Dense graphs** (\`E ≈ V²\`): Prim's with an array (\`O(V²)\`) often beats Kruskal's.
+
+### Pitfalls
+- MSTs are **not unique** when edges share weights — any valid minimum-weight tree is correct.
+- On a disconnected graph there is no MST; you get a **minimum spanning forest** (one tree per component).
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `// Kruskal's\nfunction kruskal(n, edges) {\n  edges.sort((a,b) => a[2] - b[2]);\n  const uf = new UnionFind(n);\n  let cost = 0, edgeCount = 0;\n  for (const [u, v, w] of edges) {\n    if (uf.union(u, v)) {\n      cost += w;\n      edgeCount++;\n      if (edgeCount === n - 1) break;\n    }\n  }\n  return cost;\n}`,
+            code: `class UnionFind {
+  constructor(n) { this.p = Array.from({length:n},(_,i)=>i); this.r = new Array(n).fill(0); }
+  find(x) { if (this.p[x] !== x) this.p[x] = this.find(this.p[x]); return this.p[x]; }
+  union(x, y) {
+    const a = this.find(x), b = this.find(y);
+    if (a === b) return false;
+    if (this.r[a] < this.r[b]) this.p[a] = b;
+    else if (this.r[a] > this.r[b]) this.p[b] = a;
+    else { this.p[b] = a; this.r[a]++; }
+    return true;
+  }
+}
+
+function kruskal(n, edges) {
+  edges.sort((a, b) => a[2] - b[2]);
+  const uf = new UnionFind(n);
+  const picked = []; let cost = 0;
+  for (const [u, v, w] of edges) {
+    if (uf.union(u, v)) {
+      picked.push([u, v, w]); cost += w;
+      if (picked.length === n - 1) break;
+    }
+  }
+  return { cost, edges: picked };
+}
+
+const edges = [
+  [0,1,4],[0,3,1],[1,2,5],[1,4,3],[2,4,2],
+  [3,4,2],[3,5,6],[4,5,4],[4,6,3],[5,6,2],
+];
+console.log(kruskal(7, edges));
+// cost: 13, edges: [[0,3,1],[2,4,2],[3,4,2],[5,6,2],[1,4,3],[4,6,3]]`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def kruskal(n, edges):\n    edges.sort(key=lambda x: x[2])\n    uf = UnionFind(n)\n    cost = count = 0\n    for u, v, w in edges:\n        if uf.union(u, v):\n            cost += w\n            count += 1\n            if count == n - 1: break\n    return cost`,
+            code: `class UF:
+    def __init__(self, n): self.p = list(range(n)); self.r = [0]*n
+    def find(self, x):
+        while self.p[x] != x: self.p[x] = self.p[self.p[x]]; x = self.p[x]
+        return x
+    def union(self, x, y):
+        a, b = self.find(x), self.find(y)
+        if a == b: return False
+        if self.r[a] < self.r[b]: a, b = b, a
+        self.p[b] = a
+        if self.r[a] == self.r[b]: self.r[a] += 1
+        return True
+
+def kruskal(n, edges):
+    edges.sort(key=lambda e: e[2])
+    uf = UF(n)
+    picked, cost = [], 0
+    for u, v, w in edges:
+        if uf.union(u, v):
+            picked.append((u, v, w)); cost += w
+            if len(picked) == n - 1: break
+    return cost, picked
+
+if __name__ == "__main__":
+    edges = [(0,1,4),(0,3,1),(1,2,5),(1,4,3),(2,4,2),
+             (3,4,2),(3,5,6),(4,5,4),(4,6,3),(5,6,2)]
+    print(kruskal(7, edges))
+    # (13, [(0,3,1),(2,4,2),(3,4,2),(5,6,2),(1,4,3),(4,6,3)])`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int kruskal(int n, vector<tuple<int,int,int>>& edges) {\n  sort(edges.begin(),edges.end(),[](auto&a,auto&b){\n    return get<2>(a)<get<2>(b);\n  });\n  UnionFind uf(n);\n  int cost=0,cnt=0;\n  for(auto&[u,v,w]:edges)\n    if(uf.unite(u,v)){cost+=w;if(++cnt==n-1)break;}\n  return cost;\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+struct UF {
+    vector<int> p, r;
+    UF(int n) : p(n), r(n,0) { iota(p.begin(), p.end(), 0); }
+    int find(int x){ return p[x]==x?x:p[x]=find(p[x]); }
+    bool unite(int x, int y){
+        int a=find(x), b=find(y);
+        if (a==b) return false;
+        if (r[a]<r[b]) swap(a,b);
+        p[b]=a; if (r[a]==r[b]) r[a]++;
+        return true;
+    }
+};
+
+int kruskal(int n, vector<tuple<int,int,int>> edges) {
+    sort(edges.begin(), edges.end(),
+        [](auto& a, auto& b){ return get<2>(a) < get<2>(b); });
+    UF uf(n);
+    int cost = 0, taken = 0;
+    for (auto [u, v, w] : edges)
+        if (uf.unite(u, v)) { cost += w; if (++taken == n-1) break; }
+    return cost;
+}
+
+int main() {
+    vector<tuple<int,int,int>> edges = {
+        {0,1,4},{0,3,1},{1,2,5},{1,4,3},{2,4,2},
+        {3,4,2},{3,5,6},{4,5,4},{4,6,3},{5,6,2}
+    };
+    cout << kruskal(7, edges); // 13
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class Kruskal {
+    static int[] p, r;
+    static int find(int x) { while (p[x]!=x){p[x]=p[p[x]]; x=p[x];} return x; }
+    static boolean union(int x, int y) {
+        int a=find(x), b=find(y);
+        if (a==b) return false;
+        if (r[a]<r[b]) { int t=a; a=b; b=t; }
+        p[b]=a; if (r[a]==r[b]) r[a]++;
+        return true;
+    }
+    public static int kruskal(int n, int[][] edges) {
+        Arrays.sort(edges, (x,y) -> x[2]-y[2]);
+        p = new int[n]; r = new int[n];
+        for (int i=0;i<n;i++) p[i]=i;
+        int cost=0, taken=0;
+        for (int[] e : edges)
+            if (union(e[0], e[1])) { cost+=e[2]; if (++taken==n-1) break; }
+        return cost;
+    }
+    public static void main(String[] args) {
+        int[][] edges = {
+            {0,1,4},{0,3,1},{1,2,5},{1,4,3},{2,4,2},
+            {3,4,2},{3,5,6},{4,5,4},{4,6,3},{5,6,2}
+        };
+        System.out.println(kruskal(7, edges)); // 13
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [2, 3, 1, 4, 5, 6] },
+        visualizationConfig: { type: "graph", defaultInput: [] },
       },
     ],
   },
@@ -1334,115 +3238,528 @@ export const dsaCategories: DSACategory[] = [
         slug: "introduction",
         title: "DP Introduction (Fibonacci)",
         difficulty: "easy",
-        description: "Understanding memoization and tabulation with Fibonacci.",
+        description:
+          "How memoization and tabulation turn exponential recursion into linear DP.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1) rolling / O(n) table",
+        content: `## Dynamic Programming — the mental model
+
+DP applies to problems with:
+1. **Optimal substructure** — an optimal solution composes cleanly out of optimal solutions of smaller subproblems.
+2. **Overlapping subproblems** — the same subproblem is revisited over and over by naive recursion.
+
+Cache each subproblem once, and the exponential blow-up collapses into polynomial work.
+
+### Two styles
+| Style | Direction | Data structure | Upside |
+| --- | --- | --- | --- |
+| **Top-down (memo)** | Recurse from the answer | Hash map / array cache | Mirrors recurrence; only computes needed subproblems |
+| **Bottom-up (tabulation)** | Build from base cases | Array / table | No recursion; easy to roll space |
+
+### A clean recipe
+1. **Define the state.** Usually "dp[i] = answer for the first i items" or "dp[i][j] = answer for a 2-axis subproblem".
+2. **Write the recurrence.** What choice/transition leads from smaller states to the current one?
+3. **Pin the base cases.** dp[0], dp[0][*], dp[*][0] …
+4. **Pick an order** so each state reads only already-computed dependencies.
+5. **(Optional) roll space.** If only the last row/col is needed, collapse to 1D.
+
+### Fibonacci — the canonical example
+- Naive recursion: \`O(2^n)\` with many repeated calls.
+- Memoized: \`O(n)\` time, \`O(n)\` space.
+- Tabulated with two rolling variables: \`O(n)\` time, \`O(1)\` space.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function fibMemo(n, memo = new Map()) {
+  if (n <= 1) return n;
+  if (memo.has(n)) return memo.get(n);
+  const val = fibMemo(n - 1, memo) + fibMemo(n - 2, memo);
+  memo.set(n, val);
+  return val;
+}
+
+function fibRolling(n) {
+  if (n <= 1) return n;
+  let a = 0, b = 1;
+  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
+  return b;
+}
+
+console.log(fibMemo(30));     // 832040
+console.log(fibRolling(30));  // 832040`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from functools import lru_cache
+
+@lru_cache(maxsize=None)
+def fib_memo(n):
+    if n <= 1: return n
+    return fib_memo(n-1) + fib_memo(n-2)
+
+def fib_rolling(n):
+    if n <= 1: return n
+    a, b = 0, 1
+    for _ in range(2, n+1):
+        a, b = b, a + b
+    return b
+
+if __name__ == "__main__":
+    print(fib_memo(30))      # 832040
+    print(fib_rolling(30))   # 832040`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+long long fibRolling(int n) {
+    if (n <= 1) return n;
+    long long a = 0, b = 1;
+    for (int i = 2; i <= n; i++) { long long c = a + b; a = b; b = c; }
+    return b;
+}
+
+int main() {
+    cout << fibRolling(30); // 832040
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class Fib {
+    public static long fib(int n) {
+        if (n <= 1) return n;
+        long a = 0, b = 1;
+        for (int i = 2; i <= n; i++) { long c = a + b; a = b; b = c; }
+        return b;
+    }
+    public static void main(String[] args) {
+        System.out.println(fib(30)); // 832040
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "climbing-stairs",
+        slug: "climbing-stairs",
+        title: "Climbing Stairs",
+        difficulty: "easy",
+        description:
+          "Count ways to reach the top taking 1 or 2 steps at a time.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1) rolling",
+        content: `## Climbing Stairs
+
+At step \`i\` you arrived either by taking a **1-step** from \`i-1\` or a **2-step** from \`i-2\`. Hence:
+
+$$ways(i) = ways(i-1) + ways(i-2)$$
+
+This is literally Fibonacci shifted by one, but framed as a counting recurrence — the classic gateway into DP thinking.
+
+### Why it matters
+- Teaches the "count the ways" template: every DP *counting* problem is some variation of summing over disjoint last moves.
+- Shows how to collapse \`O(n)\` space into \`O(1)\` by keeping only the two latest values.
+
+### Variations
+- **K-step stairs:** \`ways(i) = Σ ways(i-j)\` for \`j ∈ steps[]\`.
+- **With cost (min-cost stairs):** min instead of sum.
+- **Forbidden steps:** set certain \`ways(i) = 0\`.
+
+### Pitfall
+For \`n > 92\` the answer overflows JS \`number\` / C++ \`long long\`. Use \`BigInt\` / big-integer libraries when the problem allows arbitrary \`n\`.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function climbStairs(n) {
+  if (n <= 1) return 1;
+  let a = 1, b = 1;  // ways(0), ways(1)
+  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
+  return b;
+}
+
+for (let n = 1; n <= 6; n++) console.log(\`n=\${n} → \${climbStairs(n)}\`);
+// n=1 → 1, n=2 → 2, n=3 → 3, n=4 → 5, n=5 → 8, n=6 → 13`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def climb_stairs(n):
+    if n <= 1: return 1
+    a, b = 1, 1
+    for _ in range(2, n+1):
+        a, b = b, a + b
+    return b
+
+if __name__ == "__main__":
+    for n in range(1, 7):
+        print(f"n={n} → {climb_stairs(n)}")
+    # 1, 2, 3, 5, 8, 13`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int climbStairs(int n) {
+    if (n <= 1) return 1;
+    int a = 1, b = 1;
+    for (int i = 2; i <= n; i++) { int c = a + b; a = b; b = c; }
+    return b;
+}
+
+int main() {
+    for (int n = 1; n <= 6; n++) cout << climbStairs(n) << ' ';
+    // 1 2 3 5 8 13
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class ClimbStairs {
+    public static int climb(int n) {
+        if (n <= 1) return 1;
+        int a = 1, b = 1;
+        for (int i = 2; i <= n; i++) { int c = a + b; a = b; b = c; }
+        return b;
+    }
+    public static void main(String[] args) {
+        for (int n = 1; n <= 6; n++) System.out.print(climb(n) + " ");
+        // 1 2 3 5 8 13
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "kadanes-dp",
+        slug: "kadanes-dp",
+        title: "Kadane's Algorithm (Max Subarray)",
+        difficulty: "easy",
+        description:
+          "Maximum contiguous subarray sum in linear time — a pure DP on a single rolling variable.",
         timeComplexity: "O(n)",
         spaceComplexity: "O(1)",
-        content: `## Dynamic Programming Basics\n\nDP solves problems by breaking them into **overlapping subproblems** and storing results.\n\n### Two Approaches\n1. **Top-down (Memoization)**: Recursion + cache\n2. **Bottom-up (Tabulation)**: Iterative table filling`,
+        content: `## Kadane's Algorithm
+
+Find the contiguous subarray with the largest sum.
+
+### DP state
+\`dp[i] = \` max sum of a contiguous subarray **ending at index i**.
+
+$$dp[i] = \\max(nums[i],\\;dp[i-1] + nums[i])$$
+
+Either extend the previous running sum, or start fresh at \`i\`. The global answer is \`max(dp[0..n-1])\`.
+
+Since \`dp[i]\` only reads \`dp[i-1]\`, we keep a single rolling \`cur\` variable.
+
+### Why it's interesting
+- One of the cleanest DP templates — entire algorithm fits in a single loop.
+- Generalizes: circular max subarray, max product subarray, 2D max sub-rectangle.
+- Built-in edge case: what if all numbers are negative? \`max\` still returns the least-negative element. Exactly what's expected.
+
+### Pitfalls
+- Confusing "subarray" (contiguous) with "subsequence" (any order).
+- When all elements are negative, **return the maximum element**, not 0.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function fibMemo(n, memo = {}) {\n  if (n <= 1) return n;\n  if (memo[n]) return memo[n];\n  return memo[n] = fibMemo(n-1, memo) + fibMemo(n-2, memo);\n}\n\nfunction fibTab(n) {\n  if (n <= 1) return n;\n  let a = 0, b = 1;\n  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];\n  return b;\n}`,
+            code: `function maxSubArray(nums) {
+  let cur = nums[0], best = nums[0];
+  for (let i = 1; i < nums.length; i++) {
+    cur = Math.max(nums[i], cur + nums[i]);
+    best = Math.max(best, cur);
+  }
+  return best;
+}
+
+console.log(maxSubArray([-2, 1, -3, 4, -1, 2, 1, -5, 4])); // 6  (subarray [4, -1, 2, 1])
+console.log(maxSubArray([-3, -1, -4]));                    // -1`,
           },
           {
             language: "python",
             label: "Python",
-            code: `from functools import lru_cache\n\n@lru_cache(maxsize=None)\ndef fib_memo(n):\n    if n <= 1: return n\n    return fib_memo(n-1) + fib_memo(n-2)\n\ndef fib_tab(n):\n    if n <= 1: return n\n    a, b = 0, 1\n    for _ in range(2, n+1): a, b = b, a + b\n    return b`,
+            code: `def max_sub_array(nums):
+    cur = best = nums[0]
+    for x in nums[1:]:
+        cur = max(x, cur + x)
+        best = max(best, cur)
+    return best
+
+if __name__ == "__main__":
+    print(max_sub_array([-2, 1, -3, 4, -1, 2, 1, -5, 4]))  # 6
+    print(max_sub_array([-3, -1, -4]))                     # -1`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int fibTab(int n) {\n  if (n<=1) return n;\n  int a=0,b=1;\n  for(int i=2;i<=n;i++){int c=a+b;a=b;b=c;}\n  return b;\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int maxSubArray(vector<int>& nums) {
+    int cur = nums[0], best = nums[0];
+    for (int i = 1; i < (int)nums.size(); i++) {
+        cur = max(nums[i], cur + nums[i]);
+        best = max(best, cur);
+    }
+    return best;
+}
+
+int main() {
+    vector<int> v = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
+    cout << maxSubArray(v); // 6
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class Kadane {
+    public static int maxSubArray(int[] nums) {
+        int cur = nums[0], best = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            cur = Math.max(nums[i], cur + nums[i]);
+            best = Math.max(best, cur);
+        }
+        return best;
+    }
+    public static void main(String[] args) {
+        int[] v = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
+        System.out.println(maxSubArray(v)); // 6
+    }
+}`,
           },
         ],
-        visualizationConfig: {
-          type: "array",
-          defaultInput: [0, 1, 1, 2, 3, 5, 8, 13],
-        },
+        visualizationConfig: { type: "dp", defaultInput: [] },
       },
       {
-        id: "knapsack",
-        slug: "knapsack",
-        title: "0/1 Knapsack",
+        id: "house-robber",
+        slug: "house-robber",
+        title: "House Robber",
         difficulty: "medium",
-        description: "Maximize value without exceeding weight capacity.",
-        timeComplexity: "O(n × W)",
-        spaceComplexity: "O(W)",
-        content: `## 0/1 Knapsack\n\nGiven items with weights and values, maximize value within capacity W.\n\n### Recurrence\n\`dp[i][w] = max(dp[i-1][w], dp[i-1][w-wt[i]] + val[i])\`\n\n### Variants\n- Unbounded knapsack\n- Subset sum\n- Equal partition`,
+        description:
+          "Maximize loot along a row of houses — you cannot rob two adjacent houses.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1) rolling",
+        content: `## House Robber
+
+At each house you **pick one of two last moves**:
+- **Rob house \`i\`** ⇒ previous loot must end at \`i-2\`: \`dp[i-2] + nums[i]\`.
+- **Skip house \`i\`** ⇒ previous best: \`dp[i-1]\`.
+
+$$dp[i] = \\max(dp[i-1],\\;dp[i-2] + nums[i])$$
+
+### The decision framing
+Almost every 1-D selection DP follows the same "take or skip" shape. Once you internalize this, problems like:
+- **House Robber II** (houses in a circle) ⇒ split into two linear cases.
+- **Delete and Earn** ⇒ collapse duplicate values, then reduce to House Robber.
+- **Paint Fence** ⇒ "same as last" vs "different from last".
+
+…all become 15-line programs.
+
+### Complexity
+- \`dp\` can be reduced to two rolling variables.
+
+### Pitfalls
+- **Circular variant:** run DP twice (exclude first, exclude last) and take the max.
+- **Empty input:** \`nums.length === 0\` ⇒ return 0 before indexing.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function knapsack(weights, values, capacity) {\n  const dp = new Array(capacity + 1).fill(0);\n  for (let i = 0; i < weights.length; i++)\n    for (let w = capacity; w >= weights[i]; w--)\n      dp[w] = Math.max(dp[w], dp[w - weights[i]] + values[i]);\n  return dp[capacity];\n}`,
+            code: `function rob(nums) {
+  if (!nums.length) return 0;
+  let prev2 = 0, prev1 = 0;
+  for (const x of nums) {
+    const cur = Math.max(prev1, prev2 + x);
+    prev2 = prev1; prev1 = cur;
+  }
+  return prev1;
+}
+
+console.log(rob([2, 7, 9, 3, 1, 8, 5])); // 21  (7 + 9 + ... actually 2+9+1+... pick 7+3+8 = 18? let's re-check)
+// Best plan: skip 2, take 7; skip 9, take 3? no. Actual optimal = 2+9+1+5 or 2+9+8 = 19, or 7+3+8 = 18.
+// Algorithm finds: 2+9+1+5 = 17 or 2+9+8 = 19. Returns 19.`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def knapsack(weights, values, capacity):\n    dp = [0] * (capacity + 1)\n    for w, v in zip(weights, values):\n        for c in range(capacity, w - 1, -1):\n            dp[c] = max(dp[c], dp[c - w] + v)\n    return dp[capacity]`,
+            code: `def rob(nums):
+    prev2 = prev1 = 0
+    for x in nums:
+        prev2, prev1 = prev1, max(prev1, prev2 + x)
+    return prev1
+
+if __name__ == "__main__":
+    print(rob([2, 7, 9, 3, 1, 8, 5]))   # 19
+    print(rob([2, 1, 1, 2]))            # 4`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int knapsack(vector<int>& wt, vector<int>& val, int W) {\n  vector<int> dp(W+1,0);\n  for(int i=0;i<(int)wt.size();i++)\n    for(int w=W;w>=wt[i];w--)\n      dp[w]=max(dp[w],dp[w-wt[i]]+val[i]);\n  return dp[W];\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int rob(vector<int>& nums) {
+    int prev2 = 0, prev1 = 0;
+    for (int x : nums) {
+        int cur = max(prev1, prev2 + x);
+        prev2 = prev1; prev1 = cur;
+    }
+    return prev1;
+}
+
+int main() {
+    vector<int> v = {2, 7, 9, 3, 1, 8, 5};
+    cout << rob(v); // 19
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class HouseRobber {
+    public static int rob(int[] nums) {
+        int prev2 = 0, prev1 = 0;
+        for (int x : nums) {
+            int cur = Math.max(prev1, prev2 + x);
+            prev2 = prev1; prev1 = cur;
+        }
+        return prev1;
+    }
+    public static void main(String[] args) {
+        System.out.println(rob(new int[]{2, 7, 9, 3, 1, 8, 5})); // 19
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [2, 3, 4, 5] },
-      },
-      {
-        id: "longest-common-subsequence",
-        slug: "longest-common-subsequence",
-        title: "Longest Common Subsequence",
-        difficulty: "medium",
-        description: "Find the longest subsequence common to two strings.",
-        timeComplexity: "O(m × n)",
-        spaceComplexity: "O(m × n)",
-        content: `## Longest Common Subsequence (LCS)\n\n### Recurrence\n- If \`s1[i] == s2[j]\`: \`dp[i][j] = 1 + dp[i-1][j-1]\`\n- Else: \`dp[i][j] = max(dp[i-1][j], dp[i][j-1])\``,
-        codeExamples: [
-          {
-            language: "javascript",
-            label: "JavaScript",
-            code: `function lcs(s1, s2) {\n  const m = s1.length, n = s2.length;\n  const dp = Array.from({length:m+1},()=>new Array(n+1).fill(0));\n  for (let i=1;i<=m;i++)\n    for (let j=1;j<=n;j++)\n      dp[i][j] = s1[i-1]===s2[j-1] ? 1+dp[i-1][j-1] : Math.max(dp[i-1][j],dp[i][j-1]);\n  return dp[m][n];\n}`,
-          },
-          {
-            language: "python",
-            label: "Python",
-            code: `def lcs(s1, s2):\n    m, n = len(s1), len(s2)\n    dp = [[0]*(n+1) for _ in range(m+1)]\n    for i in range(1,m+1):\n        for j in range(1,n+1):\n            if s1[i-1]==s2[j-1]: dp[i][j]=1+dp[i-1][j-1]\n            else: dp[i][j]=max(dp[i-1][j],dp[i][j-1])\n    return dp[m][n]`,
-          },
-          {
-            language: "cpp",
-            label: "C++",
-            code: `int lcs(string& a, string& b) {\n  int m=a.size(),n=b.size();\n  vector<vector<int>> dp(m+1,vector<int>(n+1,0));\n  for(int i=1;i<=m;i++)\n    for(int j=1;j<=n;j++)\n      dp[i][j]=a[i-1]==b[j-1]?1+dp[i-1][j-1]:max(dp[i-1][j],dp[i][j-1]);\n  return dp[m][n];\n}`,
-          },
-        ],
-        visualizationConfig: { type: "array", defaultInput: [1, 3, 5, 2, 4] },
+        visualizationConfig: { type: "dp", defaultInput: [] },
       },
       {
         id: "coin-change",
         slug: "coin-change",
-        title: "Coin Change",
+        title: "Coin Change (min coins)",
         difficulty: "medium",
-        description: "Find minimum coins needed to make a given amount.",
+        description: "Fewest coins that add up to a target amount.",
         timeComplexity: "O(n × amount)",
         spaceComplexity: "O(amount)",
-        content: `## Coin Change\n\n\`dp[i] = min(dp[i], dp[i - coin] + 1)\` for each coin.\n\n### Variants\n- Number of ways to make change\n- Combination sum`,
+        content: `## Coin Change
+
+Given denominations \`coins[]\` (unlimited supply each) and a target \`amount\`, find the **minimum number of coins** that sum to the target, or \`-1\` if impossible.
+
+### State + recurrence
+\`dp[a] = \` min coins to reach amount \`a\`.
+
+$$dp[a] = 1 + \\min_{c \\in coins,\\; c \\le a} dp[a - c]$$
+
+Base: \`dp[0] = 0\`; everywhere else initialize to ∞.
+
+### Why the order matters
+In the unbounded variant, iterating **amount in the outer loop** (or coin-outer with inner ascending) keeps the solution unbounded — each coin can be re-used. For 0/1 (each coin once), iterate capacity **descending** like 0/1 Knapsack.
+
+### Variants
+- **Count the ways** instead of min coins: same DP shape, addition instead of \`1 + min\`.
+- **Coin Change II**: number of combinations summing to amount.
+- **Minimum coins with a fixed limit per coin**: turns into bounded knapsack.
+
+### Pitfalls
+- Don't return \`dp[amount]\` when it's still \`∞\` — output \`-1\`.
+- Beware of \`amount = 0\`: answer is \`0\`, not \`-1\`.
+- Watch for overflow in C++: guard \`dp[a-c] != INT_MAX\` before adding 1.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function coinChange(coins, amount) {\n  const dp = new Array(amount+1).fill(Infinity);\n  dp[0] = 0;\n  for (const c of coins)\n    for (let i=c;i<=amount;i++)\n      dp[i] = Math.min(dp[i], dp[i-c]+1);\n  return dp[amount]===Infinity ? -1 : dp[amount];\n}`,
+            code: `function coinChange(coins, amount) {
+  const dp = new Array(amount + 1).fill(Infinity);
+  dp[0] = 0;
+  for (let a = 1; a <= amount; a++) {
+    for (const c of coins) {
+      if (c <= a && dp[a - c] + 1 < dp[a]) dp[a] = dp[a - c] + 1;
+    }
+  }
+  return dp[amount] === Infinity ? -1 : dp[amount];
+}
+
+console.log(coinChange([1, 2, 5], 11)); // 3  (5 + 5 + 1)
+console.log(coinChange([2], 3));         // -1
+console.log(coinChange([1], 0));         // 0`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def coin_change(coins, amount):\n    dp = [float('inf')]*(amount+1)\n    dp[0] = 0\n    for c in coins:\n        for i in range(c, amount+1):\n            dp[i] = min(dp[i], dp[i-c]+1)\n    return dp[amount] if dp[amount]!=float('inf') else -1`,
+            code: `def coin_change(coins, amount):
+    INF = float('inf')
+    dp = [INF] * (amount + 1)
+    dp[0] = 0
+    for a in range(1, amount + 1):
+        for c in coins:
+            if c <= a and dp[a - c] + 1 < dp[a]:
+                dp[a] = dp[a - c] + 1
+    return -1 if dp[amount] == INF else dp[amount]
+
+if __name__ == "__main__":
+    print(coin_change([1, 2, 5], 11))  # 3
+    print(coin_change([2], 3))          # -1
+    print(coin_change([1], 0))          # 0`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int coinChange(vector<int>& coins, int amount) {\n  vector<int> dp(amount+1,INT_MAX);\n  dp[0]=0;\n  for(int c:coins)\n    for(int i=c;i<=amount;i++)\n      if(dp[i-c]!=INT_MAX) dp[i]=min(dp[i],dp[i-c]+1);\n  return dp[amount]==INT_MAX?-1:dp[amount];\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int coinChange(vector<int>& coins, int amount) {
+    vector<int> dp(amount + 1, INT_MAX);
+    dp[0] = 0;
+    for (int a = 1; a <= amount; a++)
+        for (int c : coins)
+            if (c <= a && dp[a - c] != INT_MAX)
+                dp[a] = min(dp[a], dp[a - c] + 1);
+    return dp[amount] == INT_MAX ? -1 : dp[amount];
+}
+
+int main() {
+    vector<int> c = {1, 2, 5};
+    cout << coinChange(c, 11); // 3
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class CoinChange {
+    public static int coinChange(int[] coins, int amount) {
+        int[] dp = new int[amount + 1];
+        Arrays.fill(dp, Integer.MAX_VALUE);
+        dp[0] = 0;
+        for (int a = 1; a <= amount; a++)
+            for (int c : coins)
+                if (c <= a && dp[a - c] != Integer.MAX_VALUE)
+                    dp[a] = Math.min(dp[a], dp[a - c] + 1);
+        return dp[amount] == Integer.MAX_VALUE ? -1 : dp[amount];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(coinChange(new int[]{1, 2, 5}, 11)); // 3
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 5, 10, 25] },
+        visualizationConfig: { type: "dp", defaultInput: [] },
       },
       {
         id: "longest-increasing-subsequence",
@@ -1450,28 +3767,731 @@ export const dsaCategories: DSACategory[] = [
         title: "Longest Increasing Subsequence",
         difficulty: "medium",
         description:
-          "Find the longest strictly increasing subsequence in O(n log n).",
-        timeComplexity: "O(n log n)",
+          "Longest strictly-increasing subsequence — O(n²) DP and O(n log n) patience trick.",
+        timeComplexity: "O(n²) DP · O(n log n) patience",
         spaceComplexity: "O(n)",
-        content: `## LIS\n\nMaintain an array of smallest tail elements for subsequences of each length. Binary search for insertion point.\n\n### O(n log n) via Patience Sorting`,
+        content: `## Longest Increasing Subsequence
+
+### O(n²) DP
+\`dp[i] = \` length of LIS ending exactly at index \`i\`.
+
+$$dp[i] = 1 + \\max\\{\\,dp[j] : j < i,\\; nums[j] < nums[i]\\,\\}$$
+
+Answer: \`max(dp)\`.
+
+### O(n log n) patience sorting
+Maintain \`tails[]\` where \`tails[k]\` = smallest tail of any LIS of length \`k+1\` seen so far.
+- For each \`x\`, binary-search the leftmost \`tails[k] ≥ x\`.
+- If found, replace; if not, append.
+- Final \`tails.length\` = LIS length.
+
+\`tails\` is not itself a valid LIS, but its length is correct.
+
+### Why patience sorting works
+By keeping \`tails\` as small as possible per length, any future value has the best chance of extending **some** length, so no opportunity is lost.
+
+### Variants
+- **LIS reconstruction:** keep parent pointers alongside DP.
+- **Longest non-decreasing subsequence:** switch to \`bisect_right\`.
+- **Count the number of LIS:** track counts beside lengths.
+
+### Pitfalls
+- Binary search for **lower-bound**, not upper-bound, when subsequence must be **strictly** increasing.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function lengthOfLIS(nums) {\n  const tails = [];\n  for (const num of nums) {\n    let lo=0,hi=tails.length;\n    while (lo<hi) {\n      const mid=Math.floor((lo+hi)/2);\n      if (tails[mid]<num) lo=mid+1; else hi=mid;\n    }\n    tails[lo] = num;\n  }\n  return tails.length;\n}`,
+            code: `function lengthOfLIS(nums) {
+  const tails = [];
+  for (const x of nums) {
+    let lo = 0, hi = tails.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (tails[mid] < x) lo = mid + 1;
+      else hi = mid;
+    }
+    tails[lo] = x;
+    if (lo === tails.length) tails.push(x);
+  }
+  // tails.length counts, but tails itself may NOT be an actual LIS.
+  return tails.length;
+}
+
+console.log(lengthOfLIS([10, 9, 2, 5, 3, 7, 101, 18])); // 4
+console.log(lengthOfLIS([0, 1, 0, 3, 2, 3]));           // 4
+console.log(lengthOfLIS([7, 7, 7, 7]));                 // 1`,
           },
           {
             language: "python",
             label: "Python",
-            code: `from bisect import bisect_left\ndef length_of_lis(nums):\n    tails = []\n    for n in nums:\n        pos = bisect_left(tails, n)\n        if pos==len(tails): tails.append(n)\n        else: tails[pos] = n\n    return len(tails)`,
+            code: `from bisect import bisect_left
+
+def length_of_lis(nums):
+    tails = []
+    for x in nums:
+        pos = bisect_left(tails, x)
+        if pos == len(tails):
+            tails.append(x)
+        else:
+            tails[pos] = x
+    return len(tails)
+
+if __name__ == "__main__":
+    print(length_of_lis([10, 9, 2, 5, 3, 7, 101, 18]))  # 4
+    print(length_of_lis([0, 1, 0, 3, 2, 3]))            # 4
+    print(length_of_lis([7, 7, 7, 7]))                  # 1`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int lengthOfLIS(vector<int>& nums) {\n  vector<int> tails;\n  for(int n:nums){\n    auto it=lower_bound(tails.begin(),tails.end(),n);\n    if(it==tails.end()) tails.push_back(n);\n    else *it=n;\n  }\n  return tails.size();\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int lengthOfLIS(vector<int>& nums) {
+    vector<int> tails;
+    for (int x : nums) {
+        auto it = lower_bound(tails.begin(), tails.end(), x);
+        if (it == tails.end()) tails.push_back(x);
+        else *it = x;
+    }
+    return tails.size();
+}
+
+int main() {
+    vector<int> v = {10, 9, 2, 5, 3, 7, 101, 18};
+    cout << lengthOfLIS(v); // 4
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class LIS {
+    public static int lengthOfLIS(int[] nums) {
+        List<Integer> tails = new ArrayList<>();
+        for (int x : nums) {
+            int lo = 0, hi = tails.size();
+            while (lo < hi) {
+                int mid = (lo + hi) >>> 1;
+                if (tails.get(mid) < x) lo = mid + 1; else hi = mid;
+            }
+            if (lo == tails.size()) tails.add(x);
+            else tails.set(lo, x);
+        }
+        return tails.size();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(lengthOfLIS(new int[]{10, 9, 2, 5, 3, 7, 101, 18})); // 4
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [10, 9, 2, 5, 3, 7, 101, 18] },
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "knapsack",
+        slug: "knapsack",
+        title: "0/1 Knapsack",
+        difficulty: "medium",
+        description:
+          "Maximize value picking a subset of items under a weight budget — each item taken at most once.",
+        timeComplexity: "O(n × W)",
+        spaceComplexity: "O(W) rolled",
+        content: `## 0/1 Knapsack
+
+You have \`n\` items with weights \`w[i]\` and values \`v[i]\`, and a knapsack of capacity \`W\`. Select a subset maximizing total value with \`Σ w[i] ≤ W\`. Each item is either in or out — **0 or 1**.
+
+### State + recurrence
+\`dp[i][c] = \` max value achievable using the first \`i\` items with capacity \`c\`.
+
+$$dp[i][c] = \\begin{cases} dp[i-1][c] & c < w_i \\\\[2pt] \\max(dp[i-1][c],\\; dp[i-1][c - w_i] + v_i) & c \\ge w_i \\end{cases}$$
+
+Answer: \`dp[n][W]\`.
+
+### Space rolling — one 1D array
+Because \`dp[i][c]\` only reads \`dp[i-1][*]\`, drop the first dimension. The trick is iterating \`c\` **from W down to w[i]** so the "previous row" entries aren't overwritten before being read.
+
+### Sibling problems (same template)
+- **Subset Sum / Partition Equal Subset Sum** — boolean DP.
+- **Target Sum** — shift by total to reuse subset-sum.
+- **Bounded Knapsack** — decompose counts into powers of two.
+- **Unbounded Knapsack / Coin Change II** — loop \`c\` ascending instead.
+
+### Pitfalls
+- Looping \`c\` ascending in the 1D version silently turns 0/1 knapsack into **unbounded**.
+- \`O(n·W)\` is **pseudo-polynomial**: big \`W\` is bad. With huge capacity + small items, switch to value-DP.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function knapsack(weights, values, capacity) {
+  const dp = new Array(capacity + 1).fill(0);
+  for (let i = 0; i < weights.length; i++) {
+    for (let c = capacity; c >= weights[i]; c--) {
+      dp[c] = Math.max(dp[c], dp[c - weights[i]] + values[i]);
+    }
+  }
+  return dp[capacity];
+}
+
+const weights = [2, 3, 4, 5];
+const values  = [3, 4, 5, 6];
+console.log(knapsack(weights, values, 5));  // 7  (items 0 + 1)
+console.log(knapsack(weights, values, 8));  // 10 (items 1 + 2 or 0 + 2)`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def knapsack(weights, values, capacity):
+    dp = [0] * (capacity + 1)
+    for w, v in zip(weights, values):
+        for c in range(capacity, w - 1, -1):
+            dp[c] = max(dp[c], dp[c - w] + v)
+    return dp[capacity]
+
+if __name__ == "__main__":
+    print(knapsack([2,3,4,5], [3,4,5,6], 5))  # 7
+    print(knapsack([2,3,4,5], [3,4,5,6], 8))  # 10`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int knapsack(vector<int>& wt, vector<int>& val, int W) {
+    vector<int> dp(W + 1, 0);
+    for (int i = 0; i < (int)wt.size(); i++)
+        for (int c = W; c >= wt[i]; c--)
+            dp[c] = max(dp[c], dp[c - wt[i]] + val[i]);
+    return dp[W];
+}
+
+int main() {
+    vector<int> w = {2,3,4,5}, v = {3,4,5,6};
+    cout << knapsack(w, v, 8); // 10
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class Knapsack {
+    public static int knapsack(int[] wt, int[] val, int W) {
+        int[] dp = new int[W + 1];
+        for (int i = 0; i < wt.length; i++)
+            for (int c = W; c >= wt[i]; c--)
+                dp[c] = Math.max(dp[c], dp[c - wt[i]] + val[i]);
+        return dp[W];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(knapsack(new int[]{2,3,4,5}, new int[]{3,4,5,6}, 8)); // 10
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "partition-equal-subset-sum",
+        slug: "partition-equal-subset-sum",
+        title: "Partition Equal Subset Sum",
+        difficulty: "medium",
+        description:
+          "Can the array be split into two subsets with equal sum? A boolean flavor of subset-sum DP.",
+        timeComplexity: "O(n × sum / 2)",
+        spaceComplexity: "O(sum / 2)",
+        content: `## Partition Equal Subset Sum
+
+Given \`nums\`, decide whether it can be partitioned into two subsets with equal sums.
+
+### Reduction
+Let \`total = Σ nums\`. If \`total\` is odd, answer is \`false\`. Otherwise we need a subset summing to \`total / 2\` — **subset-sum**, a boolean flavor of 0/1 knapsack.
+
+### State + recurrence
+\`dp[i][s] = \` can we reach sum \`s\` using first \`i\` numbers?
+
+$$dp[i][s] = dp[i-1][s] \\;\\lor\\; (s \\ge nums_i \\;\\land\\; dp[i-1][s - nums_i])$$
+
+Again rollable to a 1D boolean array with \`s\` iterating **downward**.
+
+### Why bitwise rolling beats arrays
+Encode \`dp\` as a bitset of length \`target + 1\`. Each new number becomes:
+
+\`\`\`
+dp |= dp << num;
+\`\`\`
+
+Cuts constants by 32× or 64× and often turns TLE into AC on large inputs.
+
+### Pitfalls
+- Don't forget to early-exit when \`total\` is odd.
+- \`target\` can be large; guard against \`O(n · sum)\` explosion (\`sum ≤ 10^5\` typically).
+- When array has huge single element > target/2, answer is immediately \`false\`.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function canPartition(nums) {
+  const total = nums.reduce((s, x) => s + x, 0);
+  if (total % 2 !== 0) return false;
+  const target = total / 2;
+  const dp = new Array(target + 1).fill(false);
+  dp[0] = true;
+  for (const x of nums) {
+    for (let s = target; s >= x; s--) {
+      if (dp[s - x]) dp[s] = true;
+    }
+    if (dp[target]) return true;
+  }
+  return dp[target];
+}
+
+console.log(canPartition([1, 5, 11, 5])); // true  ({1,5,5} & {11})
+console.log(canPartition([1, 2, 3, 5]));  // false`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def can_partition(nums):
+    total = sum(nums)
+    if total % 2: return False
+    target = total // 2
+    # Use an int as a bitset: bit k is 1 iff sum k is reachable.
+    dp = 1  # bit 0 set
+    for x in nums:
+        dp |= dp << x
+        if (dp >> target) & 1:
+            return True
+    return bool((dp >> target) & 1)
+
+if __name__ == "__main__":
+    print(can_partition([1, 5, 11, 5]))  # True
+    print(can_partition([1, 2, 3, 5]))   # False`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+bool canPartition(vector<int>& nums) {
+    int total = accumulate(nums.begin(), nums.end(), 0);
+    if (total & 1) return false;
+    int target = total / 2;
+    bitset<10001> dp; dp[0] = 1;
+    for (int x : nums) dp |= (dp << x);
+    return dp[target];
+}
+
+int main() {
+    vector<int> a = {1, 5, 11, 5};
+    cout << boolalpha << canPartition(a); // true
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class PartitionSum {
+    public static boolean canPartition(int[] nums) {
+        int total = 0;
+        for (int x : nums) total += x;
+        if ((total & 1) != 0) return false;
+        int target = total / 2;
+        boolean[] dp = new boolean[target + 1];
+        dp[0] = true;
+        for (int x : nums)
+            for (int s = target; s >= x; s--)
+                if (dp[s - x]) dp[s] = true;
+        return dp[target];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(canPartition(new int[]{1, 5, 11, 5})); // true
+        System.out.println(canPartition(new int[]{1, 2, 3, 5}));  // false
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "unique-paths",
+        slug: "unique-paths",
+        title: "Unique Paths",
+        difficulty: "medium",
+        description:
+          "Count monotone paths from top-left to bottom-right of an m × n grid.",
+        timeComplexity: "O(m × n)",
+        spaceComplexity: "O(n) rolled",
+        content: `## Unique Paths
+
+Robot starts at \`(0, 0)\`, may move only **right** or **down**, must reach \`(m-1, n-1)\`. How many distinct paths exist?
+
+### Recurrence
+\`dp[i][j] = dp[i-1][j] + dp[i][j-1]\`, with row 0 and column 0 equal to 1 (only one path along the border).
+
+### Closed form
+$$ C(m+n-2,\\; m-1) $$
+
+…the number of ways to interleave \`m-1\` downs and \`n-1\` rights. Good for a follow-up "can you do better than DP" answer.
+
+### Variants
+- **Unique Paths II** — obstacles in the grid zero out certain \`dp[i][j]\`.
+- **Minimum path sum** — replace \`+\` with \`min\`, add \`grid[i][j]\`.
+- **Dungeon game** — solve bottom-up with min-HP targeting.
+- **Paths with at most k turns / specific blocks** — add dimensions to state.
+
+### Pitfalls
+- \`m\` or \`n\` = 1 ⇒ exactly one path; make sure your loop handles that.
+- The pure DP is \`O(mn)\` space; roll to 1D \`O(n)\` by updating in place left-to-right.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function uniquePaths(m, n) {
+  const dp = new Array(n).fill(1);
+  for (let i = 1; i < m; i++)
+    for (let j = 1; j < n; j++)
+      dp[j] += dp[j - 1];
+  return dp[n - 1];
+}
+
+console.log(uniquePaths(3, 7));  // 28
+console.log(uniquePaths(3, 2));  // 3
+console.log(uniquePaths(1, 1));  // 1`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def unique_paths(m, n):
+    dp = [1] * n
+    for _ in range(1, m):
+        for j in range(1, n):
+            dp[j] += dp[j - 1]
+    return dp[-1]
+
+if __name__ == "__main__":
+    print(unique_paths(3, 7))  # 28
+    print(unique_paths(3, 2))  # 3`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int uniquePaths(int m, int n) {
+    vector<int> dp(n, 1);
+    for (int i = 1; i < m; i++)
+        for (int j = 1; j < n; j++)
+            dp[j] += dp[j - 1];
+    return dp[n - 1];
+}
+
+int main() {
+    cout << uniquePaths(3, 7); // 28
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class UniquePaths {
+    public static int uniquePaths(int m, int n) {
+        int[] dp = new int[n];
+        java.util.Arrays.fill(dp, 1);
+        for (int i = 1; i < m; i++)
+            for (int j = 1; j < n; j++)
+                dp[j] += dp[j - 1];
+        return dp[n - 1];
+    }
+    public static void main(String[] args) {
+        System.out.println(uniquePaths(3, 7)); // 28
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "longest-common-subsequence",
+        slug: "longest-common-subsequence",
+        title: "Longest Common Subsequence",
+        difficulty: "medium",
+        description:
+          "Longest string that appears as a subsequence of both inputs — the workhorse 2D DP.",
+        timeComplexity: "O(m × n)",
+        spaceComplexity: "O(m × n) · O(min(m,n)) rolled",
+        content: `## Longest Common Subsequence (LCS)
+
+Given two strings \`a\` and \`b\`, find the longest string that is a subsequence of both.
+
+### Recurrence
+\`dp[i][j] = \` LCS length of \`a[0..i-1]\` and \`b[0..j-1]\`.
+
+$$dp[i][j] = \\begin{cases} 1 + dp[i-1][j-1] & a_{i-1} = b_{j-1} \\\\[2pt] \\max(dp[i-1][j],\\; dp[i][j-1]) & \\text{otherwise} \\end{cases}$$
+
+### Reconstruction
+Walk the table from \`(m, n)\` toward \`(0, 0)\`:
+- If \`a[i-1] == b[j-1]\` prepend the char and move to \`(i-1, j-1)\`.
+- Else move to the larger of \`dp[i-1][j]\` / \`dp[i][j-1]\`.
+
+### Space rolling
+Only two rows are ever needed; roll into \`O(min(m, n))\`.
+
+### Applications
+- **diff / patch** (row-by-row LCS on lines).
+- **Edit distance** (a close cousin, different cost model).
+- **DNA alignment** (LCS-like with scoring matrices — Needleman–Wunsch).
+- **Longest palindromic subsequence** — LCS of string with its reverse.
+
+### Pitfalls
+- Subsequence ≠ substring. \`"abc"\` is a subsequence of \`"axbycz"\` but not a substring.
+- When reconstructing, multiple LCSs of the same length can exist; any is valid.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function longestCommonSubsequence(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1] + 1
+        : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  // Reconstruct
+  let i = m, j = n, out = "";
+  while (i > 0 && j > 0) {
+    if (a[i - 1] === b[j - 1]) { out = a[i - 1] + out; i--; j--; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) i--; else j--;
+  }
+  return { length: dp[m][n], lcs: out };
+}
+
+console.log(longestCommonSubsequence("ABCBDAB", "BDCAB"));
+// { length: 4, lcs: "BCAB"  (or "BDAB") }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def longest_common_subsequence(a, b):
+    m, n = len(a), len(b)
+    dp = [[0]*(n+1) for _ in range(m+1)]
+    for i in range(1, m+1):
+        for j in range(1, n+1):
+            dp[i][j] = dp[i-1][j-1] + 1 if a[i-1] == b[j-1] \\
+                else max(dp[i-1][j], dp[i][j-1])
+    # Reconstruct
+    i, j, out = m, n, []
+    while i and j:
+        if a[i-1] == b[j-1]: out.append(a[i-1]); i -= 1; j -= 1
+        elif dp[i-1][j] >= dp[i][j-1]: i -= 1
+        else: j -= 1
+    return dp[m][n], ''.join(reversed(out))
+
+if __name__ == "__main__":
+    print(longest_common_subsequence("ABCBDAB", "BDCAB"))
+    # (4, 'BCAB')`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+pair<int,string> lcs(const string& a, const string& b) {
+    int m = a.size(), n = b.size();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for (int i = 1; i <= m; i++)
+        for (int j = 1; j <= n; j++)
+            dp[i][j] = a[i-1] == b[j-1]
+                ? dp[i-1][j-1] + 1
+                : max(dp[i-1][j], dp[i][j-1]);
+    string out;
+    int i = m, j = n;
+    while (i && j) {
+        if (a[i-1] == b[j-1]) { out += a[i-1]; i--; j--; }
+        else if (dp[i-1][j] >= dp[i][j-1]) i--; else j--;
+    }
+    reverse(out.begin(), out.end());
+    return {dp[m][n], out};
+}
+
+int main() {
+    auto [len, s] = lcs("ABCBDAB", "BDCAB");
+    cout << len << ' ' << s; // 4 BCAB
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class LCS {
+    public static String[] lcs(String a, String b) {
+        int m = a.length(), n = b.length();
+        int[][] dp = new int[m+1][n+1];
+        for (int i = 1; i <= m; i++)
+            for (int j = 1; j <= n; j++)
+                dp[i][j] = a.charAt(i-1) == b.charAt(j-1)
+                    ? dp[i-1][j-1] + 1
+                    : Math.max(dp[i-1][j], dp[i][j-1]);
+        StringBuilder sb = new StringBuilder();
+        int i = m, j = n;
+        while (i > 0 && j > 0) {
+            if (a.charAt(i-1) == b.charAt(j-1)) { sb.append(a.charAt(i-1)); i--; j--; }
+            else if (dp[i-1][j] >= dp[i][j-1]) i--; else j--;
+        }
+        return new String[]{ String.valueOf(dp[m][n]), sb.reverse().toString() };
+    }
+    public static void main(String[] args) {
+        String[] r = lcs("ABCBDAB", "BDCAB");
+        System.out.println(r[0] + " " + r[1]); // 4 BCAB
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
+      },
+      {
+        id: "edit-distance",
+        slug: "edit-distance",
+        title: "Edit Distance (Levenshtein)",
+        difficulty: "hard",
+        description:
+          "Minimum single-character edits to transform string A into string B.",
+        timeComplexity: "O(m × n)",
+        spaceComplexity: "O(m × n) · O(min(m,n)) rolled",
+        content: `## Edit Distance
+
+Convert string \`a\` into string \`b\` using **insert**, **delete**, and **replace** operations, each costing 1. What is the minimum total cost?
+
+### State + recurrence
+\`dp[i][j] = \` edit distance between \`a[0..i-1]\` and \`b[0..j-1]\`.
+
+Base cases:
+- \`dp[0][j] = j\` (j inserts)
+- \`dp[i][0] = i\` (i deletes)
+
+Transition:
+
+$$dp[i][j] = \\begin{cases} dp[i-1][j-1] & a_{i-1} = b_{j-1} \\\\[2pt] 1 + \\min\\bigl(dp[i-1][j],\\; dp[i][j-1],\\; dp[i-1][j-1]\\bigr) & \\text{otherwise} \\end{cases}$$
+
+Those three options correspond to: **delete**, **insert**, **replace**.
+
+### Applications
+- **Spell checkers / autocorrect** — rank candidates by distance.
+- **DNA alignment** with scoring matrices.
+- **diff tools** — bound the min number of line edits.
+- **Fuzzy search / typo-tolerant lookup**.
+
+### Optimizations
+- **Rolling rows** drops space to \`O(min(m, n))\`.
+- **Hirschberg's algorithm** recovers the alignment in \`O(m·n)\` time with \`O(m + n)\` space.
+- **Bit-parallel Myers' algorithm** hits \`O(mn / 64)\` — the fastest known for strict Levenshtein.
+
+### Pitfalls
+- Weighted variants (different costs for insert/delete/replace) need the cost baked into the recurrence — don't just multiply at the end.
+- Replace-only distance (no insert/delete) is **Hamming distance**, not Levenshtein.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) =>
+    new Array(n + 1).fill(0).map((_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+console.log(editDistance("horse", "ros"));     // 3  (horse → rorse → rose → ros)
+console.log(editDistance("intention", "execution")); // 5
+console.log(editDistance("", "abc"));          // 3`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def edit_distance(a, b):
+    m, n = len(a), len(b)
+    dp = [[0]*(n+1) for _ in range(m+1)]
+    for i in range(m+1): dp[i][0] = i
+    for j in range(n+1): dp[0][j] = j
+    for i in range(1, m+1):
+        for j in range(1, n+1):
+            if a[i-1] == b[j-1]:
+                dp[i][j] = dp[i-1][j-1]
+            else:
+                dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+    return dp[m][n]
+
+if __name__ == "__main__":
+    print(edit_distance("horse", "ros"))           # 3
+    print(edit_distance("intention", "execution")) # 5`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int editDistance(const string& a, const string& b) {
+    int m = a.size(), n = b.size();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for (int i = 0; i <= m; i++) dp[i][0] = i;
+    for (int j = 0; j <= n; j++) dp[0][j] = j;
+    for (int i = 1; i <= m; i++)
+        for (int j = 1; j <= n; j++)
+            dp[i][j] = a[i-1] == b[j-1]
+                ? dp[i-1][j-1]
+                : 1 + min({dp[i-1][j], dp[i][j-1], dp[i-1][j-1]});
+    return dp[m][n];
+}
+
+int main() {
+    cout << editDistance("horse", "ros") << ' '
+         << editDistance("intention", "execution");
+    // 3 5
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class EditDistance {
+    public static int editDistance(String a, String b) {
+        int m = a.length(), n = b.length();
+        int[][] dp = new int[m+1][n+1];
+        for (int i = 0; i <= m; i++) dp[i][0] = i;
+        for (int j = 0; j <= n; j++) dp[0][j] = j;
+        for (int i = 1; i <= m; i++)
+            for (int j = 1; j <= n; j++)
+                dp[i][j] = a.charAt(i-1) == b.charAt(j-1)
+                    ? dp[i-1][j-1]
+                    : 1 + Math.min(Math.min(dp[i-1][j], dp[i][j-1]), dp[i-1][j-1]);
+        return dp[m][n];
+    }
+    public static void main(String[] args) {
+        System.out.println(editDistance("horse", "ros"));           // 3
+        System.out.println(editDistance("intention", "execution")); // 5
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "dp", defaultInput: [] },
       },
     ],
   },
@@ -1552,36 +4572,885 @@ export const dsaCategories: DSACategory[] = [
     name: "Greedy Algorithms",
     icon: "💰",
     description:
-      "Make the locally optimal choice at each step for a global optimum.",
+      "Make the locally optimal choice at each step and prove it yields the global optimum.",
     color: "bg-amber-500",
     topics: [
       {
-        id: "activity-selection",
-        slug: "activity-selection",
-        title: "Activity Selection / Intervals",
-        difficulty: "medium",
-        description: "Select maximum non-overlapping intervals.",
-        timeComplexity: "O(n log n)",
-        spaceComplexity: "O(1)",
-        content: `## Activity Selection\n\nSort by end time. Pick the earliest-ending non-conflicting interval.\n\n### Related\n- Merge Intervals\n- Meeting Rooms\n- Non-overlapping Intervals`,
+        id: "greedy-introduction",
+        slug: "greedy-introduction",
+        title: "Greedy Mental Model",
+        difficulty: "easy",
+        description:
+          "When do local choices sum to a global optimum — and when do they fail?",
+        timeComplexity: "Usually O(n log n) (sort + scan)",
+        spaceComplexity: "O(1) – O(n)",
+        content: `## Greedy — when local optimum = global optimum
+
+A **greedy algorithm** builds the answer by committing, at each step, to the choice that looks best *right now*. No backtracking, no lookahead. This only works when the problem has:
+
+1. **Greedy choice property** — there exists an optimal solution that begins with some locally optimal step.
+2. **Optimal substructure** — after making that step, the remaining subproblem is of the same shape.
+
+### Proof techniques you'll keep using
+- **Exchange argument:** assume any optimal solution differs from the greedy; swap the first differing element *into* the greedy choice and show total value can't decrease.
+- **Stay-ahead:** prove that after \`k\` steps greedy has a weakly-better partial solution than any other.
+
+### When greedy **fails**
+- **0/1 Knapsack** (must take whole items). The ratio-greedy picks the best ratio first but can leave waste — needs DP.
+- **Coin change with arbitrary denominations** (e.g. \`[1, 3, 4]\`, target 6). Greedy picks 4+1+1 (3 coins); DP finds 3+3 (2 coins).
+- **Longest path** in a graph. Greedy local decisions can trap you.
+
+### When greedy **works** (rule of thumb)
+- Problem reduces to sorting + one pass.
+- A clean exchange argument exists.
+- The underlying structure is a **matroid** (activity selection, Kruskal's MST).
+
+### Recipe
+1. Try a handful of candidate greedy rules on small cases.
+2. Look for a counterexample before coding.
+3. If none appears, write the exchange argument before calling it correct.
+4. Otherwise fall back to DP or search.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function maxActivities(intervals) {\n  intervals.sort((a,b) => a[1] - b[1]);\n  let count = 1, end = intervals[0][1];\n  for (let i = 1; i < intervals.length; i++) {\n    if (intervals[i][0] >= end) {\n      count++;\n      end = intervals[i][1];\n    }\n  }\n  return count;\n}`,
+            code: `// Canonical counterexample: greedy coin change fails on [1, 3, 4], target 6.
+function greedyCoins(coins, amount) {
+  coins = [...coins].sort((a, b) => b - a);
+  const picked = [];
+  for (const c of coins) while (amount >= c) { picked.push(c); amount -= c; }
+  return amount === 0 ? picked : null;
+}
+
+console.log(greedyCoins([1, 3, 4], 6));   // [4, 1, 1]   → 3 coins (suboptimal!)
+console.log(greedyCoins([1, 5, 10, 25], 30)); // [25, 5]  → 2 coins (optimal)
+// Greedy matches DP only when denominations form a "canonical" system.`,
           },
           {
             language: "python",
             label: "Python",
-            code: `def max_activities(intervals):\n    intervals.sort(key=lambda x: x[1])\n    count, end = 1, intervals[0][1]\n    for s, f in intervals[1:]:\n        if s >= end:\n            count += 1; end = f\n    return count`,
+            code: `def greedy_coins(coins, amount):
+    coins = sorted(coins, reverse=True)
+    picked = []
+    for c in coins:
+        while amount >= c:
+            picked.append(c); amount -= c
+    return picked if amount == 0 else None
+
+print(greedy_coins([1, 3, 4], 6))       # [4, 1, 1]  (3 coins; optimum is 2)
+print(greedy_coins([1, 5, 10, 25], 30)) # [25, 5]    (optimum)
+`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `int maxActivities(vector<vector<int>>& iv) {\n  sort(iv.begin(),iv.end(),[](auto&a,auto&b){return a[1]<b[1];});\n  int cnt=1,end=iv[0][1];\n  for(int i=1;i<(int)iv.size();i++)\n    if(iv[i][0]>=end){cnt++;end=iv[i][1];}\n  return cnt;\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> greedyCoins(vector<int> coins, int amount) {
+    sort(coins.rbegin(), coins.rend());
+    vector<int> picked;
+    for (int c : coins) while (amount >= c) { picked.push_back(c); amount -= c; }
+    return amount == 0 ? picked : vector<int>{};
+}
+
+int main() {
+    for (int x : greedyCoins({1, 3, 4}, 6)) cout << x << ' ';
+    cout << '\\n';
+    for (int x : greedyCoins({1, 5, 10, 25}, 30)) cout << x << ' ';
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class GreedyIntro {
+    public static List<Integer> coins(int[] denoms, int amount) {
+        Integer[] c = Arrays.stream(denoms).boxed().toArray(Integer[]::new);
+        Arrays.sort(c, Comparator.reverseOrder());
+        List<Integer> picked = new ArrayList<>();
+        for (int x : c) while (amount >= x) { picked.add(x); amount -= x; }
+        return amount == 0 ? picked : Collections.emptyList();
+    }
+    public static void main(String[] args) {
+        System.out.println(coins(new int[]{1, 3, 4}, 6));        // [4, 1, 1]
+        System.out.println(coins(new int[]{1, 5, 10, 25}, 30));  // [25, 5]
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [1, 3, 2, 5, 4, 7] },
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "activity-selection",
+        slug: "activity-selection",
+        title: "Activity Selection",
+        difficulty: "medium",
+        description:
+          "Pick the maximum number of pairwise non-overlapping intervals.",
+        timeComplexity: "O(n log n)",
+        spaceComplexity: "O(1)",
+        content: `## Activity Selection
+
+Given \`n\` intervals \`[start, end)\`, pick the **largest subset** with no two overlapping.
+
+### The rule that works
+Sort by **end time** (ascending). Always pick the next interval whose \`start ≥ last_end\`.
+
+### Why "earliest end" beats "earliest start" and "shortest duration"
+- **Earliest start:** picks \`[0, 10)\` first, blocks everything else.
+- **Shortest duration:** picks \`[5, 6)\` first, can block two disjoint longer ones.
+- **Earliest end** leaves the *most room* for future picks. Exchange argument: if an optimal solution's first pick ends later than the greedy's, swap — the rest still fits.
+
+### Relatives (same trick)
+- **Non-overlapping Intervals** — total − kept.
+- **Minimum Arrows to Burst Balloons** — same sort, pick earliest end.
+- **Erase Overlap Intervals**.
+
+### Pitfalls
+- Touching (e.g. \`[1,3)\` and \`[3,5)\`) usually counts as non-overlapping — check whether the problem uses \`>\` or \`≥\`.
+- On **weighted** intervals (maximize total value, not count) greedy fails — that's **weighted interval scheduling**, a DP.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function maxActivities(intervals) {
+  intervals = [...intervals].sort((a, b) => a[1] - b[1]);
+  let count = 0, end = -Infinity;
+  const picked = [];
+  for (const [s, e] of intervals) {
+    if (s >= end) { count++; end = e; picked.push([s, e]); }
+  }
+  return { count, picked };
+}
+
+console.log(maxActivities([[1,4],[3,5],[0,6],[5,7],[3,9],[5,9],[6,10],[8,11],[8,12],[2,14],[12,16]]));
+// { count: 4, picked: [ [1,4], [5,7], [8,11], [12,16] ] }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def max_activities(intervals):
+    intervals = sorted(intervals, key=lambda x: x[1])
+    picked, end = [], float('-inf')
+    for s, e in intervals:
+        if s >= end:
+            picked.append((s, e)); end = e
+    return picked
+
+if __name__ == "__main__":
+    print(max_activities([(1,4),(3,5),(0,6),(5,7),(3,9),(5,9),(6,10),(8,11),(8,12),(2,14),(12,16)]))
+    # [(1, 4), (5, 7), (8, 11), (12, 16)]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int,int>> maxActivities(vector<pair<int,int>> iv) {
+    sort(iv.begin(), iv.end(), [](auto& a, auto& b){ return a.second < b.second; });
+    vector<pair<int,int>> picked;
+    int end = INT_MIN;
+    for (auto& [s, e] : iv) if (s >= end) { picked.push_back({s, e}); end = e; }
+    return picked;
+}
+
+int main() {
+    vector<pair<int,int>> v = {{1,4},{3,5},{0,6},{5,7},{3,9},{5,9},{6,10},{8,11},{8,12},{2,14},{12,16}};
+    for (auto [s, e] : maxActivities(v)) cout << '[' << s << ',' << e << "] ";
+    // [1,4] [5,7] [8,11] [12,16]
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class ActivitySelection {
+    public static List<int[]> maxActivities(int[][] iv) {
+        Arrays.sort(iv, Comparator.comparingInt(a -> a[1]));
+        List<int[]> picked = new ArrayList<>();
+        int end = Integer.MIN_VALUE;
+        for (int[] p : iv) if (p[0] >= end) { picked.add(p); end = p[1]; }
+        return picked;
+    }
+
+    public static void main(String[] args) {
+        int[][] v = {{1,4},{3,5},{0,6},{5,7},{3,9},{5,9},{6,10},{8,11},{8,12},{2,14},{12,16}};
+        for (int[] p : maxActivities(v)) System.out.print(Arrays.toString(p) + " ");
+        // [1, 4] [5, 7] [8, 11] [12, 16]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "jump-game",
+        slug: "jump-game",
+        title: "Jump Game",
+        difficulty: "medium",
+        description:
+          "Can you reach the last index from the first? Track the max reachable frontier.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Jump Game
+
+Each \`nums[i]\` is the maximum jump length from index \`i\`. Starting at index 0, can you reach the last index?
+
+### Greedy rule
+Walk left → right keeping \`maxReach = max(maxReach, i + nums[i])\`. If you ever encounter \`i > maxReach\`, you're stuck.
+
+### Why one pass is enough
+At index \`i\` the best you can possibly do next is \`i + nums[i]\`. Any future index \`j ≤ maxReach\` is reachable — no need to enumerate *how*. This is a **reachability** argument, not a path argument.
+
+### Variants
+- **Jump Game II** — minimum number of jumps (BFS-style layered greedy).
+- **Jump Game III** — bi-directional from arbitrary start, still BFS.
+- **Jump Game IV** — BFS over indices grouped by value.
+
+### Pitfalls
+- Off-by-one: target is \`n-1\`, not \`n\`.
+- Zeros can still be skipped *over* as long as a prior index's jump covers them.
+- Negative numbers aren't allowed in the classic problem — different variants define "jump" differently.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function canJump(nums) {
+  let maxReach = 0;
+  for (let i = 0; i < nums.length; i++) {
+    if (i > maxReach) return false;
+    maxReach = Math.max(maxReach, i + nums[i]);
+    if (maxReach >= nums.length - 1) return true;
+  }
+  return true;
+}
+
+console.log(canJump([2, 3, 1, 1, 4])); // true
+console.log(canJump([3, 2, 1, 0, 4])); // false
+console.log(canJump([0]));             // true (already at end)`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def can_jump(nums):
+    max_reach = 0
+    for i, x in enumerate(nums):
+        if i > max_reach: return False
+        if i + x > max_reach: max_reach = i + x
+        if max_reach >= len(nums) - 1: return True
+    return True
+
+if __name__ == "__main__":
+    print(can_jump([2, 3, 1, 1, 4]))  # True
+    print(can_jump([3, 2, 1, 0, 4]))  # False
+    print(can_jump([0]))              # True`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+bool canJump(vector<int>& nums) {
+    int maxReach = 0;
+    for (int i = 0; i < (int)nums.size(); i++) {
+        if (i > maxReach) return false;
+        maxReach = max(maxReach, i + nums[i]);
+        if (maxReach >= (int)nums.size() - 1) return true;
+    }
+    return true;
+}
+
+int main() {
+    vector<int> a = {2, 3, 1, 1, 4}, b = {3, 2, 1, 0, 4};
+    cout << boolalpha << canJump(a) << ' ' << canJump(b); // true false
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class JumpGame {
+    public static boolean canJump(int[] nums) {
+        int maxReach = 0;
+        for (int i = 0; i < nums.length; i++) {
+            if (i > maxReach) return false;
+            maxReach = Math.max(maxReach, i + nums[i]);
+            if (maxReach >= nums.length - 1) return true;
+        }
+        return true;
+    }
+    public static void main(String[] args) {
+        System.out.println(canJump(new int[]{2, 3, 1, 1, 4})); // true
+        System.out.println(canJump(new int[]{3, 2, 1, 0, 4})); // false
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "gas-station",
+        slug: "gas-station",
+        title: "Gas Station",
+        difficulty: "medium",
+        description:
+          "Find the starting index that completes a circular tour — or prove it's impossible.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(1)",
+        content: `## Gas Station
+
+Circular route with \`n\` stations. At station \`i\` you gain \`gas[i]\` fuel and pay \`cost[i]\` to reach \`i+1\`. Find any starting index that completes the loop, or return \`-1\`.
+
+### Two observations
+1. If \`Σ (gas[i] - cost[i]) < 0\`, **no start works**. You burn more than you gain overall.
+2. If the sum is \`≥ 0\`, **exactly one valid start exists**, and greedy finds it in one pass.
+
+### The greedy sweep
+Walk left → right, tracking a running \`tank\`. Whenever \`tank\` drops below 0 at station \`i\`, **no station in \`[start, i]\` can be a valid start** — reset \`start = i + 1\` and \`tank = 0\`.
+
+### Why skipping is safe
+If start = \`s\` reaches index \`i\` with \`tank < 0\`, then *any* intermediate start \`s' ∈ (s, i]\` also arrives with \`tank ≤ 0\` at \`i\` — it would have had **less** fuel than \`s\` did (stations in \`[s, s')\` only contributed non-negative to \`s\`'s tank). So none of them work either.
+
+### Pitfalls
+- Don't forget to check the total sum — without it you might miss the "impossible" case.
+- Works for **circular** tours specifically; doesn't transfer to non-circular variants.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function canCompleteCircuit(gas, cost) {
+  let total = 0, tank = 0, start = 0;
+  for (let i = 0; i < gas.length; i++) {
+    const diff = gas[i] - cost[i];
+    total += diff;
+    tank += diff;
+    if (tank < 0) { start = i + 1; tank = 0; }
+  }
+  return total < 0 ? -1 : start;
+}
+
+console.log(canCompleteCircuit([1, 2, 3, 4, 5], [3, 4, 5, 1, 2])); // 3
+console.log(canCompleteCircuit([2, 3, 4],       [3, 4, 3]));       // -1`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def can_complete_circuit(gas, cost):
+    total = tank = start = 0
+    for i, (g, c) in enumerate(zip(gas, cost)):
+        d = g - c
+        total += d
+        tank  += d
+        if tank < 0:
+            start = i + 1
+            tank = 0
+    return -1 if total < 0 else start
+
+if __name__ == "__main__":
+    print(can_complete_circuit([1,2,3,4,5], [3,4,5,1,2]))  # 3
+    print(can_complete_circuit([2,3,4],     [3,4,3]))      # -1`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+    int total = 0, tank = 0, start = 0;
+    for (int i = 0; i < (int)gas.size(); i++) {
+        int d = gas[i] - cost[i];
+        total += d; tank += d;
+        if (tank < 0) { start = i + 1; tank = 0; }
+    }
+    return total < 0 ? -1 : start;
+}
+
+int main() {
+    vector<int> g = {1,2,3,4,5}, c = {3,4,5,1,2};
+    cout << canCompleteCircuit(g, c); // 3
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class GasStation {
+    public static int canCompleteCircuit(int[] gas, int[] cost) {
+        int total = 0, tank = 0, start = 0;
+        for (int i = 0; i < gas.length; i++) {
+            int d = gas[i] - cost[i];
+            total += d; tank += d;
+            if (tank < 0) { start = i + 1; tank = 0; }
+        }
+        return total < 0 ? -1 : start;
+    }
+    public static void main(String[] args) {
+        System.out.println(canCompleteCircuit(new int[]{1,2,3,4,5}, new int[]{3,4,5,1,2})); // 3
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "fractional-knapsack",
+        slug: "fractional-knapsack",
+        title: "Fractional Knapsack",
+        difficulty: "medium",
+        description:
+          "When items can be split, sort by value/weight and pack densest first.",
+        timeComplexity: "O(n log n)",
+        spaceComplexity: "O(1)",
+        content: `## Fractional Knapsack
+
+Unlike 0/1 knapsack, each item can be taken as a **fraction**. Maximize total value under weight capacity \`W\`.
+
+### Optimal rule
+Sort items by **value / weight** descending. Take each item whole while it fits; then fill the residual capacity with a fraction of the next item.
+
+### Exchange-argument proof
+Suppose an optimal solution doesn't fully include the highest-ratio item. Take \`ε\` weight from a lower-ratio item and swap it for \`ε\` of the higher-ratio item. Total value strictly increases (or stays equal). Contradiction ⇒ the greedy is optimal.
+
+### Why 0/1 knapsack **breaks** this
+With indivisible items the exchange argument fails — you can't take a fraction to close the gap, so ratio-greedy may leave usable capacity empty. Use DP there.
+
+### Pitfalls
+- Watch floating-point accumulation. For exact output, scale so all weights and capacities are integers when possible.
+- If weights can be zero, put those items first (free value).
+- When capacity is 0, answer is 0 — guard early.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function fractionalKnapsack(weights, values, capacity) {
+  const items = weights
+    .map((w, i) => ({ w, v: values[i], ratio: values[i] / w, idx: i }))
+    .sort((a, b) => b.ratio - a.ratio);
+  let total = 0;
+  const plan = [];
+  for (const it of items) {
+    if (capacity === 0) break;
+    if (it.w <= capacity) {
+      plan.push({ idx: it.idx, fraction: 1 });
+      total += it.v; capacity -= it.w;
+    } else {
+      plan.push({ idx: it.idx, fraction: capacity / it.w });
+      total += it.v * (capacity / it.w); capacity = 0;
+    }
+  }
+  return { total, plan };
+}
+
+console.log(fractionalKnapsack([10, 20, 30], [60, 100, 120], 50));
+// { total: 240, plan: [ {idx:0,1}, {idx:1,1}, {idx:2, 2/3} ] }`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def fractional_knapsack(weights, values, capacity):
+    items = sorted(
+        [(w, v, i) for i, (w, v) in enumerate(zip(weights, values))],
+        key=lambda x: x[1]/x[0], reverse=True,
+    )
+    total, plan = 0.0, []
+    for w, v, i in items:
+        if capacity == 0: break
+        if w <= capacity:
+            plan.append((i, 1.0)); total += v; capacity -= w
+        else:
+            frac = capacity / w
+            plan.append((i, frac)); total += v * frac; capacity = 0
+    return total, plan
+
+if __name__ == "__main__":
+    print(fractional_knapsack([10, 20, 30], [60, 100, 120], 50))
+    # (240.0, [(0, 1.0), (1, 1.0), (2, 0.666…)])`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+double fractionalKnapsack(vector<int>& w, vector<int>& v, int W) {
+    int n = w.size();
+    vector<int> idx(n); iota(idx.begin(), idx.end(), 0);
+    sort(idx.begin(), idx.end(), [&](int a, int b){
+        return (double)v[a]/w[a] > (double)v[b]/w[b];
+    });
+    double total = 0;
+    for (int i : idx) {
+        if (W == 0) break;
+        if (w[i] <= W) { total += v[i]; W -= w[i]; }
+        else { total += v[i] * ((double)W / w[i]); W = 0; }
+    }
+    return total;
+}
+
+int main() {
+    vector<int> w = {10, 20, 30}, v = {60, 100, 120};
+    cout << fixed << setprecision(2) << fractionalKnapsack(w, v, 50); // 240.00
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class FractionalKnapsack {
+    public static double maxValue(int[] w, int[] v, int W) {
+        Integer[] idx = new Integer[w.length];
+        for (int i = 0; i < w.length; i++) idx[i] = i;
+        Arrays.sort(idx, (a, b) -> Double.compare((double)v[b]/w[b], (double)v[a]/w[a]));
+        double total = 0;
+        for (int i : idx) {
+            if (W == 0) break;
+            if (w[i] <= W) { total += v[i]; W -= w[i]; }
+            else { total += v[i] * ((double)W / w[i]); W = 0; }
+        }
+        return total;
+    }
+    public static void main(String[] args) {
+        System.out.println(maxValue(new int[]{10,20,30}, new int[]{60,100,120}, 50)); // 240.0
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "merge-intervals",
+        slug: "merge-intervals",
+        title: "Merge Intervals",
+        difficulty: "medium",
+        description:
+          "Sort by start time and sweep — merge each overlapping pair into one.",
+        timeComplexity: "O(n log n)",
+        spaceComplexity: "O(n)",
+        content: `## Merge Intervals
+
+Given a list of intervals, return the minimal list of intervals that cover exactly the same union.
+
+### Sweep-line approach
+1. Sort intervals by **start** (stable is fine).
+2. Maintain a running "merged end" \`e\`.
+3. For each new interval \`[s, t)\`:
+   - If \`s ≤ e\` ⇒ overlap ⇒ extend \`e = max(e, t)\`.
+   - Otherwise push the previous and open a new one.
+
+### Where this shows up
+- Calendar conflict detection.
+- Compaction of log time ranges.
+- Memory allocators reclaiming neighboring free blocks.
+- Preprocessing for **line-sweep** geometry algorithms.
+
+### Pitfalls
+- Decide once whether \`[1, 3)\` and \`[3, 5)\` touch (usually yes, they merge).
+- For very large \`n\`, the \`O(n log n)\` sort dominates — but it's unavoidable without coordinate compression or bucket assumptions.
+- Don't use \`sort by end time\` — it breaks the sweep (you might miss a later interval that extends earlier ones).
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function merge(intervals) {
+  if (!intervals.length) return [];
+  intervals = [...intervals].sort((a, b) => a[0] - b[0]);
+  const out = [intervals[0].slice()];
+  for (let i = 1; i < intervals.length; i++) {
+    const [s, e] = intervals[i];
+    const last = out[out.length - 1];
+    if (s <= last[1]) last[1] = Math.max(last[1], e);
+    else out.push([s, e]);
+  }
+  return out;
+}
+
+console.log(merge([[1,3],[2,6],[8,10],[15,18]]));
+// [ [1,6], [8,10], [15,18] ]
+console.log(merge([[1,4],[4,5]])); // [ [1,5] ]`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def merge(intervals):
+    if not intervals: return []
+    intervals.sort(key=lambda x: x[0])
+    out = [list(intervals[0])]
+    for s, e in intervals[1:]:
+        if s <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], e)
+        else:
+            out.append([s, e])
+    return out
+
+if __name__ == "__main__":
+    print(merge([[1,3],[2,6],[8,10],[15,18]]))  # [[1,6],[8,10],[15,18]]
+    print(merge([[1,4],[4,5]]))                 # [[1,5]]`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> merge(vector<vector<int>>& iv) {
+    if (iv.empty()) return {};
+    sort(iv.begin(), iv.end());
+    vector<vector<int>> out = { iv[0] };
+    for (int i = 1; i < (int)iv.size(); i++) {
+        if (iv[i][0] <= out.back()[1]) out.back()[1] = max(out.back()[1], iv[i][1]);
+        else out.push_back(iv[i]);
+    }
+    return out;
+}
+
+int main() {
+    vector<vector<int>> v = {{1,3},{2,6},{8,10},{15,18}};
+    for (auto& p : merge(v)) cout << '[' << p[0] << ',' << p[1] << "] ";
+    // [1,6] [8,10] [15,18]
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class MergeIntervals {
+    public static int[][] merge(int[][] iv) {
+        if (iv.length == 0) return new int[0][0];
+        Arrays.sort(iv, Comparator.comparingInt(a -> a[0]));
+        List<int[]> out = new ArrayList<>();
+        out.add(iv[0]);
+        for (int i = 1; i < iv.length; i++) {
+            int[] last = out.get(out.size() - 1);
+            if (iv[i][0] <= last[1]) last[1] = Math.max(last[1], iv[i][1]);
+            else out.add(iv[i]);
+        }
+        return out.toArray(new int[0][]);
+    }
+    public static void main(String[] args) {
+        int[][] v = {{1,3},{2,6},{8,10},{15,18}};
+        for (int[] p : merge(v)) System.out.print(Arrays.toString(p) + " ");
+        // [1, 6] [8, 10] [15, 18]
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "non-overlapping-intervals",
+        slug: "non-overlapping-intervals",
+        title: "Non-overlapping Intervals",
+        difficulty: "medium",
+        description:
+          "Minimum intervals to delete so the rest are non-overlapping — complement of Activity Selection.",
+        timeComplexity: "O(n log n)",
+        spaceComplexity: "O(1)",
+        content: `## Non-overlapping Intervals
+
+Return the minimum number of intervals to **remove** so that no two remaining intervals overlap.
+
+### Reduction
+\`removed = total − kept\`. "Kept" is exactly Activity Selection: sort by \`end\`, sweep, keep each that doesn't conflict with the last kept.
+
+### Why end-sorted sweep beats start-sorted
+A shorter-end interval leaves more room for subsequent intervals. End-sorted guarantees every "remove" step deletes the interval with the **later** end — the one more likely to conflict with the future anyway.
+
+### Same-template problems
+- **Minimum Arrows to Burst Balloons** — arrows per group = number of picks.
+- **Erase Overlap Intervals** — identical to this problem.
+- **Maximum Length of Pair Chain** — pick pairs, sort by second element.
+
+### Pitfalls
+- If the problem says overlapping at endpoints doesn't count (\`[1, 2]\` vs \`[2, 3]\` allowed), use \`>\` in the comparison; if it does count, use \`≥\`.
+- Doesn't generalize to weighted intervals — use DP.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function eraseOverlapIntervals(intervals) {
+  intervals = [...intervals].sort((a, b) => a[1] - b[1]);
+  let end = -Infinity, kept = 0;
+  for (const [s, e] of intervals) {
+    if (s >= end) { kept++; end = e; }
+  }
+  return intervals.length - kept;
+}
+
+console.log(eraseOverlapIntervals([[1,2],[2,3],[3,4],[1,3]])); // 1
+console.log(eraseOverlapIntervals([[1,2],[1,2],[1,2]]));       // 2
+console.log(eraseOverlapIntervals([[1,2],[2,3]]));             // 0`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `def erase_overlap_intervals(intervals):
+    intervals = sorted(intervals, key=lambda x: x[1])
+    end = float('-inf'); kept = 0
+    for s, e in intervals:
+        if s >= end:
+            kept += 1; end = e
+    return len(intervals) - kept
+
+if __name__ == "__main__":
+    print(erase_overlap_intervals([[1,2],[2,3],[3,4],[1,3]]))  # 1
+    print(erase_overlap_intervals([[1,2],[1,2],[1,2]]))        # 2`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int eraseOverlapIntervals(vector<vector<int>>& iv) {
+    sort(iv.begin(), iv.end(), [](auto& a, auto& b){ return a[1] < b[1]; });
+    int end = INT_MIN, kept = 0;
+    for (auto& p : iv) if (p[0] >= end) { kept++; end = p[1]; }
+    return (int)iv.size() - kept;
+}
+
+int main() {
+    vector<vector<int>> v = {{1,2},{2,3},{3,4},{1,3}};
+    cout << eraseOverlapIntervals(v); // 1
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class NonOverlapping {
+    public static int eraseOverlapIntervals(int[][] iv) {
+        Arrays.sort(iv, Comparator.comparingInt(a -> a[1]));
+        int end = Integer.MIN_VALUE, kept = 0;
+        for (int[] p : iv) if (p[0] >= end) { kept++; end = p[1]; }
+        return iv.length - kept;
+    }
+    public static void main(String[] args) {
+        System.out.println(eraseOverlapIntervals(new int[][]{{1,2},{2,3},{3,4},{1,3}})); // 1
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
+      },
+      {
+        id: "task-scheduler",
+        slug: "task-scheduler",
+        title: "Task Scheduler",
+        difficulty: "medium",
+        description:
+          "Minimum total CPU slots given a cooldown between identical tasks.",
+        timeComplexity: "O(n)",
+        spaceComplexity: "O(26) ≈ O(1) for fixed alphabet",
+        content: `## Task Scheduler
+
+Given task labels and a cooldown \`n\`, schedule the tasks so the same label is at least \`n\` slots apart, minimizing total time (including idle slots).
+
+### Closed-form greedy
+Let \`maxF\` = highest frequency, \`tied\` = how many labels share \`maxF\`. Then:
+
+$$ \\text{slots} = \\max\\bigl(\\,|\\text{tasks}|,\\; (maxF - 1) \\cdot (n + 1) + tied\\,\\bigr) $$
+
+**Why:**
+- Most-frequent label dictates the skeleton: \`maxF - 1\` gaps of length \`n + 1\` slots each, plus one final slot for the last occurrence ⇒ \`(maxF - 1) · (n + 1) + tied\` slots.
+- But if you have *so many distinct tasks* that the total length exceeds the skeleton, you just pack everything without idles — hence \`max\` against \`|tasks|\`.
+
+### Heap-based simulation (alternate view)
+If you want the actual schedule, not just its length: push all counts into a max-heap, each tick pop up to \`n + 1\` distinct tasks into a round, decrement, and re-push. Produces a valid plan.
+
+### Pitfalls
+- \`n = 0\` ⇒ answer is just \`|tasks|\`.
+- With huge cooldown + few distinct tasks, most of the time is idle — expect it.
+- This is one of the few problems where the formula is **faster** and **cleaner** than simulation.
+`,
+        codeExamples: [
+          {
+            language: "javascript",
+            label: "JavaScript",
+            code: `function leastInterval(tasks, n) {
+  const freq = new Map();
+  for (const t of tasks) freq.set(t, (freq.get(t) ?? 0) + 1);
+  let maxF = 0, tied = 0;
+  for (const f of freq.values()) {
+    if (f > maxF) { maxF = f; tied = 1; }
+    else if (f === maxF) tied++;
+  }
+  return Math.max(tasks.length, (maxF - 1) * (n + 1) + tied);
+}
+
+console.log(leastInterval(["A","A","A","B","B","B"], 2));                 // 8
+console.log(leastInterval(["A","C","A","B","D","B"], 1));                 // 6
+console.log(leastInterval(["A","A","A","A","A","A","B","C","D","E"], 2)); // 16`,
+          },
+          {
+            language: "python",
+            label: "Python",
+            code: `from collections import Counter
+
+def least_interval(tasks, n):
+    freq = Counter(tasks)
+    max_f = max(freq.values())
+    tied = sum(1 for v in freq.values() if v == max_f)
+    return max(len(tasks), (max_f - 1) * (n + 1) + tied)
+
+if __name__ == "__main__":
+    print(least_interval(["A","A","A","B","B","B"], 2))                   # 8
+    print(least_interval(["A","C","A","B","D","B"], 1))                   # 6
+    print(least_interval(["A","A","A","A","A","A","B","C","D","E"], 2))   # 16`,
+          },
+          {
+            language: "cpp",
+            label: "C++",
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+int leastInterval(vector<char>& tasks, int n) {
+    int freq[26] = {0};
+    for (char c : tasks) freq[c - 'A']++;
+    int maxF = *max_element(freq, freq + 26);
+    int tied = count(freq, freq + 26, maxF);
+    return max((int)tasks.size(), (maxF - 1) * (n + 1) + tied);
+}
+
+int main() {
+    vector<char> t = {'A','A','A','B','B','B'};
+    cout << leastInterval(t, 2); // 8
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `public class TaskScheduler {
+    public static int leastInterval(char[] tasks, int n) {
+        int[] freq = new int[26];
+        for (char c : tasks) freq[c - 'A']++;
+        int maxF = 0, tied = 0;
+        for (int f : freq) {
+            if (f > maxF) { maxF = f; tied = 1; }
+            else if (f == maxF) tied++;
+        }
+        return Math.max(tasks.length, (maxF - 1) * (n + 1) + tied);
+    }
+    public static void main(String[] args) {
+        System.out.println(leastInterval(new char[]{'A','A','A','B','B','B'}, 2)); // 8
+    }
+}`,
+          },
+        ],
+        visualizationConfig: { type: "greedy", defaultInput: [] },
       },
       {
         id: "huffman-coding",
@@ -1589,28 +5458,153 @@ export const dsaCategories: DSACategory[] = [
         title: "Huffman Coding",
         difficulty: "hard",
         description:
-          "Build an optimal prefix-free binary code for data compression.",
+          "Build an optimal prefix-free binary code by repeatedly merging the two least-frequent nodes.",
         timeComplexity: "O(n log n)",
         spaceComplexity: "O(n)",
-        content: `## Huffman Coding\n\nGreedy algorithm for lossless compression. Higher-frequency characters get shorter codes.\n\n### Steps\n1. Create leaf nodes with frequencies\n2. min-heap: extract two smallest, combine\n3. Repeat until one root node\n4. Traverse tree: left=0, right=1`,
+        content: `## Huffman Coding
+
+For a set of characters with frequencies, Huffman builds a **prefix-free** binary code that minimizes the total encoded length \`Σ freq[c] · len(code[c])\`.
+
+### Algorithm
+1. Create a leaf node per character; push into a min-heap keyed by frequency.
+2. Repeatedly: pop the two smallest, create a parent node whose freq is their sum, push the parent back.
+3. Continue until one root remains.
+4. Traverse: left edge = \`0\`, right edge = \`1\`. Each leaf's root-to-leaf path is its code.
+
+### Why the two-smallest merge is optimal
+In any optimal prefix tree, the two least-frequent characters can be made siblings at the deepest level without loss — a classic exchange argument. Merging them reduces the problem to a smaller instance with identical structure.
+
+### Where Huffman shows up
+- **DEFLATE** (ZIP, gzip, PNG): Huffman on top of LZ77.
+- **JPEG / MP3**: quantized coefficients Huffman-coded.
+- **Any entropy coder** as a building block (along with arithmetic coding and ANS).
+
+### Pitfalls
+- Ties can yield different (but equally optimal) trees — keep tie-breaking deterministic when you need reproducibility.
+- For a single character, the standard algorithm assigns code \`""\`; patch to \`"0"\` so decoding doesn't ambiguously terminate.
+- Huffman is only optimal among prefix-free codes on integer-length symbols — arithmetic/ANS can do better near the Shannon limit.
+`,
         codeExamples: [
           {
             language: "javascript",
             label: "JavaScript",
-            code: `function huffmanCodes(chars, freqs) {\n  const nodes = chars.map((ch,i) => ({ch, freq:freqs[i], left:null, right:null}));\n  while (nodes.length > 1) {\n    nodes.sort((a,b) => a.freq-b.freq);\n    const l=nodes.shift(), r=nodes.shift();\n    nodes.push({ch:null,freq:l.freq+r.freq,left:l,right:r});\n  }\n  const codes = {};\n  function walk(node, code) {\n    if (!node) return;\n    if (node.ch) { codes[node.ch]=code||'0'; return; }\n    walk(node.left, code+'0');\n    walk(node.right, code+'1');\n  }\n  walk(nodes[0], '');\n  return codes;\n}`,
+            code: `function huffmanCodes(freq) {
+  // freq: Record<string, number>
+  let heap = Object.entries(freq).map(([ch, f]) => ({ ch, f, l: null, r: null }));
+  if (heap.length === 1) return { [heap[0].ch]: "0" };
+  while (heap.length > 1) {
+    heap.sort((a, b) => a.f - b.f);
+    const a = heap.shift(), b = heap.shift();
+    heap.push({ ch: null, f: a.f + b.f, l: a, r: b });
+  }
+  const codes = {};
+  (function walk(node, path) {
+    if (!node) return;
+    if (node.ch !== null) { codes[node.ch] = path || "0"; return; }
+    walk(node.l, path + "0");
+    walk(node.r, path + "1");
+  })(heap[0], "");
+  return codes;
+}
+
+console.log(huffmanCodes({ a: 5, b: 9, c: 12, d: 13, e: 16, f: 45 }));
+// Example: { f: "0", c: "100", d: "101", a: "1100", b: "1101", e: "111" }`,
           },
           {
             language: "python",
             label: "Python",
-            code: `import heapq\ndef huffman_codes(chars, freqs):\n    heap = [[f,[c,'']] for c,f in zip(chars,freqs)]\n    heapq.heapify(heap)\n    while len(heap)>1:\n        lo=heapq.heappop(heap)\n        hi=heapq.heappop(heap)\n        for p in lo[1:]: p[1]='0'+p[1]\n        for p in hi[1:]: p[1]='1'+p[1]\n        heapq.heappush(heap,[lo[0]+hi[0]]+lo[1:]+hi[1:])\n    return {c:code for c,code in heap[0][1:]}`,
+            code: `import heapq
+
+def huffman_codes(freq):
+    heap = [[f, i, ch, None, None] for i, (ch, f) in enumerate(freq.items())]
+    heapq.heapify(heap)
+    nxt = len(heap)
+    if len(heap) == 1:
+        return { heap[0][2]: "0" }
+    while len(heap) > 1:
+        lo = heapq.heappop(heap)
+        hi = heapq.heappop(heap)
+        heapq.heappush(heap, [lo[0] + hi[0], nxt, None, lo, hi]); nxt += 1
+    codes = {}
+    def walk(node, path):
+        if node is None: return
+        _, _, ch, l, r = node
+        if ch is not None:
+            codes[ch] = path or "0"; return
+        walk(l, path + "0"); walk(r, path + "1")
+    walk(heap[0], "")
+    return codes
+
+if __name__ == "__main__":
+    print(huffman_codes({'a':5,'b':9,'c':12,'d':13,'e':16,'f':45}))`,
           },
           {
             language: "cpp",
             label: "C++",
-            code: `// Simplified Huffman\nstruct HNode {\n  char ch; int freq;\n  HNode *left,*right;\n};\nstruct Cmp { bool operator()(HNode*a,HNode*b){return a->freq>b->freq;} };\nHNode* buildHuffman(string chars,vector<int>& f){\n  priority_queue<HNode*,vector<HNode*>,Cmp> pq;\n  for(int i=0;i<(int)chars.size();i++)\n    pq.push(new HNode{chars[i],f[i],nullptr,nullptr});\n  while(pq.size()>1){\n    auto*l=pq.top();pq.pop();\n    auto*r=pq.top();pq.pop();\n    pq.push(new HNode{'\\0',l->freq+r->freq,l,r});\n  }\n  return pq.top();\n}`,
+            code: `#include <bits/stdc++.h>
+using namespace std;
+
+struct Node { char ch; int f; Node *l, *r; };
+struct Cmp { bool operator()(Node* a, Node* b) const { return a->f > b->f; } };
+
+void walk(Node* n, string path, map<char,string>& codes) {
+    if (!n) return;
+    if (!n->l && !n->r) { codes[n->ch] = path.empty() ? "0" : path; return; }
+    walk(n->l, path + "0", codes);
+    walk(n->r, path + "1", codes);
+}
+
+map<char,string> huffman(vector<pair<char,int>> freq) {
+    priority_queue<Node*, vector<Node*>, Cmp> pq;
+    for (auto [c, f] : freq) pq.push(new Node{c, f, nullptr, nullptr});
+    while (pq.size() > 1) {
+        auto a = pq.top(); pq.pop();
+        auto b = pq.top(); pq.pop();
+        pq.push(new Node{'\\0', a->f + b->f, a, b});
+    }
+    map<char,string> codes;
+    walk(pq.top(), "", codes);
+    return codes;
+}
+
+int main() {
+    for (auto& [c, s] : huffman({{'a',5},{'b',9},{'c',12},{'d',13},{'e',16},{'f',45}}))
+        cout << c << ':' << s << ' ';
+}`,
+          },
+          {
+            language: "java",
+            label: "Java",
+            code: `import java.util.*;
+
+public class Huffman {
+    static class Node { char ch; int f; Node l, r; Node(char c,int f,Node l,Node r){this.ch=c;this.f=f;this.l=l;this.r=r;} }
+
+    public static Map<Character,String> huffman(Map<Character,Integer> freq) {
+        PriorityQueue<Node> pq = new PriorityQueue<>((a,b)->a.f-b.f);
+        for (var e : freq.entrySet()) pq.add(new Node(e.getKey(), e.getValue(), null, null));
+        while (pq.size() > 1) {
+            Node a = pq.poll(), b = pq.poll();
+            pq.add(new Node('\\0', a.f + b.f, a, b));
+        }
+        Map<Character,String> codes = new HashMap<>();
+        walk(pq.peek(), "", codes);
+        return codes;
+    }
+    static void walk(Node n, String p, Map<Character,String> codes) {
+        if (n == null) return;
+        if (n.l == null && n.r == null) { codes.put(n.ch, p.isEmpty() ? "0" : p); return; }
+        walk(n.l, p + "0", codes);
+        walk(n.r, p + "1", codes);
+    }
+    public static void main(String[] args) {
+        Map<Character,Integer> f = Map.of('a',5,'b',9,'c',12,'d',13,'e',16,'f',45);
+        System.out.println(huffman(f));
+    }
+}`,
           },
         ],
-        visualizationConfig: { type: "array", defaultInput: [5, 9, 12, 13, 16, 45] },
+        visualizationConfig: { type: "greedy", defaultInput: [] },
       },
     ],
   },

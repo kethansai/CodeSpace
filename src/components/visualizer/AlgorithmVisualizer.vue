@@ -5,6 +5,8 @@ import LinkedListVisualizer from "./LinkedListVisualizer.vue";
 import TreeVisualizer from "./TreeVisualizer.vue";
 import GraphVisualizer from "./GraphVisualizer.vue";
 import StackQueueVisualizer from "./StackQueueVisualizer.vue";
+import DPVisualizer from "./DPVisualizer.vue";
+import GreedyVisualizer from "./GreedyVisualizer.vue";
 
 defineProps<{
   mode: string;
@@ -41,6 +43,16 @@ defineProps<{
     :data="data"
     :currentStep="currentStep"
     :variant="variant === 'queue' ? 'queue' : 'stack'"
+  />
+  <DPVisualizer
+    v-else-if="mode === 'dp'"
+    :data="data"
+    :currentStep="currentStep"
+  />
+  <GreedyVisualizer
+    v-else-if="mode === 'greedy'"
+    :data="data"
+    :currentStep="currentStep"
   />
   <SortingVisualizer v-else :data="data" :currentStep="currentStep" />
 </template>

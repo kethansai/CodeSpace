@@ -1,28 +1,22 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { getCompanyBySlug } from '@/data/interviews'
-import MarkdownRenderer from '@/components/content/MarkdownRenderer.vue'
-import DifficultyBadge from '@/components/content/DifficultyBadge.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Badge from '@/components/ui/Badge.vue'
-import Button from '@/components/ui/Button.vue'
-import { ArrowLeft, ChevronDown, ChevronUp, Building2 } from 'lucide-vue-next'
+import { ArrowLeft, Building2, ArrowRight, Users } from 'lucide-vue-next'
 
 const route = useRoute()
 const company = computed(() => getCompanyBySlug(route.params.company as string))
-
-const expandedQuestion = ref<string | null>(null)
-
-function toggleQuestion(id: string) {
-  expandedQuestion.value = expandedQuestion.value === id ? null : id
-}
 </script>
 
 <template>
-  <div class="container mx-auto max-w-4xl px-4 py-8 md:py-12">
-    <RouterLink to="/interviews" class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+  <div class="container mx-auto max-w-5xl px-4 py-8 md:py-12">
+    <RouterLink
+      to="/interviews"
+      class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+    >
       <ArrowLeft class="w-4 h-4" />
       All Companies
     </RouterLink>
@@ -33,7 +27,14 @@ function toggleQuestion(id: string) {
           <span class="text-4xl">{{ company.logo }}</span>
           <div>
             <h1 class="text-3xl font-bold">{{ company.name }}</h1>
-            <Badge variant="secondary" class="mt-1">{{ company.questions.length }} questions</Badge>
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              <Badge v-if="company.roles?.length" variant="secondary">
+                {{ company.roles.length }} roles
+              </Badge>
+              <Badge variant="outline">
+                {{ company.questions.length }} sample questions
+              </Badge>
+            </div>
           </div>
         </div>
         <p class="text-muted-foreground text-lg mt-2">{{ company.description }}</p>
@@ -46,45 +47,61 @@ function toggleQuestion(id: string) {
         </Card>
       </div>
 
-      <div class="space-y-3">
-        <Card
-          v-for="question in company.questions"
-          :key="question.id"
-          class="overflow-hidden"
-        >
-          <div
-            class="p-4 cursor-pointer hover:bg-muted/30 transition-colors flex items-start justify-between gap-4"
-            @click="toggleQuestion(question.id)"
-          >
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-1">
-                <Badge variant="outline" class="text-xs">{{ question.category }}</Badge>
-                <DifficultyBadge :difficulty="question.difficulty" />
-              </div>
-              <h3 class="font-semibold">{{ question.question }}</h3>
-            </div>
-            <component
-              :is="expandedQuestion === question.id ? ChevronUp : ChevronDown"
-              class="w-5 h-5 text-muted-foreground shrink-0 mt-0.5"
-            />
-          </div>
+      <template v-if="company.roles?.length">
+        <div class="flex items-center gap-2 mb-4">
+          <Users class="w-5 h-5 text-muted-foreground" />
+          <h2 class="text-xl font-semibold">Select a role</h2>
+        </div>
+        <p class="text-sm text-muted-foreground mb-6">
+          Each role has its own interview loop with multiple rounds. Click a role to see the rounds, topics, and sample questions with answers.
+        </p>
 
-          <Transition
-            enter-active-class="transition-all duration-200"
-            enter-from-class="opacity-0 max-h-0"
-            enter-to-class="opacity-100 max-h-[2000px]"
-            leave-active-class="transition-all duration-200"
-            leave-from-class="opacity-100 max-h-[2000px]"
-            leave-to-class="opacity-0 max-h-0"
+        <div class="grid gap-4 sm:grid-cols-2">
+          <RouterLink
+            v-for="role in company.roles"
+            :key="role.id"
+            :to="`/interviews/${company.slug}/${role.slug}`"
+            class="group"
           >
-            <div v-if="expandedQuestion === question.id" class="px-4 pb-4 border-t border-border">
-              <div class="prose-content mt-4">
-                <MarkdownRenderer :content="question.answer" />
-              </div>
-            </div>
-          </Transition>
+            <Card class="h-full transition-all hover:shadow-md hover:border-primary/40">
+              <CardContent class="p-5">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <h3 class="font-semibold text-lg">{{ role.title }}</h3>
+                    <p v-if="role.level" class="text-xs text-muted-foreground mt-0.5">
+                      {{ role.level }}
+                    </p>
+                  </div>
+                  <ArrowRight class="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                </div>
+                <p class="text-sm text-muted-foreground mb-3 line-clamp-2">
+                  {{ role.description }}
+                </p>
+                <div class="flex flex-wrap gap-1.5 mb-3">
+                  <Badge
+                    v-for="f in role.focus.slice(0, 4)"
+                    :key="f"
+                    variant="outline"
+                    class="text-xs font-normal"
+                  >
+                    {{ f }}
+                  </Badge>
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{ role.rounds.length }} rounds ·
+                  {{ role.rounds.reduce((n, r) => n + r.questions.length, 0) }} questions
+                </div>
+              </CardContent>
+            </Card>
+          </RouterLink>
+        </div>
+      </template>
+
+      <template v-else>
+        <Card class="p-6 text-center text-muted-foreground">
+          No roles configured for this company yet.
         </Card>
-      </div>
+      </template>
     </template>
 
     <div v-else class="text-center py-20">
